@@ -5,6 +5,7 @@ import { Requester } from '../../services/requestService/Requester';
 import { EN_REQUEST_RESULT } from '../../services/requestService/requesters/AxiosRequester';
 import { IJSONSchemaType } from '../common/IJSONSchemaType';
 import { ITimeRecordLogData } from './interface/ITimeRecordLogData';
+import { ITimeRecords } from './interface/ITimeRecords';
 import { TimeRecordRecordsRequestsParam } from './interface/TimeRecordRecordsRequestsParam';
 import { TimeRecordRequestBuilder } from './TimeRecordRequestBuilder';
 
@@ -16,12 +17,12 @@ export class TimeRecord {
   public async findAll(
     params: TimeRecordRecordsRequestsParam,
     schema: IJSONSchemaType,
-  ): Promise<Array<{ [key: string]: { [key: string]: ITimeRecordLogData } }>> {
+  ): Promise<ITimeRecords> {
     log(params);
     const validParam = Requester.validateParam(params, schema);
     log('validParam: ', validParam);
     if (validParam === false) {
-      return [];
+      return { type: EN_REQUEST_RESULT.ERROR, data: [] };
     }
     const query = this.rb.createGetUserRecordsQuery({
       method: 'GET',
@@ -38,8 +39,8 @@ export class TimeRecord {
 
     const result = await response;
     if (result.type === EN_REQUEST_RESULT.ERROR) {
-      return [];
+      return { type: EN_REQUEST_RESULT.ERROR, data: [] };
     }
-    return result.payload;
+    return { type: EN_REQUEST_RESULT.SUCCESS, data: result.payload };
   }
 }

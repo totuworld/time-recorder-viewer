@@ -4,6 +4,13 @@ import { render } from '@jaredpalmer/after';
 
 import { Config } from './config/Config';
 import routes from './routes';
+import { TimeRecordRoute } from './server/routes/TimeRecordRoute';
+
+function routeList() {
+  const router = express.Router();
+  router.use(TimeRecordRoute.bootstrap().router);
+  return router;
+}
 
 let assets: any;
 
@@ -19,6 +26,9 @@ server.use((req, _, next) => {
   req['config'] = Config; // tslint:disable-line
   next();
 });
+const getRouteList = routeList();
+
+server.use(getRouteList);
 server.get('/*', async (req, res) => {
   try {
     const html = await render({

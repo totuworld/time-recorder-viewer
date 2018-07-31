@@ -19,7 +19,8 @@
     "strict": true,
     "pretty": true,
     "suppressImplicitAnyIndexErrors": true,
-    "target": "es2016"
+    "target": "es2016",
+    "experimentalDecorators": true
   },
   "exclude": [
     "node_modules",
