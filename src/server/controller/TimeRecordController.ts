@@ -34,7 +34,7 @@ export class TimeRecordController {
 
     return {
       status: actionResp.type === EN_REQUEST_RESULT.ERROR ? 400 : 200,
-      payload: actionResp,
+      payload: actionResp.data,
     };
   }
 }
