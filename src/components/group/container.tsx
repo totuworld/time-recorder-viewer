@@ -192,6 +192,7 @@ export default class GroupContainer extends React.Component<IGroupContainerProps
         <tr
           key={mv.id}
           onClick={() => { this.handleClickRow(mv.id); }}
+          style={{cursor: 'pointer'}}
         >
           <td className="text-center">
             <GroupUserAvatar
@@ -250,6 +251,7 @@ export default class GroupContainer extends React.Component<IGroupContainerProps
               <Table
                 responsive={true}
                 className="d-sm-table"
+                hover={true}
               >
                 <thead className="thead-light">
                   <tr>
