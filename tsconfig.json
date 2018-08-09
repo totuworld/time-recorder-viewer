@@ -10,7 +10,7 @@
     "lib": ["es6", "es2015", "es2017", "dom"],
     "module": "esnext",
     "moduleResolution": "node",
-    "noImplicitAny": true,
+    "noImplicitAny": false,
     "noImplicitReturns": true,
     "noImplicitThis": true,
     "noUnusedLocals": false,
@@ -24,12 +24,16 @@
   },
   "exclude": [
     "node_modules",
+    ".npmrc",
+    ".ebextensions",
     "build",
+    "dist",
     "scripts",
     "acceptance-tests",
     "webpack",
     "jest",
-    "razzle.config.js"
+    "razzle.config.js",
+    "dist.js"
   ],
   "types": ["typePatches", "node", "webpack-env"]
 }

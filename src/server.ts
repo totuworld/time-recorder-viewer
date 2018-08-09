@@ -1,14 +1,19 @@
 import * as express from 'express';
+import * as isDocker from 'is-docker';
+import * as path from 'path';
 
 import { render } from '@jaredpalmer/after';
 
 import { Config } from './config/Config';
 import routes from './routes';
 import { TimeRecordRoute } from './server/routes/TimeRecordRoute';
+import { UserRoute } from './server/routes/UserRoute';
 
 function routeList() {
   const router = express.Router();
+  router.get('/health', (_, res) => { res.send({result: true}); });
   router.use(TimeRecordRoute.bootstrap().router);
+  router.use(UserRoute.bootstrap().router);
   return router;
 }
 
@@ -19,9 +24,11 @@ const syncLoadAssets = () => {
 };
 syncLoadAssets();
 
+const staticPath = !isDocker() ? process.env.RAZZLE_PUBLIC_DIR! : path.join(__dirname, '../build/public');
+
 const server = express();
 server.disable('x-powered-by');
-server.use(express.static(process.env.RAZZLE_PUBLIC_DIR!));
+server.use(express.static(staticPath));
 server.use((req, _, next) => {
   req['config'] = Config; // tslint:disable-line
   next();

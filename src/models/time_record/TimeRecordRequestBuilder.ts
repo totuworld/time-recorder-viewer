@@ -44,7 +44,7 @@ export class TimeRecordRequestBuilder extends RequestBuilder {
       headers: {
         ...this.AccessTokenObject
       },
-      timeout: 5000,
+      timeout: 10000,
       url: endPoint,
     };
   }

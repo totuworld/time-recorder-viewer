@@ -1,7 +1,6 @@
 import React from 'react';
 
 import { asyncComponent } from '@jaredpalmer/after';
-import RecordContainer from './components/record/container';
 
 export default [
   {
@@ -25,6 +24,13 @@ export default [
     exact: true,
     component: asyncComponent({
       loader: () => import('./components/record/container')
+    })
+  },
+  {
+    path: '/groups/:group_id',
+    exact: true,
+    component: asyncComponent({
+      loader: () => import('./components/group/container')
     })
   }
 ];

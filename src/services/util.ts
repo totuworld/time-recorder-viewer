@@ -62,7 +62,6 @@ export class Util {
         }
       }
     });
-    console.log(updateObj);
     return updateObj;
   }
 

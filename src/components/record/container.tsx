@@ -1,33 +1,42 @@
 import '@blueprintjs/core/lib/css/blueprint.css';
 import '@blueprintjs/datetime/lib/css/blueprint-datetime.css';
 import '@blueprintjs/icons/lib/css/blueprint-icons.css';
+import 'react-dates/initialize';
+import 'react-dates/lib/css/_datepicker.css';
 // import 'normalize.css/normalize.css';
 import '../../styles/style.css';
 
 import debug from 'debug';
-import * as luxon from 'luxon';
 import { observer } from 'mobx-react';
-import * as moment from 'moment';
+import moment from 'moment';
 import React from 'react';
+import { DateRangePicker } from 'react-dates';
+import { Helmet } from 'react-helmet';
 import {
-  Card, CardBody, CardFooter, CardTitle, Col, Container, Row
+    Button, Card, CardBody, CardFooter, CardHeader, Col, Container, Row, Table
 } from 'reactstrap';
 
-import { DateRange, DateRangeInput } from '@blueprintjs/datetime';
+import { DateRange } from '@blueprintjs/datetime';
 
-import { EN_WORK_TYPE } from '../../models/time_record/interface/EN_WORK_TYPE';
+import { EN_WORK_TITLE_KR } from '../../models/time_record/interface/EN_WORK_TYPE';
 import { ITimeRecordLogData } from '../../models/time_record/interface/ITimeRecordLogData';
 import {
     GetTimeRecordsJSONSchema
 } from '../../models/time_record/JSONSchema/GetTimeRecordsJSONSchema';
 import { TimeRecord } from '../../models/time_record/TimeRecord';
 import { TimeRecordRequestBuilder } from '../../models/time_record/TimeRecordRequestBuilder';
+import { IUserInfo } from '../../models/user/interface/IUserInfo';
+import { GetUserInfoJSONSchema } from '../../models/user/JSONSchema/GetUserInfoJSONSchema';
+import { User } from '../../models/user/User';
+import { UserRequestBuilder } from '../../models/user/UserRequestBuilder';
 import { RequestBuilderParams } from '../../services/requestService/RequestBuilder';
 import { EN_REQUEST_RESULT } from '../../services/requestService/requesters/AxiosRequester';
 import { Util } from '../../services/util';
 import TimeRecordStore from '../../stores/TimeRecordStore';
 import ChartBarStacked from '../chart/bar/Stacked';
 import ChartBarStacked2, { IChartBarStacked2Props } from '../chart/bar/Stacked2';
+import ChartPieDonut from '../chart/pie/donut';
+import GroupUserAvatar from '../group/user/avatar';
 import { IAfterRequestContext } from '../interface/IAfterRequestContext';
 
 const log = debug('trv:recordContainer');
@@ -44,14 +53,17 @@ const bgColor = [
 
 interface IRecordContainerProps {
   userId: string;
+  userInfo: IUserInfo | null;
   records: Array<{ [key: string]: { [key: string]: ITimeRecordLogData } }>;
   initialStartDate: string;
   initialEndDate: string;
 }
 
-interface IRecordContainerStates {
+export interface IRecordContainerStates {
   startDate: Date;
   endDate: Date;
+  focusedInput: 'startDate' | 'endDate' | null;
+  backupDate: { start: Date | null, end: Date | null };
 }
 
 @observer
@@ -91,9 +103,21 @@ class RecordContainer extends React.Component<IRecordContainerProps, IRecordCont
       checkParams,
       GetTimeRecordsJSONSchema,
     );
+    let userInfo: IUserInfo | null = null;
+    if (actionResp.type === EN_REQUEST_RESULT.SUCCESS) {
+      const userRb = new UserRequestBuilder(rbParam);
+      const userAction = new User(userRb);
+      const userInfoResp = await userAction.find(
+        {query: { userId: match.params.user_id }},
+        GetUserInfoJSONSchema);
+      if (userInfoResp.type === EN_REQUEST_RESULT.SUCCESS) {
+        userInfo = userInfoResp.data;
+      }
+    }
     
     return {
       userId: match.params.user_id,
+      userInfo,
       records: actionResp.type === EN_REQUEST_RESULT.SUCCESS ? actionResp.data : [],
       initialStartDate: startDate,
       initialEndDate: endDate,
@@ -106,13 +130,19 @@ class RecordContainer extends React.Component<IRecordContainerProps, IRecordCont
     this.state = {
       startDate: moment(props.initialStartDate).toDate(),
       endDate: moment(props.initialEndDate).toDate(),
+      focusedInput: null,
+      backupDate: { start: null, end: null }
     };
 
     this.onDatesChange = this.onDatesChange.bind(this);
+    this.onDatesChangeForDRP = this.onDatesChangeForDRP.bind(this);
     this.handleClosePopover = this.handleClosePopover.bind(this);
-    this.handleOnClickChartBar = this.handleOnClickChartBar.bind(this);
+    this.getAvatar = this.getAvatar.bind(this);
+    this.onClickBar = this.onClickBar.bind(this);
     this.getMultipleDayElement = this.getMultipleDayElement.bind(this);
     this.getSingleDayElement = this.getSingleDayElement.bind(this);
+    this.getWorkTime = this.getWorkTime.bind(this);
+    this.gobackList = this.gobackList.bind(this);
     this.store = new TimeRecordStore(props.records);
   }
 
@@ -129,6 +159,21 @@ class RecordContainer extends React.Component<IRecordContainerProps, IRecordCont
     this.setState(updateObj);
   }
 
+  public onDatesChangeForDRP({ startDate, endDate }: {
+    startDate: moment.Moment | null, endDate: moment.Moment | null}) {
+    const updateObj = {
+      ...this.state,
+    };
+    if (!!startDate) {
+      updateObj['startDate'] = startDate.toDate();
+      updateObj.focusedInput = 'endDate';
+    }
+    if (!!endDate) {
+      updateObj['endDate'] = endDate.toDate();
+    }
+    this.setState(updateObj);
+  }
+
   public async handleClosePopover() {
     if (this.store.isIdle === true) {
       await this.store.findTimeRecord(
@@ -139,88 +184,66 @@ class RecordContainer extends React.Component<IRecordContainerProps, IRecordCont
     }
   }
 
-  public handleOnClickChartBar(args: any) {
-    const { activeLabel } = args;
-    const day = moment(activeLabel, 'YYYYMMDD').format('YYYY-MM-DD');
-    window.location.href = `/records/${this.props.userId}?startDate=${day}&endDate=${day}`;
+  public getAvatar() {
+    if (!!this.props.userInfo === true && this.props.userInfo !== null) {
+      return (
+        <Row className="justify-content-start">
+          <Col className="col-sm-1">
+            <GroupUserAvatar
+              img_url={this.props.userInfo.profile_url}
+              alt={this.props.userInfo.real_name}
+              badge_status={null}
+            />
+          </Col>
+          <Col className="col-md-6">
+            <div>
+              <div>{this.props.userInfo.real_name}</div>
+              <div className="small text-muted">
+                slack id: {this.props.userInfo.name}
+              </div>
+            </div>
+          </Col>
+        </Row>);
+    }
+    return <Card>none</Card>;
+  }
+
+  private async onClickBar(label: string) {
+    if (/[0-9]{6}/.test(label)) {
+      const target = moment(label);
+      const targetDate = target.toDate();
+      this.setState({
+        ...this.state,
+        startDate: targetDate,
+        endDate: targetDate,
+        backupDate: { start: this.state.startDate, end: this.state.endDate }
+      });
+      await this.store.findTimeRecord(
+        this.props.userId,
+        target.format('YYYY-MM-DD'),
+        target.format('YYYY-MM-DD'),
+      );
+    }
   }
 
   public getMultipleDayElement() {
-    const updateDatas = this.store.Records.length > 0 ? this.store.Records.map((mv) => {
-      const dateStr = Object.keys(mv)[0];
-      const data = {
-        name: dateStr,
-        data: { REST: 0, WORK: 0, EMERGENCY: 0 },
-        timeObj: { REST: {}, WORK: {}, EMERGENCY: {} },
-      };
-      const workTime = TimeRecord.extractWorkTime(mv[dateStr]);
-      const restTime = TimeRecord.extractRestTime(mv[dateStr]);
-      const emergencyTime = TimeRecord.extractEmergencyTime(mv[dateStr]);
-      data.data.WORK = workTime.time;
-      data.timeObj.WORK = workTime.timeObj;
-      data.data.REST = restTime.time;
-      data.timeObj.REST = restTime.timeObj;
-      data.data.EMERGENCY = emergencyTime.time;
-      data.timeObj.EMERGENCY = emergencyTime.timeObj;
-      return data;
-    }) : [];
-    const datasets: IChartBarStacked2Props = updateDatas.reduce(
-      (acc, cur) => {
-        const { name, data } = cur;
-        acc.labels.push(name);
-        acc.datasets[0].data.push(!!data.WORK ? data.WORK : 0);
-        acc.datasets[1].data.push(!!data.REST ? data.REST : 0);
-        acc.datasets[2].data.push(!!data.EMERGENCY ? data.EMERGENCY : 0);
-        return acc;
-      },
-      { labels: new Array<string>(), datasets: [
-        { label: 'WORK', data: new Array<number>(), backgroundColor: bgColor[1].color },
-        { label: 'REST', data: new Array<number>(), backgroundColor: bgColor[0].color },
-        { label: 'EMERGENCY', data: new Array<number>(), backgroundColor: bgColor[2].color },
-      ] });
-    const timeObjs = updateDatas.map((mv) => mv.timeObj);
-    const timeLawRestObjs = updateDatas.filter((fv) => fv.data.WORK >= 8)
-      .map((mv) => { const updateObj = {...mv.timeObj, REST: { hours: 1 } }; return updateObj; });
-    const totalWorkTimeStr = Util.reduceDurationObject(timeObjs, EN_WORK_TYPE.WORK).toFormat('hh:mm:ss');
-    const totalLawRestTimeStr = Util.reduceDurationObject(timeLawRestObjs, EN_WORK_TYPE.REST).toFormat('hh:mm:ss');
-    const totalRestTimeStr = Util.reduceDurationObject(timeObjs, EN_WORK_TYPE.REST).toFormat('hh:mm:ss');
-    const totalEmergencyTimeStr = Util.reduceDurationObject(timeObjs, EN_WORK_TYPE.EMERGENCY).toFormat('hh:mm:ss');
-    // const calWorkTime = totalWorkTime - totalRestTime - totalLawRestTime + totalEmergencyTime;
-    let calWorkTimeObj = Util.calTimeObj(
-      Util.reduceTimeObj(timeObjs, EN_WORK_TYPE.WORK),
-      Util.reduceTimeObj(timeObjs, EN_WORK_TYPE.EMERGENCY));
-    calWorkTimeObj = Util.calTimeObj(
-      calWorkTimeObj,
-      Util.reduceTimeObj(timeObjs, EN_WORK_TYPE.REST),
-      'minus');
-    calWorkTimeObj = Util.calTimeObj(
-      calWorkTimeObj,
-      Util.reduceTimeObj(timeLawRestObjs, EN_WORK_TYPE.REST),
-      'minus');
-    const calWorkTimeStr = luxon.Duration.fromObject(calWorkTimeObj).toFormat('hh:mm:ss');
-    
-    let range = this.state.startDate === this.state.endDate ? 1 :
-      moment(this.state.endDate).diff(moment(this.state.startDate), 'days') + 1;
-    if (range >= 7) {
-      const weekCount = (range - (range % 7)) / 7;
-      range -= (weekCount * 2);
-    }
-    const overTimeStr = luxon.Duration.fromObject(Util.calTimeObj(
-      calWorkTimeObj,
-      { hours: 8 * range },
-      'minus')).toFormat('hh:mm:ss');
+    const {
+      datasets,
+      calWorkTimeStr, overTimeStr, totalWorkTimeStr,
+      totalEmergencyTimeStr, totalRestTimeStr, totalLawRestTimeStr
+    } = this.getWorkTime();
     log(datasets.datasets[0].data);
     return (
       <>
         <Card>
           <CardBody>
-            <CardTitle className="mb-0">Work Log Chart</CardTitle>
-              <div className="chart-wrapper">
-                <ChartBarStacked2
-                  labels={datasets.labels}
-                  datasets={datasets.datasets}
-                />
-              </div>
+            <div className="chart-wrapper">
+              <ChartBarStacked2
+                labels={datasets.labels}
+                datasets={datasets.datasets}
+                onClickBar={this.onClickBar}
+              />
+            </div>
           </CardBody>
           <CardFooter>
             <Row>
@@ -267,13 +290,110 @@ class RecordContainer extends React.Component<IRecordContainerProps, IRecordCont
     );
   }
 
+  private getWorkTime() {
+    const {
+      updateDatas,
+      calWorkTimeStr, overTimeStr, totalWorkTimeStr,
+      totalEmergencyTimeStr, totalRestTimeStr, totalLawRestTimeStr }
+      = TimeRecord.convertWorkTime(this.store.Records, this.state.startDate, this.state.endDate);
+    const datasets: IChartBarStacked2Props = updateDatas.reduce(
+      (acc, cur) => {
+        const { name, data } = cur;
+        acc.labels.push(name);
+        acc.datasets[0].data.push(!!data.WORK ? data.WORK : 0);
+        acc.datasets[1].data.push(!!data.REST ? data.REST : 0);
+        acc.datasets[2].data.push(!!data.EMERGENCY ? data.EMERGENCY : 0);
+        return acc;
+      },
+      {
+        labels: new Array<string>(), datasets: [
+          { label: 'WORK', data: new Array<number>(), backgroundColor: bgColor[1].color },
+          { label: 'REST', data: new Array<number>(), backgroundColor: bgColor[0].color },
+          { label: 'EMERGENCY', data: new Array<number>(), backgroundColor: bgColor[2].color },
+        ]
+      });
+    return {
+      datasets,
+      calWorkTimeStr, overTimeStr, totalWorkTimeStr, totalEmergencyTimeStr, totalRestTimeStr, totalLawRestTimeStr };
+  }
+
+  private async gobackList() {
+    if (!!this.state.backupDate.start && !!this.state.backupDate.end) {
+      this.setState({
+        ...this.state,
+        startDate: this.state.backupDate.start,
+        endDate: this.state.backupDate.end,
+        backupDate: { start: null, end: null }
+      });
+      await this.store.findTimeRecord(
+        this.props.userId,
+        moment(this.state.backupDate.start).format('YYYY-MM-DD'),
+        moment(this.state.backupDate.end).format('YYYY-MM-DD'),
+      );
+    }
+  }
+
   public getSingleDayElement() {
-    // piechart 추가 (https://jsfiddle.net/alidingling/hqnrgxpj/)
-    // log table 추가
+    const covertData = this.getWorkTime();
+    const labels = covertData.datasets.datasets.map((mv) => mv.label);
+    const datasets = covertData.datasets.datasets.reduce(
+      (acc: {data: number[], backgroundColor: string[]}, cur) => {
+        acc.data = [...acc.data, ...cur.data];
+        return acc;
+      },
+      {
+        data: [],
+        backgroundColor: [bgColor[1].color, bgColor[0].color, bgColor[2].color]
+      });
+    const haveRecord = !!this.store.Records && this.store.Records.length > 0;
+    let records: JSX.Element[] | null = null;
+    if (haveRecord === true) {
+      const firstData = this.store.Records[0];
+      const firstKey = Object.keys(firstData)[0];
+      const data = firstData[firstKey];
+      records = Object.keys(data).map((mv) => {
+        const tData = data[mv];
+        return (
+          <tr key={mv}>
+            <td>{EN_WORK_TITLE_KR[tData.type]}</td>
+            <td>{Util.toDateTimeShort(tData.time)}</td>
+            <td>{!!tData.done ? Util.toDateTimeShort(tData.done) : 'none'}</td>
+          </tr>
+        );
+      });
+    }
     return (
-      <div>
-        test
-      </div>
+      <>
+        <Card>
+          <CardBody>
+            <Row>
+              <Col>
+                <Button onClick={this.gobackList}>리스트로 돌아가기</Button>
+                <div className="chart-wrapper">
+                  <ChartPieDonut
+                    labels={labels}
+                    datasets={[datasets]}
+                  />
+                </div>
+              </Col>
+              <Col>
+                <Table>
+                  <thead className="thead-light">
+                    <tr>
+                      <th>type</th>
+                      <th>start</th>
+                      <th>end</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {records}
+                  </tbody>
+                </Table>
+              </Col>
+            </Row>
+          </CardBody>
+        </Card>
+      </>
     );
   }
 
@@ -281,21 +401,33 @@ class RecordContainer extends React.Component<IRecordContainerProps, IRecordCont
     const diffDay = Math.abs(moment(this.state.startDate).diff(moment(this.state.endDate), 'days'));
     const renderElement = diffDay > 0 ?
       this.getMultipleDayElement() : this.getSingleDayElement();
+    const avatar = this.getAvatar();
     return (
       <div className="app">
+        <Helmet>
+          <title>User {this.props.userId} Work Log</title>
+        </Helmet>
         <Container>
-          <DateRangeInput
-            shortcuts={false}
-            allowSingleDayRange={true}
-            formatDate={(date) => !!date ? moment(date).format('YYYY-MM-DD') : ''}
-            onChange={this.onDatesChange}
-            parseDate={(str) => new Date(str)}
-            value={[this.state.startDate, this.state.endDate]}
-            closeOnSelection={false}
-            popoverProps={{onClosed: this.handleClosePopover}}
-            minDate={new Date('2018-07-01')}
-            maxDate={new Date()}
-          />
+          <Card>
+            <CardHeader>
+              {avatar}
+            </CardHeader>
+            <CardBody>
+              <DateRangePicker
+                startDate={moment(this.state.startDate)}
+                endDate={moment(this.state.endDate)}
+                startDateId="startDate"
+                endDateId="endDate"
+                orientation="vertical"
+                focusedInput={this.state.focusedInput}
+                onDatesChange={this.onDatesChangeForDRP}
+                onFocusChange={(focusedInput) => this.setState({...this.state, focusedInput})}
+                minimumNights={0}
+                isOutsideRange={(day) => false}
+                onClose={this.handleClosePopover}
+              />
+            </CardBody>
+          </Card>
           {renderElement}
         </Container>
       </div>

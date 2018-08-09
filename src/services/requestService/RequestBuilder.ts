@@ -14,7 +14,7 @@ export abstract class RequestBuilder {
   protected readonly isProxy: boolean;
   constructor({
     baseURI = URI(''),
-    accessToken = null,
+    accessToken = '',
     isProxy = false
   }: RequestBuilderParams = {}) {
     this.baseURI = baseURI;
