@@ -63,12 +63,14 @@ export default class GroupContainer extends React.Component<IGroupContainerProps
     if (!!req && !!req.config) {
       rbParam = { baseURI: req.config.getApiURI(), isProxy: false };
     }
-    const today = moment().format('YYYY-MM-DD');
-    let startDate = today;
-    let endDate = today;
+
+    const weekStartDay = luxon.DateTime.local().set({weekday: 1}).minus({days: 1}).toFormat('yyyy-LL-dd');
+    const weekEndDay = luxon.DateTime.local().set({weekday: 6}).toFormat('yyyy-LL-dd');
+    let startDate = weekStartDay;
+    let endDate = weekEndDay;
     if (!!req && !!req.query) {
-      startDate = !!req.query['startDate'] ? req.query['startDate'] : today;
-      endDate = !!req.query['endDate'] ? req.query['endDate'] : today;
+      startDate = !!req.query['startDate'] ? req.query['startDate'] : weekStartDay;
+      endDate = !!req.query['endDate'] ? req.query['endDate'] : weekEndDay;
     }
     const checkParams = {
       query: {
