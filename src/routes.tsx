@@ -32,5 +32,12 @@ export default [
     component: asyncComponent({
       loader: () => import('./components/group/container')
     })
+  },
+  {
+    path: '/login',
+    exact: true,
+    component: asyncComponent({
+      loader: () => import('./components/login/index')
+    })
   }
 ];

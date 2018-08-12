@@ -1,12 +1,10 @@
-import '@blueprintjs/core/lib/css/blueprint.css';
-import '@blueprintjs/datetime/lib/css/blueprint-datetime.css';
-import '@blueprintjs/icons/lib/css/blueprint-icons.css';
 import 'react-dates/initialize';
 import 'react-dates/lib/css/_datepicker.css';
 // import 'normalize.css/normalize.css';
 import '../../styles/style.css';
 
 import debug from 'debug';
+import * as luxon from 'luxon';
 import { observer } from 'mobx-react';
 import moment from 'moment';
 import React from 'react';
@@ -15,8 +13,6 @@ import { Helmet } from 'react-helmet';
 import {
     Button, Card, CardBody, CardFooter, CardHeader, Col, Container, Row, Table
 } from 'reactstrap';
-
-import { DateRange } from '@blueprintjs/datetime';
 
 import { EN_WORK_TITLE_KR } from '../../models/time_record/interface/EN_WORK_TYPE';
 import { ITimeRecordLogData } from '../../models/time_record/interface/ITimeRecordLogData';
@@ -29,13 +25,16 @@ import { IUserInfo } from '../../models/user/interface/IUserInfo';
 import { GetUserInfoJSONSchema } from '../../models/user/JSONSchema/GetUserInfoJSONSchema';
 import { User } from '../../models/user/User';
 import { UserRequestBuilder } from '../../models/user/UserRequestBuilder';
+import { Auth } from '../../services/auth';
 import { RequestBuilderParams } from '../../services/requestService/RequestBuilder';
 import { EN_REQUEST_RESULT } from '../../services/requestService/requesters/AxiosRequester';
 import { Util } from '../../services/util';
+import LoginStore from '../../stores/LoginStore';
 import TimeRecordStore from '../../stores/TimeRecordStore';
 import ChartBarStacked from '../chart/bar/Stacked';
 import ChartBarStacked2, { IChartBarStacked2Props } from '../chart/bar/Stacked2';
 import ChartPieDonut from '../chart/pie/donut';
+import DefaultHeader from '../common/DefaultHeader';
 import GroupUserAvatar from '../group/user/avatar';
 import { IAfterRequestContext } from '../interface/IAfterRequestContext';
 
@@ -64,11 +63,13 @@ export interface IRecordContainerStates {
   endDate: Date;
   focusedInput: 'startDate' | 'endDate' | null;
   backupDate: { start: Date | null, end: Date | null };
+  isServer: boolean;
 }
 
 @observer
 class RecordContainer extends React.Component<IRecordContainerProps, IRecordContainerStates> {
   private store: TimeRecordStore;
+  private loginUserStore: LoginStore;
 
   public static async getInitialProps({
     req,
@@ -81,12 +82,13 @@ class RecordContainer extends React.Component<IRecordContainerProps, IRecordCont
     if (!!req && !!req.config) {
       rbParam = { baseURI: req.config.getApiURI(), isProxy: false };
     }
-    const today = moment().format('YYYY-MM-DD');
-    let startDate = today;
-    let endDate = today;
+    const weekStartDay = luxon.DateTime.local().set({weekday: 1}).minus({days: 1}).toFormat('yyyy-LL-dd');
+    const weekEndDay = luxon.DateTime.local().set({weekday: 6}).toFormat('yyyy-LL-dd');
+    let startDate = weekStartDay;
+    let endDate = weekEndDay;
     if (!!req && !!req.query) {
-      startDate = !!req.query['startDate'] ? req.query['startDate'] : today;
-      endDate = !!req.query['endDate'] ? req.query['endDate'] : today;
+      startDate = !!req.query['startDate'] ? req.query['startDate'] : weekStartDay;
+      endDate = !!req.query['endDate'] ? req.query['endDate'] : weekEndDay;
     }
     const checkParams = {
       query: {
@@ -131,10 +133,10 @@ class RecordContainer extends React.Component<IRecordContainerProps, IRecordCont
       startDate: moment(props.initialStartDate).toDate(),
       endDate: moment(props.initialEndDate).toDate(),
       focusedInput: null,
-      backupDate: { start: null, end: null }
+      backupDate: { start: null, end: null },
+      isServer: false,
     };
 
-    this.onDatesChange = this.onDatesChange.bind(this);
     this.onDatesChangeForDRP = this.onDatesChangeForDRP.bind(this);
     this.handleClosePopover = this.handleClosePopover.bind(this);
     this.getAvatar = this.getAvatar.bind(this);
@@ -143,20 +145,9 @@ class RecordContainer extends React.Component<IRecordContainerProps, IRecordCont
     this.getSingleDayElement = this.getSingleDayElement.bind(this);
     this.getWorkTime = this.getWorkTime.bind(this);
     this.gobackList = this.gobackList.bind(this);
+    this.isLogined = this.isLogined.bind(this);
     this.store = new TimeRecordStore(props.records);
-  }
-
-  public onDatesChange([ startDate, endDate ]: DateRange) {
-    const updateObj = {
-      ...this.state,
-    };
-    if (!!startDate) {
-      updateObj['startDate'] = startDate;
-    }
-    if (!!endDate) {
-      updateObj['endDate'] = endDate;
-    }
-    this.setState(updateObj);
+    this.loginUserStore = new LoginStore(null);
   }
 
   public onDatesChangeForDRP({ startDate, endDate }: {
@@ -397,6 +388,23 @@ class RecordContainer extends React.Component<IRecordContainerProps, IRecordCont
     );
   }
 
+  public isLogined() {
+    if (this.state.isServer === true) {
+      return false;
+    }
+    return Auth.isLogined;
+  }
+
+  public async componentDidMount() {
+    this.setState({
+      ...this.state,
+      isServer: false,
+    });
+    if (Auth.isLogined === true && !!Auth.loginUserKey) {
+      await this.loginUserStore.findUserInfo(Auth.loginUserKey);
+    }
+  }
+
   public render() {
     const diffDay = Math.abs(moment(this.state.startDate).diff(moment(this.state.endDate), 'days'));
     const renderElement = diffDay > 0 ?
@@ -407,29 +415,37 @@ class RecordContainer extends React.Component<IRecordContainerProps, IRecordCont
         <Helmet>
           <title>User {this.props.userId} Work Log</title>
         </Helmet>
-        <Container>
-          <Card>
-            <CardHeader>
-              {avatar}
-            </CardHeader>
-            <CardBody>
-              <DateRangePicker
-                startDate={moment(this.state.startDate)}
-                endDate={moment(this.state.endDate)}
-                startDateId="startDate"
-                endDateId="endDate"
-                orientation="vertical"
-                focusedInput={this.state.focusedInput}
-                onDatesChange={this.onDatesChangeForDRP}
-                onFocusChange={(focusedInput) => this.setState({...this.state, focusedInput})}
-                minimumNights={0}
-                isOutsideRange={(day) => false}
-                onClose={this.handleClosePopover}
-              />
-            </CardBody>
-          </Card>
-          {renderElement}
-        </Container>
+        <DefaultHeader
+          isLogin={this.isLogined()}
+          userInfo={this.loginUserStore.UserInfo}
+          onClickLogin={() => { window.location.href = '/login'; }}
+          onClickLogout={Auth.logout}
+        />
+        <div className="app-body">
+          <Container>
+            <Card>
+              <CardHeader>
+                {avatar}
+              </CardHeader>
+              <CardBody>
+                <DateRangePicker
+                  startDate={moment(this.state.startDate)}
+                  endDate={moment(this.state.endDate)}
+                  startDateId="startDate"
+                  endDateId="endDate"
+                  orientation="vertical"
+                  focusedInput={this.state.focusedInput}
+                  onDatesChange={this.onDatesChangeForDRP}
+                  onFocusChange={(focusedInput) => this.setState({...this.state, focusedInput})}
+                  minimumNights={0}
+                  isOutsideRange={(day) => false}
+                  onClose={this.handleClosePopover}
+                />
+              </CardBody>
+            </Card>
+            {renderElement}
+          </Container>
+        </div>
       </div>
     );
   }

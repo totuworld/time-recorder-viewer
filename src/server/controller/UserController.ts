@@ -1,11 +1,13 @@
 import { Request } from 'express';
 
 import { Config } from '../../config/Config';
+import { IAddLoginUser } from '../../models/user/interface/IAddLoginUser';
 import { IUserInfo } from '../../models/user/interface/IUserInfo';
 import {
     GetGroupUserInfosJSONSchema
 } from '../../models/user/JSONSchema/GetGroupUserInfosJSONSchema';
 import { GetUserInfoJSONSchema } from '../../models/user/JSONSchema/GetUserInfoJSONSchema';
+import { PostLoginUserJSONSchema } from '../../models/user/JSONSchema/PostLoginUserJSONSchema';
 import { User } from '../../models/user/User';
 import { UserRequestBuilder } from '../../models/user/UserRequestBuilder';
 import { RequestBuilderParams } from '../../services/requestService/RequestBuilder';
@@ -54,6 +56,31 @@ export class UserController {
     const actionResp = await findAction.find(
       checkParams,
       GetUserInfoJSONSchema,
+    );
+
+    return {
+      status: actionResp.type === EN_REQUEST_RESULT.ERROR ? 400 : 200,
+      payload: actionResp.data,
+    };
+  }
+
+  public async addLoginUser(req: Request): Promise<TControllerResp<IAddLoginUser>> {
+    const rbParam: RequestBuilderParams = { baseURI: Config.getApiURI() };
+    const { userUid, email } = req.body;
+
+    const checkParams = {
+      body: {
+        userUid,
+        email
+      }
+    };
+
+    const rb = new UserRequestBuilder(rbParam);
+    const findAction = new User(rb);
+
+    const actionResp = await findAction.addLoginUser(
+      checkParams,
+      PostLoginUserJSONSchema,
     );
 
     return {

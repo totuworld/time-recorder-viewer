@@ -1,6 +1,3 @@
-import '@blueprintjs/core/lib/css/blueprint.css';
-import '@blueprintjs/datetime/lib/css/blueprint-datetime.css';
-import '@blueprintjs/icons/lib/css/blueprint-icons.css';
 import '@coreui/icons/css/coreui-icons.min.css';
 import 'react-dates/initialize';
 import 'react-dates/lib/css/_datepicker.css';
@@ -18,8 +15,6 @@ import {
     Card, CardBody, CardFooter, CardHeader, CardTitle, Col, Container, Row, Table
 } from 'reactstrap';
 
-import { DateRange } from '@blueprintjs/datetime';
-
 import { ITimeRecordLogData } from '../../models/time_record/interface/ITimeRecordLogData';
 import {
     GetTimeRecordsJSONSchema
@@ -32,9 +27,12 @@ import {
 } from '../../models/user/JSONSchema/GetGroupUserInfosJSONSchema';
 import { User } from '../../models/user/User';
 import { UserRequestBuilder } from '../../models/user/UserRequestBuilder';
+import { Auth } from '../../services/auth';
 import { RequestBuilderParams } from '../../services/requestService/RequestBuilder';
 import { EN_REQUEST_RESULT } from '../../services/requestService/requesters/AxiosRequester';
 import GroupStore from '../../stores/GroupStore';
+import LoginStore from '../../stores/LoginStore';
+import DefaultHeader from '../common/DefaultHeader';
 import { IAfterRequestContext } from '../interface/IAfterRequestContext';
 import { IRecordContainerStates } from '../record/container';
 import GroupUserAvatar from './user/avatar';
@@ -52,6 +50,7 @@ const log = debug('trv:GroupContainer');
 @observer
 export default class GroupContainer extends React.Component<IGroupContainerProps, IRecordContainerStates> {
   private store: GroupStore;
+  private loginUserStore: LoginStore;
   public static async getInitialProps({
     req,
     res,
@@ -119,29 +118,19 @@ export default class GroupContainer extends React.Component<IGroupContainerProps
       startDate: moment(props.initialStartDate).toDate(),
       endDate: moment(props.initialEndDate).toDate(),
       focusedInput: null,
-      backupDate: { start: null, end: null }
+      backupDate: { start: null, end: null },
+      isServer: false,
     };
 
-    this.onDatesChange = this.onDatesChange.bind(this);
     this.onDatesChangeForDRP = this.onDatesChangeForDRP.bind(this);
     this.handleClosePopover = this.handleClosePopover.bind(this);
     this.handleClickRow = this.handleClickRow.bind(this);
     this.getRows = this.getRows.bind(this);
+    this.isLogined = this.isLogined.bind(this);
     this.store = new GroupStore(props.records, props.group);
+    this.loginUserStore = new LoginStore(null);
   }
 
-  public onDatesChange([ startDate, endDate ]: DateRange) {
-    const updateObj = {
-      ...this.state,
-    };
-    if (!!startDate) {
-      updateObj['startDate'] = startDate;
-    }
-    if (!!endDate) {
-      updateObj['endDate'] = endDate;
-    }
-    this.setState(updateObj);
-  }
   public onDatesChangeForDRP({ startDate, endDate }: {
     startDate: moment.Moment | null, endDate: moment.Moment | null}) {
     const updateObj = {
@@ -222,6 +211,23 @@ export default class GroupContainer extends React.Component<IGroupContainerProps
     });
   }
 
+  public isLogined() {
+    if (this.state.isServer === true) {
+      return false;
+    }
+    return Auth.isLogined;
+  }
+
+  public async componentDidMount() {
+    this.setState({
+      ...this.state,
+      isServer: false,
+    });
+    if (Auth.isLogined === true && !!Auth.loginUserKey) {
+      await this.loginUserStore.findUserInfo(Auth.loginUserKey);
+    }
+  }
+
   public render() {
     const rows = this.getRows();
     return (
@@ -229,48 +235,56 @@ export default class GroupContainer extends React.Component<IGroupContainerProps
         <Helmet>
           <title>Group {this.props.groupId} Work Log</title>
         </Helmet>
-        <Container>
-          <DateRangePicker
-            startDate={moment(this.state.startDate)}
-            endDate={moment(this.state.endDate)}
-            startDateId="startDate"
-            endDateId="endDate"
-            orientation="vertical"
-            focusedInput={this.state.focusedInput}
-            onDatesChange={this.onDatesChangeForDRP}
-            onFocusChange={(focusedInput) => this.setState({...this.state, focusedInput})}
-            minimumNights={0}
-            isOutsideRange={(day) => false}
-            onClose={this.handleClosePopover}
-          />
-          <Card>
-            <CardHeader>
-              {this.props.groupId}
-            </CardHeader>
-            <CardBody>
-              <Table
-                responsive={true}
-                className="d-sm-table"
-                hover={true}
-              >
-                <thead className="thead-light">
-                  <tr>
-                    <th className="text-center">
-                      <i className="cui-people icons font-2xl" />
-                    </th>
-                    <th className="d-none d-sm-block">사용자</th>
-                    <th>근무시간</th>
-                    <th>초과시간</th>
-                    <th>마지막 기록</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows}
-                </tbody>
-              </Table>
-            </CardBody>
-          </Card>
-        </Container>
+        <DefaultHeader
+          isLogin={this.isLogined()}
+          userInfo={this.loginUserStore.UserInfo}
+          onClickLogin={() => { window.location.href = '/login'; }}
+          onClickLogout={Auth.logout}
+        />
+        <div className="app-body">
+          <Container>
+            <DateRangePicker
+              startDate={moment(this.state.startDate)}
+              endDate={moment(this.state.endDate)}
+              startDateId="startDate"
+              endDateId="endDate"
+              orientation="vertical"
+              focusedInput={this.state.focusedInput}
+              onDatesChange={this.onDatesChangeForDRP}
+              onFocusChange={(focusedInput) => this.setState({...this.state, focusedInput})}
+              minimumNights={0}
+              isOutsideRange={(day) => false}
+              onClose={this.handleClosePopover}
+            />
+            <Card>
+              <CardHeader>
+                {this.props.groupId}
+              </CardHeader>
+              <CardBody>
+                <Table
+                  responsive={true}
+                  className="d-sm-table"
+                  hover={true}
+                >
+                  <thead className="thead-light">
+                    <tr>
+                      <th className="text-center">
+                        <i className="cui-people icons font-2xl" />
+                      </th>
+                      <th className="d-none d-sm-block">사용자</th>
+                      <th>근무시간</th>
+                      <th>초과시간</th>
+                      <th>마지막 기록</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rows}
+                  </tbody>
+                </Table>
+              </CardBody>
+            </Card>
+          </Container>
+        </div>
       </div>
     );
   }
