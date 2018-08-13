@@ -5,3 +5,10 @@ export interface ITimeRecords {
   type: EN_REQUEST_RESULT;
   data: Array<{ [key: string]: { [key: string]: ITimeRecordLogData } }>;
 }
+
+export interface IAddTimeRecord {
+  type: EN_REQUEST_RESULT;
+  data: {
+    text: string | null;
+  };
+}

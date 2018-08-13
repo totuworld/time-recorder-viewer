@@ -14,7 +14,7 @@ import {
     Button, Card, CardBody, CardFooter, CardHeader, Col, Container, Row, Table
 } from 'reactstrap';
 
-import { EN_WORK_TITLE_KR } from '../../models/time_record/interface/EN_WORK_TYPE';
+import { EN_WORK_TITLE_KR, EN_WORK_TYPE } from '../../models/time_record/interface/EN_WORK_TYPE';
 import { ITimeRecordLogData } from '../../models/time_record/interface/ITimeRecordLogData';
 import {
     GetTimeRecordsJSONSchema
@@ -37,6 +37,8 @@ import ChartPieDonut from '../chart/pie/donut';
 import DefaultHeader from '../common/DefaultHeader';
 import GroupUserAvatar from '../group/user/avatar';
 import { IAfterRequestContext } from '../interface/IAfterRequestContext';
+import RecordButtons from './buttons';
+import { floatButton } from './containerStyle';
 
 const log = debug('trv:recordContainer');
 interface WorkStackedBarChart {
@@ -134,7 +136,7 @@ class RecordContainer extends React.Component<IRecordContainerProps, IRecordCont
       endDate: moment(props.initialEndDate).toDate(),
       focusedInput: null,
       backupDate: { start: null, end: null },
-      isServer: false,
+      isServer: true,
     };
 
     this.onDatesChangeForDRP = this.onDatesChangeForDRP.bind(this);
@@ -146,6 +148,8 @@ class RecordContainer extends React.Component<IRecordContainerProps, IRecordCont
     this.getWorkTime = this.getWorkTime.bind(this);
     this.gobackList = this.gobackList.bind(this);
     this.isLogined = this.isLogined.bind(this);
+    this.recordButtons = this.recordButtons.bind(this);
+    this.handleRecordButtonClick = this.handleRecordButtonClick.bind(this);
     this.store = new TimeRecordStore(props.records);
     this.loginUserStore = new LoginStore(null);
   }
@@ -353,13 +357,16 @@ class RecordContainer extends React.Component<IRecordContainerProps, IRecordCont
         );
       });
     }
+    const goBackList = !!this.state.backupDate && !!this.state.backupDate.start ?
+      <Button onClick={this.gobackList}>리스트로 돌아가기</Button> :
+      null;
     return (
       <>
         <Card>
           <CardBody>
             <Row>
               <Col>
-                <Button onClick={this.gobackList}>리스트로 돌아가기</Button>
+                {goBackList}
                 <div className="chart-wrapper">
                   <ChartPieDonut
                     labels={labels}
@@ -395,6 +402,31 @@ class RecordContainer extends React.Component<IRecordContainerProps, IRecordCont
     return Auth.isLogined;
   }
 
+  public recordButtons() {
+    if (this.isLogined() === true && !!this.loginUserStore.UserInfo
+      && this.isToday === true && this.loginUserStore.UserInfo.id === this.props.userId) {
+      return <RecordButtons handleClickMenu={this.handleRecordButtonClick} />;
+    }
+    return null;
+  }
+
+  get isToday() {
+    const now = moment();
+    const diffStart = now.diff(moment(this.state.startDate), 'days');
+    const diffEnd = now.diff(moment(this.state.endDate), 'days');
+    return (diffStart === 0 && diffEnd === 0);
+  }
+
+  public async handleRecordButtonClick(type: EN_WORK_TYPE) {
+    if (this.isToday === true) {
+      await this.store.addTimeRecord(this.props.userId, type);
+      await this.store.findTimeRecord(
+        this.props.userId,
+        moment(this.state.startDate).format('YYYY-MM-DD'),
+        moment(this.state.endDate).format('YYYY-MM-DD'));
+    }
+  }
+
   public async componentDidMount() {
     this.setState({
       ...this.state,
@@ -410,6 +442,7 @@ class RecordContainer extends React.Component<IRecordContainerProps, IRecordCont
     const renderElement = diffDay > 0 ?
       this.getMultipleDayElement() : this.getSingleDayElement();
     const avatar = this.getAvatar();
+    const recordButtons = this.recordButtons();
     return (
       <div className="app">
         <Helmet>
@@ -444,6 +477,9 @@ class RecordContainer extends React.Component<IRecordContainerProps, IRecordCont
               </CardBody>
             </Card>
             {renderElement}
+            <div className={`${floatButton}`}>
+              {recordButtons}
+            </div>
           </Container>
         </div>
       </div>

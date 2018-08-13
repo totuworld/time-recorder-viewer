@@ -119,7 +119,7 @@ export default class GroupContainer extends React.Component<IGroupContainerProps
       endDate: moment(props.initialEndDate).toDate(),
       focusedInput: null,
       backupDate: { start: null, end: null },
-      isServer: false,
+      isServer: true,
     };
 
     this.onDatesChangeForDRP = this.onDatesChangeForDRP.bind(this);
@@ -223,6 +223,8 @@ export default class GroupContainer extends React.Component<IGroupContainerProps
       ...this.state,
       isServer: false,
     });
+    console.log(Auth.isLogined);
+    console.log(!!Auth.loginUserKey);
     if (Auth.isLogined === true && !!Auth.loginUserKey) {
       await this.loginUserStore.findUserInfo(Auth.loginUserKey);
     }

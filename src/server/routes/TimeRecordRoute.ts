@@ -13,6 +13,11 @@ export class TimeRecordRoute extends CommonRoute {
       trRoute.controller.findTimeRecord.bind(trRoute.controller),
     );
 
+    trRoute.route(EN_REQUEST_METHODS.POST)(
+      '/command_ping',
+      trRoute.controller.addTimeRecord.bind(trRoute.controller),
+    );
+
     return trRoute;
   }
 

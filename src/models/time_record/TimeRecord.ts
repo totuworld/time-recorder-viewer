@@ -7,9 +7,10 @@ import { Requester } from '../../services/requestService/Requester';
 import { EN_REQUEST_RESULT } from '../../services/requestService/requesters/AxiosRequester';
 import { Util } from '../../services/util';
 import { IJSONSchemaType } from '../common/IJSONSchemaType';
+import { AddTimeRecordRequestParam } from './interface/AddTimeRecordRequestParam';
 import { EN_WORK_TYPE } from './interface/EN_WORK_TYPE';
 import { ITimeRecordLogData } from './interface/ITimeRecordLogData';
-import { ITimeRecords } from './interface/ITimeRecords';
+import { IAddTimeRecord, ITimeRecords } from './interface/ITimeRecords';
 import { TimeRecordRecordsRequestsParam } from './interface/TimeRecordRecordsRequestsParam';
 import { TimeRecordRequestBuilder } from './TimeRecordRequestBuilder';
 
@@ -207,6 +208,35 @@ export class TimeRecord {
     const result = await response;
     if (result.type === EN_REQUEST_RESULT.ERROR) {
       return { type: EN_REQUEST_RESULT.ERROR, data: [] };
+    }
+    log(result.payload);
+    return { type: EN_REQUEST_RESULT.SUCCESS, data: result.payload };
+  }
+
+  public async addWork(
+    params: AddTimeRecordRequestParam,
+    schema: IJSONSchemaType
+  ): Promise<IAddTimeRecord> {
+    log(params);
+    const validParam = Requester.validateParam(params, schema);
+    log('validParam: ', validParam);
+    if (validParam === false) {
+      return { type: EN_REQUEST_RESULT.ERROR, data: { text: null } };
+    }
+    const query = this.rb.createPostUserRecordQuery({
+      method: 'POST',
+      headers: {},
+      body: params.body
+    });
+
+    log(query);
+
+    const requester = RequestService.create(query.url);
+    const response = await requester.call<{text: string | null}>(query);
+
+    const result = await response;
+    if (result.type === EN_REQUEST_RESULT.ERROR) {
+      return { type: EN_REQUEST_RESULT.ERROR, data: { text: null } };
     }
     log(result.payload);
     return { type: EN_REQUEST_RESULT.SUCCESS, data: result.payload };

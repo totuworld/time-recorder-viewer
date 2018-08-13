@@ -1,3 +1,4 @@
+import * as luxon from 'luxon';
 import React from 'react';
 import {
     Container, Dropdown, DropdownItem, DropdownMenu, DropdownToggle, Nav, NavItem, NavLink
@@ -31,6 +32,7 @@ class DefaultHeader extends React.Component<IDefaultHeaderProps, IDefaultHeaderS
     };
     this.toggleDropdown = this.toggleDropdown.bind(this);
     this.onClickLogin = this.onClickLogin.bind(this);
+    this.todayMenu = this.todayMenu.bind(this);
   }
 
   public toggleDropdown() {
@@ -48,24 +50,28 @@ class DefaultHeader extends React.Component<IDefaultHeaderProps, IDefaultHeaderS
     }
   }
 
+  public todayMenu() {
+    const userInfo = this.props.userInfo;
+    if (this.props.isLogin === true && !!userInfo === true) {
+      const today = luxon.DateTime.local().toFormat('yyyy-LL-dd');
+      const url = `/records/${userInfo!.id}?startDate=${today}&endDate=${today}`;
+      return (
+        <DropdownItem onClick={() => { window.location.href = url; }}>
+          오늘 기록
+        </DropdownItem>
+      );
+    }
+    return null;
+  }
+
   public render() {
     const imgUrl = this.props.isLogin === true && !!this.props.userInfo ?
       this.props.userInfo.profile_url :
       avatar;
+    const todayMenu = this.todayMenu();
     return (
       <header className="app-header navbar">
         <Container>
-          <Nav className="d-md-down-none" navbar={true}>
-            <NavItem className="px-3">
-              <NavLink href="#">Today</NavLink>
-            </NavItem>
-            <NavItem className="px-3">
-              <NavLink href="/groups">Groups</NavLink>
-            </NavItem>
-            <NavItem className="px-3">
-              <NavLink href="/records">Records</NavLink>
-            </NavItem>
-          </Nav>
           <Nav className="ml-auto" navbar={true}>
             <Dropdown
               nav={true}
@@ -80,8 +86,9 @@ class DefaultHeader extends React.Component<IDefaultHeaderProps, IDefaultHeaderS
                 />
               </DropdownToggle>
               <DropdownMenu right={true} style={{ right: 'auto' }}>
+                {todayMenu}
                 <DropdownItem onClick={this.onClickLogin}>
-                  <i className="fa fa-lock" /> {this.props.isLogin === true ? ' Logout' : ' Login'}
+                  {this.props.isLogin === true ? ' Logout' : ' Login'}
                 </DropdownItem>
               </DropdownMenu>
             </Dropdown>

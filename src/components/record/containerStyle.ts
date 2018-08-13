@@ -12,3 +12,10 @@ export const flexChildDiv = css({
 export const flexParentHorizontalDiv = css({
   display: 'flex',
 });
+
+export const floatButton = css({
+  position: 'fixed',
+  right: 0,
+  bottom: 0,
+  padding: 20,
+});

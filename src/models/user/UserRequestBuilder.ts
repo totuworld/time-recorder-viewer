@@ -78,14 +78,14 @@ export class UserRequestBuilder extends RequestBuilder {
 
   public createPostLoginUserQuery({
     method,
-    query
+    body
   }: RequestParams<{}, AddLoginUserRequestParam>): IAxiosRequesterConfig {
     const apiPath = this.getAPIPath('/add_login_user');
     const endPoint = apiPath.href();
     const data = { userUid: '', email: '' };
-    if (!!query) {
-      data.userUid = query.userUid;
-      data.email = query.email;
+    if (!!body) {
+      data.userUid = body.userUid;
+      data.email = body.email;
     }
 
     return {

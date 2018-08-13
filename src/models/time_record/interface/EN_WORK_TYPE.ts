@@ -13,3 +13,11 @@ export enum EN_WORK_TITLE_KR {
   EMERGENCY = '긴급대응',
   DONE = '완료'
 }
+
+export enum EN_WORK_TYPE_COMMAND_TITLE {
+  WORK = '출근',
+  BYEBYE = '퇴근',
+  REST = '휴식',
+  EMERGENCY = '긴급',
+  DONE = '완료'
+}

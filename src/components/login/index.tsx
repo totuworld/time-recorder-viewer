@@ -30,7 +30,7 @@ class Login extends Component {
   }
 
   public componentDidMount() {
-    if (localStorage.getItem(appTokenKey)) {
+    if (localStorage.getItem(appTokenKey) && localStorage.getItem(loginUserKey)) {
       const userKey = localStorage.getItem(loginUserKey);
       window.location.href = !!userKey ? `/records/${userKey}` : DEFAULT_PAGE;
       return;
@@ -39,26 +39,26 @@ class Login extends Component {
     Auth.firebaseAuth()
     .onAuthStateChanged((user) => {
       if (!!user) {
-        console.log('User signed in: ', JSON.stringify(user));
+        // console.log('User signed in: ', JSON.stringify(user));
 
         localStorage.removeItem(firebaseAuthKey);
 
         // here you could authenticate with you web server to get the
         // application specific token so that you do not have to
         // authenticate with firebase every time a user logs in
-        localStorage.setItem(appTokenKey, user.uid);
         const rbParam: RequestBuilderParams = { isProxy: true };
         const rb = new UserRequestBuilder(rbParam);
         const action = new User(rb);
         const checkParams = {
           body: {
             userUid: user.uid,
-            email: user.emal,
+            email: user.email,
           }
         };
         action.addLoginUser(checkParams, PostLoginUserJSONSchema)
         .then((result) => {
           let returnUrl = DEFAULT_PAGE;
+          localStorage.setItem(appTokenKey, user.uid);
           if (result.type === EN_REQUEST_RESULT.SUCCESS && !!result.data && !!result.data.userKey) {
             localStorage.setItem(loginUserKey, result.data.userKey);
             returnUrl = `/records/${result.data.userKey}`;
