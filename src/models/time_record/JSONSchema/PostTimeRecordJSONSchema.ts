@@ -8,11 +8,23 @@ export const PostTimeRecordJSONSchema: IJSONSchemaType = {
         user_id: {
           type: 'string',
         },
-        text: {
+        auth_user_id: {
           type: 'string',
+        },
+        type: {
+          type: 'string',
+          enum: ['WORK', 'BYEBYE', 'REST', 'EMERGENCY', 'DONE']
+        },
+        target_date: {
+          type: 'string',
+          pattern: '^[0-9]{4}(0|1)[0-9](0|1|2|3)[0-9]'
+        },
+        time: {
+          type: 'string',
+          format: 'date-time',
         }
       },
-      required: ['user_id', 'text'],
+      required: ['user_id', 'auth_user_id', 'type'],
     }
   },
   required: ['body'],

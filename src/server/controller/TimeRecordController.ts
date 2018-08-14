@@ -49,12 +49,15 @@ export class TimeRecordController {
 
   public async addTimeRecord(req: Request): Promise<TControllerResp<IAddTimeRecord['data']>> {
     const rbParam: RequestBuilderParams = { baseURI: Config.getApiURI() };
-    const { user_id, text } = req.body;
+    const { user_id, auth_user_id, type, target_date, time } = req.body;
 
     const checkParams = {
       body: {
+        auth_user_id,
         user_id,
-        text,
+        type,
+        target_date,
+        time,
       }
     };
 

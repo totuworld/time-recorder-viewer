@@ -431,6 +431,22 @@ IRecordContainerStates & { isModalOpen: boolean, updateData?: { key: string, dat
   }
 
   public recordButtons() {
+    // client 사이드에서만 작동하도록 함
+    if (this.state.isServer === true) {
+      return null;
+    }
+    // 하루를 선택했고,
+    // 로고인 되어있으며,
+    // 관리자 권한이 있을때!
+    if (this.isOneDay === true &&
+      !!Auth.loginUserTokenKey &&
+      !!this.loginUserStore.LoginUserInfo &&
+      !!this.loginUserStore.LoginUserInfo.auth) {
+      return <RecordButtons handleClickMenu={this.handleRecordButtonClick} />;
+    }
+    // 로그인 했고!
+    // 당일이며!
+    // 자신의 정보일 때!
     if (this.isLogined() === true && !!this.loginUserStore.UserInfo
       && this.isToday === true && this.loginUserStore.UserInfo.id === this.props.userId) {
       return <RecordButtons handleClickMenu={this.handleRecordButtonClick} />;
@@ -445,18 +461,25 @@ IRecordContainerStates & { isModalOpen: boolean, updateData?: { key: string, dat
     return (diffStart === 0 && diffEnd === 0);
   }
 
+  get isOneDay() {
+    const start = moment(this.state.startDate);
+    const end = moment(this.state.endDate);
+    return (start.diff(end, 'days') === 0);
+  }
+
   public async handleRecordButtonClick(type: EN_WORK_TYPE) {
-    if (this.isToday === true) {
-      await this.store.addTimeRecord(this.props.userId, type);
+    if (this.isOneDay === true && !!Auth.loginUserTokenKey) {
+      await this.store.addTimeRecord(
+        Auth.loginUserTokenKey,
+        this.props.userId,
+        type,
+        luxon.DateTime.fromJSDate(this.state.startDate)
+      );
       await this.store.findTimeRecord(
         this.props.userId,
         moment(this.state.startDate).format('YYYY-MM-DD'),
         moment(this.state.endDate).format('YYYY-MM-DD'));
     }
-  }
-
-  public handleInputUpdateData(key: 'time' | 'done', value: string, isTime: boolean = false) {
-    console.log('ho');
   }
 
   public async saveWorklog() {

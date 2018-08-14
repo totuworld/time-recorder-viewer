@@ -1,8 +1,11 @@
-import { EN_WORK_TYPE_COMMAND_TITLE } from './EN_WORK_TYPE';
+import { EN_WORK_TYPE } from './EN_WORK_TYPE';
 
 export interface AddTimeRecordRequestParam {
   body: {
+    auth_user_id: string;
     user_id: string;
-    text: EN_WORK_TYPE_COMMAND_TITLE;
+    type: EN_WORK_TYPE;
+    target_date?: string;
+    time?: string;
   };
 }

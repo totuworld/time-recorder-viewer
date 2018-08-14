@@ -14,7 +14,7 @@ export class TimeRecordRoute extends CommonRoute {
     );
 
     trRoute.route(EN_REQUEST_METHODS.POST)(
-      '/command_ping',
+      '/work_log',
       trRoute.controller.addTimeRecord.bind(trRoute.controller),
     );
 

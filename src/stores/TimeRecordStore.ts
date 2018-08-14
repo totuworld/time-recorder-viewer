@@ -1,7 +1,8 @@
+import * as luxon from 'luxon';
 import { action, observable, runInAction } from 'mobx';
 
 import {
-    EN_WORK_TYPE, EN_WORK_TYPE_COMMAND_TITLE
+    EN_WORK_TYPE
 } from '../models/time_record/interface/EN_WORK_TYPE';
 import { ITimeRecordLogData } from '../models/time_record/interface/ITimeRecordLogData';
 import {
@@ -84,8 +85,10 @@ export default class TimeRecordStore {
 
   @action
   public async addTimeRecord(
+    authUserId: string,
     userId: string,
     type: EN_WORK_TYPE,
+    targetDate?: luxon.DateTime,
   ): Promise<{ text: string | null }> {
     if (this.isLoading === true) {
       return { text: null };
@@ -95,13 +98,25 @@ export default class TimeRecordStore {
 
       const rbParam: RequestBuilderParams = { isProxy: true };
 
+      const today = luxon.DateTime.local();
+
       const checkParams = {
         body: {
+          type,
+          auth_user_id: authUserId,
           user_id: userId,
-          text: EN_WORK_TYPE_COMMAND_TITLE[type],
+          target_date: !!targetDate ? targetDate.toFormat('yyyyLLdd') : today.toFormat('yyyyLLdd'),
+          time: today.toISO(),
         }
       };
 
+      // 등록할 날짜가 다른가?
+      if (!!targetDate &&
+        today.toFormat('yyyyLLdd') !== targetDate.toFormat('yyyyLLdd')) {
+        checkParams.body.time = luxon.DateTime.fromFormat(
+          `${targetDate.toFormat('yyyy-LL-dd')} ${today.toFormat('HH:mm')}`,
+          'yyyy-LL-dd HH:mm').toISO();
+      }
       const rb = new TimeRecordRequestBuilder(rbParam);
       const findAction = new TimeRecord(rb);
 

@@ -52,17 +52,12 @@ export class TimeRecordRequestBuilder extends RequestBuilder {
     method,
     body
   }: RequestParams<{}, AddTimeRecordRequestParam>): IAxiosRequesterConfig {
-    const apiPath = this.getAPIPath('/command_ping');
+    const apiPath = this.getAPIPath('/work_log');
     const endPoint = apiPath.href();
-    const data = { user_id: '', text: '' };
-    if (!!body) {
-      data.user_id = body.user_id;
-      data.text = body.text;
-    }
 
     return {
       method,
-      data,
+      data: body,
       headers: {
         ...this.AccessTokenObject
       },
