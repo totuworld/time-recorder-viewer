@@ -2,6 +2,7 @@ import { Request } from 'express';
 
 import { Config } from '../../config/Config';
 import { IAddLoginUser } from '../../models/user/interface/IAddLoginUser';
+import { ILoginUser } from '../../models/user/interface/ILoginUser';
 import { IUserInfo } from '../../models/user/interface/IUserInfo';
 import {
     GetGroupUserInfosJSONSchema
@@ -81,6 +82,25 @@ export class UserController {
     const actionResp = await findAction.addLoginUser(
       checkParams,
       PostLoginUserJSONSchema,
+    );
+
+    return {
+      status: actionResp.type === EN_REQUEST_RESULT.ERROR ? 400 : 200,
+      payload: actionResp.data,
+    };
+  }
+
+  public async getLoginUserInfo(req: Request): Promise<TControllerResp<ILoginUser>> {
+    const rbParam: RequestBuilderParams = { baseURI: Config.getApiURI() };
+    const { user_uid } = req.params;
+
+    const checkParams = { user_uid };
+
+    const rb = new UserRequestBuilder(rbParam);
+    const findAction = new User(rb);
+
+    const actionResp = await findAction.findLoginUser(
+      checkParams,
     );
 
     return {

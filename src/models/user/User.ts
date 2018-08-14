@@ -7,7 +7,9 @@ import { IJSONSchemaType } from '../common/IJSONSchemaType';
 import { AddLoginUserRequestParam } from './interface/AddLoginUserRequestParam';
 import { GroupsFindRequestParam } from './interface/GroupsFindRequestParam';
 import { IAddLoginUser } from './interface/IAddLoginUser';
+import { ILoginUser } from './interface/ILoginUser';
 import { IUserInfo } from './interface/IUserInfo';
+import { LoginUserRequestParam } from './interface/LoginUserRequestParam';
 import { UserFindRequestParam } from './interface/UserFindRequestParam';
 import { UserRequestBuilder } from './UserRequestBuilder';
 
@@ -90,6 +92,28 @@ export class User {
     const result = await response;
     if (result.type === EN_REQUEST_RESULT.ERROR) {
       return { type: EN_REQUEST_RESULT.ERROR, data: { result: false, userKey: null } };
+    }
+    log(result.payload);
+    return { type: EN_REQUEST_RESULT.SUCCESS, data: result.payload };
+  }
+
+  public async findLoginUser(
+    params: LoginUserRequestParam,
+  ): Promise<{ type: EN_REQUEST_RESULT, data?: ILoginUser }> {
+    const { user_uid } = params;
+    const query = this.rb.createGetLoginUserInfoQuery({
+      method: 'GET',
+      headers: {},
+      resources: {
+        user_uid
+      },
+    });
+    const requester = RequestService.create(query.url);
+    const response = await requester.call<ILoginUser>(query);
+
+    const result = await response;
+    if (result.type === EN_REQUEST_RESULT.ERROR) {
+      return { type: EN_REQUEST_RESULT.ERROR };
     }
     log(result.payload);
     return { type: EN_REQUEST_RESULT.SUCCESS, data: result.payload };

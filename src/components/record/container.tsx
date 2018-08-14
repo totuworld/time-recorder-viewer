@@ -153,6 +153,7 @@ IRecordContainerStates & { isModalOpen: boolean, updateData?: { key: string, dat
     this.getAvatar = this.getAvatar.bind(this);
     this.onClickBar = this.onClickBar.bind(this);
     this.getMultipleDayElement = this.getMultipleDayElement.bind(this);
+    this.handleOnClickSingleDayTableRow = this.handleOnClickSingleDayTableRow.bind(this);
     this.getSingleDayElement = this.getSingleDayElement.bind(this);
     this.getWorkTime = this.getWorkTime.bind(this);
     this.gobackList = this.gobackList.bind(this);
@@ -339,6 +340,19 @@ IRecordContainerStates & { isModalOpen: boolean, updateData?: { key: string, dat
     }
   }
 
+  public handleOnClickSingleDayTableRow(key: string, data: ITimeRecordLogData) {
+    const userInfo = this.loginUserStore.UserInfo;
+    const loginUserInfo = this.loginUserStore.LoginUserInfo;
+    // 자신의 데이터 이거나 관리자 일때만 modal open한다.
+    console.log(userInfo);
+    console.log(loginUserInfo);
+    if (!!userInfo && !!loginUserInfo) {
+      if (this.props.userId === userInfo.id || !!loginUserInfo.auth) {
+        this.setState({...this.state, isModalOpen: true, updateData: { key, data }});
+      }
+    }
+  }
+
   public getSingleDayElement() {
     const covertData = this.getWorkTime();
     const labels = covertData.datasets.datasets.map((mv) => mv.label);
@@ -362,7 +376,7 @@ IRecordContainerStates & { isModalOpen: boolean, updateData?: { key: string, dat
         return (
           <tr
             key={mv}
-            onClick={() => { this.setState({...this.state, isModalOpen: true, updateData: { key: mv, data: tData }}); }}
+            onClick={() => { this.handleOnClickSingleDayTableRow(mv, tData); }}
           >
             <td>{EN_WORK_TITLE_KR[tData.type]}</td>
             <td>{Util.toDateTimeShort(tData.time)}</td>
@@ -628,8 +642,9 @@ IRecordContainerStates & { isModalOpen: boolean, updateData?: { key: string, dat
       ...this.state,
       isServer: false,
     });
-    if (Auth.isLogined === true && !!Auth.loginUserKey) {
+    if (Auth.isLogined === true && !!Auth.loginUserKey && !!Auth.loginUserTokenKey) {
       await this.loginUserStore.findUserInfo(Auth.loginUserKey);
+      await this.loginUserStore.findLoginUserInfo(Auth.loginUserTokenKey);
     }
   }
 

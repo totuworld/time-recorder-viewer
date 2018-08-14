@@ -1,5 +1,6 @@
 import { action, observable, runInAction } from 'mobx';
 
+import { ILoginUserInfo } from '../models/user/interface/ILoginUser';
 import { IUserInfo } from '../models/user/interface/IUserInfo';
 import { GetUserInfoJSONSchema } from '../models/user/JSONSchema/GetUserInfoJSONSchema';
 import { User } from '../models/user/User';
@@ -10,12 +11,14 @@ import { EN_REQUEST_RESULT } from '../services/requestService/requesters/AxiosRe
 
 export default class LoginStore {
   @observable private userInfo: IUserInfo | null;
+  @observable private loginUserInfo: ILoginUserInfo | null;
   @observable private isLoading: boolean = false;
 
   constructor(
     userInfo: IUserInfo | null,
   ) {
     this.userInfo = userInfo;
+    this.loginUserInfo = null;
   }
 
   get isLogin() {
@@ -25,6 +28,13 @@ export default class LoginStore {
   get UserInfo() {
     if (!!this.userInfo) {
       return this.userInfo;
+    }
+    return null;
+  }
+
+  get LoginUserInfo() {
+    if (!!this.loginUserInfo) {
+      return this.loginUserInfo;
     }
     return null;
   }
@@ -54,6 +64,38 @@ export default class LoginStore {
         this.isLoading = false;
         this.userInfo = resp.data;
         return this.userInfo;
+      });
+    } catch (error) {
+      this.isLoading = false;
+      throw error;
+    }
+  }
+  @action
+  public async findLoginUserInfo(
+    loginUserUid: string
+  ) {
+    if (this.isLoading === true) {
+      return null;
+    }
+    try {
+      this.isLoading = true;
+
+      const rbParam: RequestBuilderParams = { isProxy: true };
+
+      const rb = new UserRequestBuilder(rbParam);
+      const userAction = new User(rb);
+      const resp = await userAction.findLoginUser(
+        { user_uid: loginUserUid },
+      );
+      if (resp.type === EN_REQUEST_RESULT.ERROR) {
+        return null;
+      }
+      return runInAction(() => {
+        this.isLoading = false;
+        if (!!resp.data && !!resp.data.data) {
+          this.loginUserInfo = resp.data.data;
+        }
+        return this.loginUserInfo;
       });
     } catch (error) {
       this.isLoading = false;

@@ -5,6 +5,7 @@ import { RequestBuilder, RequestBuilderParams } from '../../services/requestServ
 import { IAxiosRequesterConfig } from '../../services/requestService/requesters/AxiosRequester';
 import { AddLoginUserRequestParam } from './interface/AddLoginUserRequestParam';
 import { GroupsFindRequestParam } from './interface/GroupsFindRequestParam';
+import { LoginUserRequestParam } from './interface/LoginUserRequestParam';
 import { UserFindRequestParam } from './interface/UserFindRequestParam';
 
 export class UserRequestBuilder extends RequestBuilder {
@@ -96,6 +97,23 @@ export class UserRequestBuilder extends RequestBuilder {
       data,
       timeout: 20000,
       url: endPoint,
+    };
+  }
+
+  public createGetLoginUserInfoQuery({
+    method,
+    resources,
+  }: RequestParams<LoginUserRequestParam, {}>): IAxiosRequesterConfig {
+    const { user_uid } = resources!;
+    const apiPath = this.getAPIPath(`/login_user/${user_uid}`);
+
+    return {
+      method,
+      headers: {
+        ...this.AccessTokenObject
+      },
+      timeout: 5000,
+      url: apiPath.href(),
     };
   }
 }

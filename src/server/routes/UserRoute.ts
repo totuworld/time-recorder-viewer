@@ -23,6 +23,11 @@ export class UserRoute extends CommonRoute {
       trRoute.controller.addLoginUser.bind(trRoute.controller),
     );
 
+    trRoute.route(EN_REQUEST_METHODS.GET)(
+      '/login_user/:user_uid',
+      trRoute.controller.getLoginUserInfo.bind(trRoute.controller),
+    );
+
     return trRoute;
   }
 
