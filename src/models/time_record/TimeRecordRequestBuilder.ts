@@ -5,6 +5,7 @@ import { RequestBuilder, RequestBuilderParams } from '../../services/requestServ
 import { IAxiosRequesterConfig } from '../../services/requestService/requesters/AxiosRequester';
 import { AddTimeRecordRequestParam } from './interface/AddTimeRecordRequestParam';
 import { TimeRecordRecordsRequestsParam } from './interface/TimeRecordRecordsRequestsParam';
+import { UpdateTimeRecordRequestParam } from './interface/UpdateTimeRecordRequestParam';
 
 export class TimeRecordRequestBuilder extends RequestBuilder {
   constructor(queryParams?: RequestBuilderParams) {
@@ -57,6 +58,40 @@ export class TimeRecordRequestBuilder extends RequestBuilder {
     if (!!body) {
       data.user_id = body.user_id;
       data.text = body.text;
+    }
+
+    return {
+      method,
+      data,
+      headers: {
+        ...this.AccessTokenObject
+      },
+      timeout: 10000,
+      url: endPoint,
+    };
+  }
+
+  public createPostUpdateUserRecordQuery({
+    method,
+    body
+  }: RequestParams<{}, UpdateTimeRecordRequestParam>): IAxiosRequesterConfig {
+    const apiPath = this.getAPIPath('/update_record');
+    const endPoint = apiPath.href();
+    const data = { 
+      auth_user_id: '',
+      user_id: '',
+      update_date: '',
+      record_key: '',
+      target_key: '',
+      time: '',
+    };
+    if (!!body) {
+      data.auth_user_id = body.auth_user_id;
+      data.user_id = body.user_id;
+      data.update_date = body.update_date;
+      data.record_key = body.record_key;
+      data.target_key = body.target_key;
+      data.time = body.time;
     }
 
     return {

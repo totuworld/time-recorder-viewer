@@ -37,6 +37,13 @@ class AuthType {
     return null;
   }
 
+  get loginUserTokenKey() {
+    if (!!window && !!localStorage) {
+      return localStorage.getItem(appTokenKey);
+    }
+    return null;
+  }
+
   public logout() {
     return this.fb.auth().signOut().then((_) => {
       if (!!window && !!localStorage) {

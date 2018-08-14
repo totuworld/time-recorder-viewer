@@ -11,7 +11,8 @@ import React from 'react';
 import { DateRangePicker } from 'react-dates';
 import { Helmet } from 'react-helmet';
 import {
-    Button, Card, CardBody, CardFooter, CardHeader, Col, Container, Row, Table
+    Button, Card, CardBody, CardFooter, CardHeader, Col, Container, FormGroup, Input,
+    InputGroupAddon, InputGroupText, Label, Modal, ModalBody, ModalFooter, ModalHeader, Row, Table
 } from 'reactstrap';
 
 import { EN_WORK_TITLE_KR, EN_WORK_TYPE } from '../../models/time_record/interface/EN_WORK_TYPE';
@@ -69,9 +70,16 @@ export interface IRecordContainerStates {
 }
 
 @observer
-class RecordContainer extends React.Component<IRecordContainerProps, IRecordContainerStates> {
+class RecordContainer extends React.Component<
+IRecordContainerProps,
+IRecordContainerStates & { isModalOpen: boolean, updateData?: { key: string, data: ITimeRecordLogData } }> {
   private store: TimeRecordStore;
   private loginUserStore: LoginStore;
+
+  private modalStartDateRef = React.createRef<HTMLInputElement>();
+  private modalStartTimeRef = React.createRef<HTMLInputElement>();
+  private modalEndDateRef = React.createRef<HTMLInputElement>();
+  private modalEndTimeRef = React.createRef<HTMLInputElement>();
 
   public static async getInitialProps({
     req,
@@ -137,6 +145,7 @@ class RecordContainer extends React.Component<IRecordContainerProps, IRecordCont
       focusedInput: null,
       backupDate: { start: null, end: null },
       isServer: true,
+      isModalOpen: false,
     };
 
     this.onDatesChangeForDRP = this.onDatesChangeForDRP.bind(this);
@@ -150,6 +159,8 @@ class RecordContainer extends React.Component<IRecordContainerProps, IRecordCont
     this.isLogined = this.isLogined.bind(this);
     this.recordButtons = this.recordButtons.bind(this);
     this.handleRecordButtonClick = this.handleRecordButtonClick.bind(this);
+    this.saveWorklog = this.saveWorklog.bind(this);
+    this.getModalBody = this.getModalBody.bind(this);
     this.store = new TimeRecordStore(props.records);
     this.loginUserStore = new LoginStore(null);
   }
@@ -349,7 +360,10 @@ class RecordContainer extends React.Component<IRecordContainerProps, IRecordCont
       records = Object.keys(data).map((mv) => {
         const tData = data[mv];
         return (
-          <tr key={mv}>
+          <tr
+            key={mv}
+            onClick={() => { this.setState({...this.state, isModalOpen: true, updateData: { key: mv, data: tData }}); }}
+          >
             <td>{EN_WORK_TITLE_KR[tData.type]}</td>
             <td>{Util.toDateTimeShort(tData.time)}</td>
             <td>{!!tData.done ? Util.toDateTimeShort(tData.done) : 'none'}</td>
@@ -427,6 +441,188 @@ class RecordContainer extends React.Component<IRecordContainerProps, IRecordCont
     }
   }
 
+  public handleInputUpdateData(key: 'time' | 'done', value: string, isTime: boolean = false) {
+    console.log('ho');
+  }
+
+  public async saveWorklog() {
+    const updateData = this.state.updateData;
+    if (!!updateData === false) {
+      return this.setState({...this.state, isModalOpen: false, updateData: undefined});
+    }
+
+    // REST, EMERGENCY는 완료 시간이 있으니 완료 시간 체크가 필요하다.
+    const data = updateData!.data;
+    const originalStart = luxon.DateTime.fromISO(data!.time);
+    const startTimeStr = this.modalStartTimeRef.current!.value;
+    const start = luxon.DateTime.fromFormat(
+      originalStart.toFormat('yyyy-LL-dd').concat(` ${startTimeStr}`),
+      'yyyy-LL-dd HH:mm');
+    if (data.type === EN_WORK_TYPE.REST || data.type === EN_WORK_TYPE.EMERGENCY) {
+      // end time 계산 필요.
+      const endDateStr = this.modalEndDateRef.current!.value;
+      const endTimeStr = this.modalEndTimeRef.current!.value;
+      const end = luxon.DateTime.fromFormat(`${endDateStr} ${endTimeStr}`, 'yyyy-LL-dd HH:mm');
+      // 시작 시간보다 뒤인가?
+      if (end.diff(start).milliseconds < 0) {
+        return alert('종료 시간은 시작 시간을 앞 설 수 없어요.');
+      }
+    }
+
+    // 실제 업데이트를 진행하자!
+    // time 부분 수정
+    if (originalStart.toFormat('yyyy-LL-dd HH:mm') !== start.toFormat('yyyy-LL-dd HH:mm')) {
+      await this.store.updateTimeRecord(
+        Auth.loginUserTokenKey!,
+        this.loginUserStore.UserInfo!.id,
+        start.toFormat('yyyyLLdd'),
+        updateData!.key,
+        'time',
+        start.toUTC().toISO(),
+      );
+    }
+    // done 업데이트 여부 결정
+    if (data.type === EN_WORK_TYPE.REST || data.type === EN_WORK_TYPE.EMERGENCY) {
+      const haveDone = !!data.done;
+      const endDateStr = this.modalEndDateRef.current!.value;
+      const endTimeStr = this.modalEndTimeRef.current!.value;
+      const end = luxon.DateTime.fromFormat(`${endDateStr} ${endTimeStr}`, 'yyyy-LL-dd HH:mm');
+      let updateDone = false;
+      // 기존 완료 시간이 있는가?
+      if (haveDone === true) {
+        const originalEnd = luxon.DateTime.fromISO(data!.done!);
+        if (originalEnd.toFormat('yyyy-LL-dd HH:mm') !== end.toFormat('yyyy-LL-dd HH:mm')) {
+          updateDone = true;
+        }
+      } else if (start.toFormat('yyyy-LL-dd HH:mm') !== end.toFormat('yyyy-LL-dd HH:mm')) { // 시작 시간과 다른가?
+        updateDone = true;
+      }
+      if (updateDone === true) {
+        await this.store.updateTimeRecord(
+          Auth.loginUserTokenKey!,
+          this.loginUserStore.UserInfo!.id,
+          start.toFormat('yyyyLLdd'),
+          updateData!.key,
+          'done',
+          end.toUTC().toISO(),
+        );
+      }
+    }
+    this.setState({...this.state, isModalOpen: false, updateData: undefined});
+    await this.store.findTimeRecord(
+      this.props.userId,
+      moment(this.state.startDate).format('YYYY-MM-DD'),
+      moment(this.state.endDate).format('YYYY-MM-DD'));
+  }
+
+  public getModalBody() {
+    const updateData = this.state.updateData;
+    if (!!updateData === false) {
+      return null;
+    }
+    const data = updateData!.data;
+    const start = luxon.DateTime.fromISO(data.time);
+    const startDate = start.toFormat('yyyy-LL-dd');
+    const startTime = start.toFormat('HH:mm');
+
+    let doneElement: JSX.Element | null = null;
+    if (data.type === EN_WORK_TYPE.REST || data.type === EN_WORK_TYPE.EMERGENCY) {
+      if (!!data.done) {
+        const end = luxon.DateTime.fromISO(data.done);
+        const endDate = end.toFormat('yyyy-LL-dd');
+        const endTime = end.toFormat('HH:mm');
+        doneElement = (
+          <FormGroup>
+            <Label>완료</Label>
+            <Input
+              type="date"
+              id="date-input"
+              name="date-input"
+              placeholder="date"
+              defaultValue={endDate}
+              disabled={data.type === EN_WORK_TYPE.REST}
+              innerRef={this.modalEndDateRef}
+            />
+            <Input
+              type="time"
+              id="time-input"
+              name="time-input"
+              placeholder="time"
+              defaultValue={endTime}
+              innerRef={this.modalEndTimeRef}
+            />
+          </FormGroup>
+        );
+      } else {
+        doneElement = (
+          <FormGroup>
+            <Label>완료</Label>
+            <Input
+              type="date"
+              id="date-input"
+              name="date-input"
+              placeholder="date"
+              defaultValue={startDate}
+              disabled={data.type === EN_WORK_TYPE.REST}
+              innerRef={this.modalEndDateRef}
+            />
+            <Input
+              type="time"
+              id="time-input"
+              name="time-input"
+              placeholder="time"
+              defaultValue={startTime}
+              innerRef={this.modalEndTimeRef}
+            />
+          </FormGroup>
+        );
+      }
+    }
+
+    return (
+      <>
+      <ModalHeader>
+        {`${updateData!.key} ${EN_WORK_TITLE_KR[updateData!.data.type]} 수정`}
+      </ModalHeader>
+      <ModalBody>
+        <FormGroup>
+          <Label>시작</Label>
+          <Input
+            type="date"
+            id="date-input"
+            name="date-input"
+            placeholder="date"
+            defaultValue={startDate}
+            disabled={true}
+          />
+          <Input
+            type="time"
+            id="time-input"
+            name="time-input"
+            placeholder="time"
+            defaultValue={startTime}
+            innerRef={this.modalStartTimeRef}
+          />
+        </FormGroup>
+        {doneElement}
+      </ModalBody>
+      <ModalFooter>
+        <Button
+          color="success"
+          onClick={this.saveWorklog}
+        >
+          저장
+        </Button>
+        <Button
+          onClick={() => { this.setState({...this.state, isModalOpen: false, updateData: undefined}); }}
+        >
+          닫기
+        </Button>
+      </ModalFooter>
+      </>
+    );
+  }
+
   public async componentDidMount() {
     this.setState({
       ...this.state,
@@ -443,6 +639,7 @@ class RecordContainer extends React.Component<IRecordContainerProps, IRecordCont
       this.getMultipleDayElement() : this.getSingleDayElement();
     const avatar = this.getAvatar();
     const recordButtons = this.recordButtons();
+    const modalBody = this.getModalBody();
     return (
       <div className="app">
         <Helmet>
@@ -481,6 +678,11 @@ class RecordContainer extends React.Component<IRecordContainerProps, IRecordCont
               {recordButtons}
             </div>
           </Container>
+          <Modal
+            isOpen={this.state.isModalOpen}
+          >
+            {modalBody}
+          </Modal>
         </div>
       </div>
     );

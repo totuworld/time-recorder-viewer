@@ -12,3 +12,7 @@ export interface IAddTimeRecord {
     text: string | null;
   };
 }
+
+export interface IUpdateTimeRecord {
+  type: EN_REQUEST_RESULT;
+}

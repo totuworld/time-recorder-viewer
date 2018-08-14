@@ -10,8 +10,9 @@ import { IJSONSchemaType } from '../common/IJSONSchemaType';
 import { AddTimeRecordRequestParam } from './interface/AddTimeRecordRequestParam';
 import { EN_WORK_TYPE } from './interface/EN_WORK_TYPE';
 import { ITimeRecordLogData } from './interface/ITimeRecordLogData';
-import { IAddTimeRecord, ITimeRecords } from './interface/ITimeRecords';
+import { IAddTimeRecord, ITimeRecords, IUpdateTimeRecord } from './interface/ITimeRecords';
 import { TimeRecordRecordsRequestsParam } from './interface/TimeRecordRecordsRequestsParam';
+import { UpdateTimeRecordRequestParam } from './interface/UpdateTimeRecordRequestParam';
 import { TimeRecordRequestBuilder } from './TimeRecordRequestBuilder';
 
 const log = debug('trv:TimeRecord');
@@ -240,5 +241,34 @@ export class TimeRecord {
     }
     log(result.payload);
     return { type: EN_REQUEST_RESULT.SUCCESS, data: result.payload };
+  }
+
+  public async updateWorkLog(
+    params: UpdateTimeRecordRequestParam,
+    schema: IJSONSchemaType
+  ): Promise<IUpdateTimeRecord> {
+    log(params);
+    const validParam = Requester.validateParam(params, schema);
+    log('validParam: ', validParam);
+    if (validParam === false) {
+      return { type: EN_REQUEST_RESULT.ERROR };
+    }
+    const query = this.rb.createPostUpdateUserRecordQuery({
+      method: 'POST',
+      headers: {},
+      body: params.body
+    });
+
+    log(query);
+
+    const requester = RequestService.create(query.url);
+    const response = await requester.call<null>(query);
+
+    const result = await response;
+    if (result.type === EN_REQUEST_RESULT.ERROR) {
+      return { type: EN_REQUEST_RESULT.ERROR };
+    }
+    log(result.payload);
+    return { type: EN_REQUEST_RESULT.SUCCESS };
   }
 }

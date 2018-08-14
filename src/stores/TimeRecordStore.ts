@@ -1,6 +1,8 @@
 import { action, observable, runInAction } from 'mobx';
 
-import { EN_WORK_TYPE, EN_WORK_TYPE_COMMAND_TITLE } from '../models/time_record/interface/EN_WORK_TYPE';
+import {
+    EN_WORK_TYPE, EN_WORK_TYPE_COMMAND_TITLE
+} from '../models/time_record/interface/EN_WORK_TYPE';
 import { ITimeRecordLogData } from '../models/time_record/interface/ITimeRecordLogData';
 import {
     GetTimeRecordsJSONSchema
@@ -8,6 +10,9 @@ import {
 import {
     PostTimeRecordJSONSchema
 } from '../models/time_record/JSONSchema/PostTimeRecordJSONSchema';
+import {
+    PostUpdateTimeRecordJSONSchema
+} from '../models/time_record/JSONSchema/PostUpdateTimeRecordJSONSchema';
 import { TimeRecord } from '../models/time_record/TimeRecord';
 import { TimeRecordRequestBuilder } from '../models/time_record/TimeRecordRequestBuilder';
 import { RequestBuilderParams } from '../services/requestService/RequestBuilder';
@@ -110,6 +115,54 @@ export default class TimeRecordStore {
           return actionResp.data;
         }
         return { text: null };
+      });
+    } catch (error) {
+      this.isLoading = false;
+      throw error;
+    }
+  }
+
+  @action
+  public async updateTimeRecord(
+    authUserId: string,
+    userId: string,
+    updateDate: string,
+    recordKey: string,
+    targetKey: keyof ITimeRecordLogData,
+    time: string,
+  ): Promise<boolean> {
+    if (this.isLoading === true) {
+      return false;
+    }
+    try {
+      this.isLoading = true;
+
+      const rbParam: RequestBuilderParams = { isProxy: true };
+
+      const checkParams = {
+        body: {
+          auth_user_id: authUserId,
+          user_id: userId,
+          update_date: updateDate,
+          record_key: recordKey,
+          target_key: targetKey,
+          time,
+        }
+      };
+
+      const rb = new TimeRecordRequestBuilder(rbParam);
+      const findAction = new TimeRecord(rb);
+
+      const actionResp = await findAction.updateWorkLog(
+        checkParams,
+        PostUpdateTimeRecordJSONSchema,
+      );
+      return runInAction(() => {
+        this.isLoading = false;
+        if (actionResp.type === EN_REQUEST_RESULT.SUCCESS) {
+          return true;
+        }
+        return false;
       });
     } catch (error) {
       this.isLoading = false;
