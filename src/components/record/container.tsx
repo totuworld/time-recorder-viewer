@@ -427,7 +427,7 @@ IRecordContainerStates & { isModalOpen: boolean, updateData?: { key: string, dat
     if (this.state.isServer === true) {
       return false;
     }
-    return Auth.isLogined;
+    return this.loginUserStore.isLogin;
   }
 
   public recordButtons() {
@@ -687,7 +687,7 @@ IRecordContainerStates & { isModalOpen: boolean, updateData?: { key: string, dat
           isLogin={this.isLogined()}
           userInfo={this.loginUserStore.UserInfo}
           onClickLogin={() => { window.location.href = '/login'; }}
-          onClickLogout={Auth.logout}
+          onClickLogout={() => { this.loginUserStore.logout(this.state.isServer); }}
         />
         <div className="app-body">
           <Container>

@@ -215,7 +215,7 @@ export default class GroupContainer extends React.Component<IGroupContainerProps
     if (this.state.isServer === true) {
       return false;
     }
-    return Auth.isLogined;
+    return this.loginUserStore.isLogin;
   }
 
   public async componentDidMount() {
@@ -241,7 +241,7 @@ export default class GroupContainer extends React.Component<IGroupContainerProps
           isLogin={this.isLogined()}
           userInfo={this.loginUserStore.UserInfo}
           onClickLogin={() => { window.location.href = '/login'; }}
-          onClickLogout={Auth.logout}
+          onClickLogout={() => { this.loginUserStore.logout(this.state.isServer); }}
         />
         <div className="app-body">
           <Container>

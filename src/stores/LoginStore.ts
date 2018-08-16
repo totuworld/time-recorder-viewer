@@ -22,7 +22,7 @@ export default class LoginStore {
   }
 
   get isLogin() {
-    return Auth.isLogined;
+    return !!this.userInfo;
   }
 
   get UserInfo() {
@@ -101,5 +101,16 @@ export default class LoginStore {
       this.isLoading = false;
       throw error;
     }
+  }
+
+  @action
+  public logout(isServer: boolean) {
+    if (isServer === true) {
+      return;
+    }
+    Auth.logout();
+    runInAction(() => {
+      this.userInfo = null;
+    });
   }
 }

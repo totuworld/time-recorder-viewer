@@ -8,7 +8,6 @@ import avatar from '../../assets/img/avatar.svg';
 import logo from '../../assets/img/brand/logo.svg';
 import sygnet from '../../assets/img/brand/sygnet.svg';
 import { IUserInfo } from '../../models/user/interface/IUserInfo';
-import { Auth } from '../../services/auth';
 
 export interface IDefaultHeaderProps {
   isLogin: boolean;
