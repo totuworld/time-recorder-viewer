@@ -5,8 +5,7 @@ import {
 } from 'reactstrap';
 
 import avatar from '../../assets/img/avatar.svg';
-import logo from '../../assets/img/brand/logo.svg';
-import sygnet from '../../assets/img/brand/sygnet.svg';
+import logo from '../../assets/img/logo.svg';
 import { IUserInfo } from '../../models/user/interface/IUserInfo';
 
 export interface IDefaultHeaderProps {
@@ -71,6 +70,7 @@ class DefaultHeader extends React.Component<IDefaultHeaderProps, IDefaultHeaderS
     return (
       <header className="app-header navbar">
         <Container>
+          <img src={logo} width="30" height="30" alt="Work Logger" className="navbar-brand-minimized" />
           <Nav className="ml-auto" navbar={true}>
             <Dropdown
               nav={true}
