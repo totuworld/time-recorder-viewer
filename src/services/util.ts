@@ -4,6 +4,7 @@ export interface ITimeObj {
   REST: {[key: string]: number};
   WORK: {[key: string]: number};
   EMERGENCY: {[key: string]: number};
+  REMOTE: {[key: string]: number};
 }
 
 export class Util {

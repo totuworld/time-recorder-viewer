@@ -67,24 +67,27 @@ export class TimeRecord {
     return TimeRecord.extractEtcTime(childData, EN_WORK_TYPE.EMERGENCY);
   }
 
-  public static extractWorkTime(childData: {[key: string]: ITimeRecordLogData }) {
+  public static extractWorkTime(
+    childData: {[key: string]: ITimeRecordLogData },
+    startType: EN_WORK_TYPE = EN_WORK_TYPE.WORK,
+    endType: EN_WORK_TYPE = EN_WORK_TYPE.BYEBYE) {
 
     // 일한 시간 뽑아내자.
     // 출/퇴근 필터
     const workFilter = Object.keys(childData)
       .filter((fv) =>
-        childData[fv].type === EN_WORK_TYPE.WORK ||
-        childData[fv].type === EN_WORK_TYPE.BYEBYE
+        childData[fv].type === startType ||
+        childData[fv].type === endType
       )
       .map((mv) => childData[mv])
       .reduce<{ time: number; lastWorkTimeStamp: string, timeObj: {[key: string]: number} }>(
         (acc, cur: ITimeRecordLogData) => {
           // 출근인가?
-          if (cur.type === EN_WORK_TYPE.WORK) {
+          if (cur.type === startType) {
             acc.lastWorkTimeStamp = cur.time;
           }
           // 퇴근인가?
-          if (cur.type === EN_WORK_TYPE.BYEBYE) {
+          if (cur.type === endType) {
             if (!!acc.lastWorkTimeStamp) {
               // 앞 시간부터 비교해서 시간 추가하자.
               const duration = Util.getBetweenDuration(
@@ -137,14 +140,17 @@ export class TimeRecord {
       const dateStr = Object.keys(mv)[0];
       const data = {
         name: dateStr,
-        data: { REST: 0, WORK: 0, EMERGENCY: 0 },
-        timeObj: { REST: {}, WORK: {}, EMERGENCY: {} },
+        data: { REST: 0, WORK: 0, EMERGENCY: 0, REMOTE: 0 },
+        timeObj: { REST: {}, WORK: {}, EMERGENCY: {}, REMOTE: {} },
       };
       const workTime = TimeRecord.extractWorkTime(mv[dateStr]);
+      const remoteTime = TimeRecord.extractWorkTime(mv[dateStr], EN_WORK_TYPE.REMOTE, EN_WORK_TYPE.REMOTEDONE);
       const restTime = TimeRecord.extractRestTime(mv[dateStr]);
       const emergencyTime = TimeRecord.extractEmergencyTime(mv[dateStr]);
       data.data.WORK = workTime.time;
       data.timeObj.WORK = workTime.timeObj;
+      data.data.REMOTE = remoteTime.time;
+      data.timeObj.REMOTE = remoteTime.timeObj;
       data.data.REST = restTime.time;
       data.timeObj.REST = restTime.timeObj;
       data.data.EMERGENCY = emergencyTime.time;
@@ -158,10 +164,14 @@ export class TimeRecord {
     const totalLawRestTimeStr = Util.reduceDurationObject(timeLawRestObjs, EN_WORK_TYPE.REST).toFormat('hh:mm:ss');
     const totalRestTimeStr = Util.reduceDurationObject(timeObjs, EN_WORK_TYPE.REST).toFormat('hh:mm:ss');
     const totalEmergencyTimeStr = Util.reduceDurationObject(timeObjs, EN_WORK_TYPE.EMERGENCY).toFormat('hh:mm:ss');
-    // const calWorkTime = totalWorkTime - totalRestTime - totalLawRestTime + totalEmergencyTime;
+    const totalRemoteTimeStr = Util.reduceDurationObject(timeObjs, EN_WORK_TYPE.REMOTE).toFormat('hh:mm:ss');
+    // const calWorkTime = totalWorkTime - totalRestTime - totalLawRestTime + totalEmergencyTime + totalRemoteTime;
     let calWorkTimeObj = Util.calTimeObj(
       Util.reduceTimeObj(timeObjs, EN_WORK_TYPE.WORK),
       Util.reduceTimeObj(timeObjs, EN_WORK_TYPE.EMERGENCY));
+    calWorkTimeObj = Util.calTimeObj(
+        calWorkTimeObj,
+        Util.reduceTimeObj(timeObjs, EN_WORK_TYPE.REMOTE));
     calWorkTimeObj = Util.calTimeObj(calWorkTimeObj, Util.reduceTimeObj(timeObjs, EN_WORK_TYPE.REST), 'minus');
     calWorkTimeObj = Util.calTimeObj(calWorkTimeObj, Util.reduceTimeObj(timeLawRestObjs, EN_WORK_TYPE.REST), 'minus');
     const calWorkTimeStr = luxon.Duration.fromObject(calWorkTimeObj).toFormat('hh:mm:ss');
@@ -178,7 +188,93 @@ export class TimeRecord {
       updateDatas,
       calWorkTimeObj,
       overTimeObj: overTimeObj.toObject(),
-      calWorkTimeStr, overTimeStr, totalWorkTimeStr, totalEmergencyTimeStr, totalRestTimeStr, totalLawRestTimeStr };
+      calWorkTimeStr, overTimeStr, totalWorkTimeStr,
+      totalEmergencyTimeStr, totalRestTimeStr, totalLawRestTimeStr, totalRemoteTimeStr };
+  }
+
+  public static checkAddWorkType(logs: ITimeRecordLogData[], targetType: EN_WORK_TYPE) {
+    if (targetType === EN_WORK_TYPE.WORK || targetType === EN_WORK_TYPE.REMOTE) {
+      return this.possibleAddWorkOrRemote(logs);
+    }
+    if (targetType === EN_WORK_TYPE.BYEBYE) {
+      return this.possibleAddByeBye(logs);
+    }
+    if (targetType === EN_WORK_TYPE.REMOTEDONE) {
+      return this.possibleAddRemoteDone(logs);
+    }
+    if (targetType === EN_WORK_TYPE.REST) {
+      return this.possibleAddRest(logs);
+    }
+    if (targetType === EN_WORK_TYPE.EMERGENCY) {
+      return this.possibleAddEmergency(logs);
+    }
+    return false;
+  }
+
+  /** 출근을 기록할 수 있는가? */
+  public static possibleAddWorkOrRemote(logs: ITimeRecordLogData[]) {
+
+    const remoteLogs = this.reduceWorkLogs(logs);
+
+    const haveTrue = Object.keys(remoteLogs).reduce(
+      (acc, cur) => {
+        if (acc === true) {
+          return acc;
+        }
+        if (remoteLogs[cur] === true) {
+          return true; 
+        }
+        return acc;
+      },
+      false);
+    // 한 개라도 WORK나 REMOTE가 열려있는가? false, 아니면 true
+    return !haveTrue;
+  }
+
+  public static possibleAddByeBye(logs: ITimeRecordLogData[]) {
+    const remoteLogs = this.reduceWorkLogs(logs);
+    // work가 열려있어야만 가능.
+    return remoteLogs.WORK === true && remoteLogs.REMOTE === false && remoteLogs.EMERGENCY === false;
+  }
+
+  public static possibleAddRemoteDone(logs: ITimeRecordLogData[]) {
+    const remoteLogs = this.reduceWorkLogs(logs);
+    // remote가 열려있어야 가능
+    return remoteLogs.WORK === false && remoteLogs.REMOTE === true && remoteLogs.EMERGENCY === false;
+  }
+
+  public static possibleAddRest(logs: ITimeRecordLogData[]) {
+    const remoteLogs = this.reduceWorkLogs(logs);
+    const haveActiveRest = logs.filter((fv) => fv.type === EN_WORK_TYPE.REST && !!fv.done === false).length > 0;
+    // work나 remote가 열려있고, 완료되지 않은 rest가 없을 때 가능.
+    return (remoteLogs.WORK === true || remoteLogs.REMOTE === true) && haveActiveRest === false;
+  }
+
+  public static possibleAddEmergency(logs: ITimeRecordLogData[]) {
+    const remoteLogs = this.reduceWorkLogs(logs);
+    // work, remote, emergency가 모두 close 일 때 가능
+    return remoteLogs.WORK === false && remoteLogs.REMOTE === false && remoteLogs.EMERGENCY === false;
+  }
+
+  private static reduceWorkLogs(logs: ITimeRecordLogData[]) {
+    return logs.reduce(
+      (acc: { WORK: boolean, REMOTE: boolean, EMERGENCY: boolean }, cur) => {
+        if (acc.WORK === false && cur.type === EN_WORK_TYPE.WORK) {
+          acc.WORK = true;
+        } else if (acc.WORK === true && cur.type === EN_WORK_TYPE.BYEBYE) {
+          acc.WORK = false;
+        }
+        if (acc.REMOTE === false && cur.type === EN_WORK_TYPE.REMOTE) {
+          acc.REMOTE = true;
+        } else if (acc.REMOTE === true && cur.type === EN_WORK_TYPE.REMOTEDONE) {
+          acc.REMOTE = false;
+        }
+        if (acc.EMERGENCY === false && cur.type === EN_WORK_TYPE.EMERGENCY && !!cur.done === false) {
+          acc.EMERGENCY = true;
+        }
+        return acc;
+      },
+      { WORK: false, REMOTE: false, EMERGENCY: false });
   }
 
   constructor(private rb: TimeRecordRequestBuilder) {}

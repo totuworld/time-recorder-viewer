@@ -5,10 +5,9 @@
     <desc>Created with Sketch.</desc>
     <defs></defs>
     <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <g id="Group" fill="#56595D">
-            <rect id="Rectangle" x="0" y="0" width="168" height="36"></rect>
-            <rect id="Rectangle-Copy" x="0" y="66" width="168" height="36"></rect>
-            <rect id="Rectangle-Copy-2" x="0" y="132" width="168" height="36"></rect>
+        <g id="Group" fill="#D8D8D8">
+            <rect id="Rectangle" x="74" y="0" width="20" height="168"></rect>
+            <rect id="Rectangle" transform="translate(84.000000, 84.000000) rotate(90.000000) translate(-84.000000, -84.000000) " x="74" y="0" width="20" height="168"></rect>
         </g>
     </g>
 </svg>

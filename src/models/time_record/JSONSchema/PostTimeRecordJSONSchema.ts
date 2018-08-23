@@ -13,7 +13,7 @@ export const PostTimeRecordJSONSchema: IJSONSchemaType = {
         },
         type: {
           type: 'string',
-          enum: ['WORK', 'BYEBYE', 'REST', 'EMERGENCY', 'DONE']
+          enum: ['WORK', 'BYEBYE', 'REST', 'EMERGENCY', 'DONE', 'REMOTE', 'REMOTEDONE']
         },
         target_date: {
           type: 'string',

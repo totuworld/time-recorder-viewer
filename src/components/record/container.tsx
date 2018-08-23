@@ -50,7 +50,8 @@ const WorkStackedBarChart = ChartBarStacked as WorkStackedBarChart;
 const bgColor = [
   {targetKey: 'REST', color: '#ffc107'},
   {targetKey: 'WORK', color: '#63c2de'},
-  {targetKey: 'EMERGENCY', color: '#f86c6b'}
+  {targetKey: 'EMERGENCY', color: '#f86c6b'},
+  {targetKey: 'REMOTE', color: '#63c2de'}
 ];
 
 interface IRecordContainerProps {
@@ -158,6 +159,7 @@ IRecordContainerStates & { isModalOpen: boolean, updateData?: { key: string, dat
     this.getWorkTime = this.getWorkTime.bind(this);
     this.gobackList = this.gobackList.bind(this);
     this.isLogined = this.isLogined.bind(this);
+    this.getAvailableRecordBtns = this.getAvailableRecordBtns.bind(this);
     this.recordButtons = this.recordButtons.bind(this);
     this.handleRecordButtonClick = this.handleRecordButtonClick.bind(this);
     this.saveWorklog = this.saveWorklog.bind(this);
@@ -237,7 +239,8 @@ IRecordContainerStates & { isModalOpen: boolean, updateData?: { key: string, dat
     const {
       datasets,
       calWorkTimeStr, overTimeStr, totalWorkTimeStr,
-      totalEmergencyTimeStr, totalRestTimeStr, totalLawRestTimeStr
+      totalEmergencyTimeStr, totalRestTimeStr, totalLawRestTimeStr,
+      totalRemoteTimeStr
     } = this.getWorkTime();
     log(datasets.datasets[0].data);
     return (
@@ -273,6 +276,12 @@ IRecordContainerStates & { isModalOpen: boolean, updateData?: { key: string, dat
                 </div>
               </Col>
               <Col md={true} className="mb-sm-2 mb-0">
+                <div className="callout callout-info">
+                  <div className="text-muted">{totalRemoteTimeStr}</div>
+                  <div>재택근무시간</div>
+                </div>
+              </Col>
+              <Col md={true} className="mb-sm-2 mb-0">
                 <div className="callout callout-warning">
                   <div className="text-muted">{totalEmergencyTimeStr}</div>
                   <div>긴급대응시간</div>
@@ -301,7 +310,7 @@ IRecordContainerStates & { isModalOpen: boolean, updateData?: { key: string, dat
     const {
       updateDatas,
       calWorkTimeStr, overTimeStr, totalWorkTimeStr,
-      totalEmergencyTimeStr, totalRestTimeStr, totalLawRestTimeStr }
+      totalEmergencyTimeStr, totalRestTimeStr, totalLawRestTimeStr, totalRemoteTimeStr }
       = TimeRecord.convertWorkTime(this.store.Records, this.state.startDate, this.state.endDate);
     const datasets: IChartBarStacked2Props = updateDatas.reduce(
       (acc, cur) => {
@@ -310,6 +319,7 @@ IRecordContainerStates & { isModalOpen: boolean, updateData?: { key: string, dat
         acc.datasets[0].data.push(!!data.WORK ? data.WORK : 0);
         acc.datasets[1].data.push(!!data.REST ? data.REST : 0);
         acc.datasets[2].data.push(!!data.EMERGENCY ? data.EMERGENCY : 0);
+        acc.datasets[3].data.push(!!data.REMOTE ? data.REMOTE : 0);
         return acc;
       },
       {
@@ -317,11 +327,13 @@ IRecordContainerStates & { isModalOpen: boolean, updateData?: { key: string, dat
           { label: 'WORK', data: new Array<number>(), backgroundColor: bgColor[1].color },
           { label: 'REST', data: new Array<number>(), backgroundColor: bgColor[0].color },
           { label: 'EMERGENCY', data: new Array<number>(), backgroundColor: bgColor[2].color },
+          { label: 'REMOTE', data: new Array<number>(), backgroundColor: bgColor[3].color },
         ]
       });
     return {
       datasets,
-      calWorkTimeStr, overTimeStr, totalWorkTimeStr, totalEmergencyTimeStr, totalRestTimeStr, totalLawRestTimeStr };
+      calWorkTimeStr, overTimeStr, totalWorkTimeStr, totalEmergencyTimeStr,
+      totalRestTimeStr, totalLawRestTimeStr, totalRemoteTimeStr };
   }
 
   private async gobackList() {
@@ -442,14 +454,27 @@ IRecordContainerStates & { isModalOpen: boolean, updateData?: { key: string, dat
       !!Auth.loginUserTokenKey &&
       !!this.loginUserStore.LoginUserInfo &&
       !!this.loginUserStore.LoginUserInfo.auth) {
-      return <RecordButtons handleClickMenu={this.handleRecordButtonClick} />;
+      const allButtonOn = {
+        WORK: true,
+        BYEBYE: true,
+        REMOTE: true,
+        REMOTEDONE: true,
+        REST: true,
+        EMERGENCY: true,
+        DONE: true,
+      };
+      return (
+        <RecordButtons
+          menuOnOff={allButtonOn}
+          handleClickMenu={this.handleRecordButtonClick}
+        />);
     }
     // 로그인 했고!
     // 당일이며!
     // 자신의 정보일 때!
     if (this.isLogined() === true && !!this.loginUserStore.UserInfo
       && this.isToday === true && this.loginUserStore.UserInfo.id === this.props.userId) {
-      return <RecordButtons handleClickMenu={this.handleRecordButtonClick} />;
+      return <RecordButtons menuOnOff={this.getAvailableRecordBtns()} handleClickMenu={this.handleRecordButtonClick} />;
     }
     return null;
   }
@@ -465,6 +490,49 @@ IRecordContainerStates & { isModalOpen: boolean, updateData?: { key: string, dat
     const start = moment(this.state.startDate);
     const end = moment(this.state.endDate);
     return (start.diff(end, 'days') === 0);
+  }
+
+  public getAvailableRecordBtns() {
+    const returnValue = {
+      WORK: false,
+      BYEBYE: false,
+      REMOTE: false,
+      REMOTEDONE: false,
+      REST: false,
+      EMERGENCY: false,
+      DONE: false,
+    };
+    if (this.isOneDay === false) {
+      return returnValue;
+    }
+    const firstData = this.store.Records[0];
+    if (firstData  === undefined) {
+      returnValue.WORK = true;
+      returnValue.REMOTE = true;
+      returnValue.EMERGENCY = true;
+      return returnValue;
+    }
+    const firstKey = Object.keys(firstData)[0];
+    const data = firstData[firstKey];
+    const logs = Object.keys(data).map((key) => data[key]);
+    // 아무런 데이터가 없는가?
+    if (logs.length === 0) {
+      // 출근, 재택근무, 긴급대응만 open
+      returnValue.WORK = true;
+      returnValue.REMOTE = true;
+      returnValue.EMERGENCY = true;
+      return returnValue;
+    }
+    returnValue.WORK = TimeRecord.possibleAddWorkOrRemote(logs);
+    returnValue.BYEBYE = TimeRecord.possibleAddByeBye(logs);
+    returnValue.REMOTE = TimeRecord.possibleAddWorkOrRemote(logs);
+    returnValue.REMOTEDONE = TimeRecord.possibleAddRemoteDone(logs);
+    returnValue.REST = TimeRecord.possibleAddRest(logs);
+    returnValue.EMERGENCY = TimeRecord.possibleAddEmergency(logs);
+    returnValue.DONE = logs.filter(
+      (fv) => (fv.type === EN_WORK_TYPE.REST || fv.type === EN_WORK_TYPE.EMERGENCY) &&
+      (fv.done === null || fv.done === undefined)).length > 0;
+    return returnValue;
   }
 
   public async handleRecordButtonClick(type: EN_WORK_TYPE) {
