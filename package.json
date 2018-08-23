@@ -1,6 +1,6 @@
 {
   "name": "time-recorder-viewer",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "license": "MIT",
   "scripts": {
     "start:dev": "razzle start",

@@ -51,7 +51,7 @@ const bgColor = [
   {targetKey: 'REST', color: '#ffc107'},
   {targetKey: 'WORK', color: '#63c2de'},
   {targetKey: 'EMERGENCY', color: '#f86c6b'},
-  {targetKey: 'REMOTE', color: '#63c2de'}
+  {targetKey: 'REMOTE', color: '#36A2EB'}
 ];
 
 interface IRecordContainerProps {
@@ -375,7 +375,7 @@ IRecordContainerStates & { isModalOpen: boolean, updateData?: { key: string, dat
       },
       {
         data: [],
-        backgroundColor: [bgColor[1].color, bgColor[0].color, bgColor[2].color]
+        backgroundColor: [bgColor[1].color, bgColor[0].color, bgColor[2].color, bgColor[3].color]
       });
     const haveRecord = !!this.store.Records && this.store.Records.length > 0;
     let records: JSX.Element[] | null = null;
