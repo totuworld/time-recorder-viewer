@@ -158,8 +158,14 @@ export class TimeRecord {
       return data;
     }) : [];
     const timeObjs = updateDatas.map((mv) => mv.timeObj);
-    const timeLawRestObjs = updateDatas.filter((fv) => fv.data.WORK >= 8)
-      .map((mv) => { const updateObj = { ...mv.timeObj, REST: { hours: 1 } }; return updateObj; });
+    const timeLawRestObjs = updateDatas
+      .filter((fv) => fv.data.WORK >= 4)
+      .map((mv) => {
+        const extraTime  = mv.data.WORK % 4;
+        const lawRestTime = ((mv.data.WORK - extraTime) / 4) * 0.5;
+        const updateObj = { ...mv.timeObj, REST: { hours: lawRestTime } };
+        return updateObj;
+      });
     const totalWorkTimeStr = Util.reduceDurationObject(timeObjs, EN_WORK_TYPE.WORK).toFormat('hh:mm:ss');
     const totalLawRestTimeStr = Util.reduceDurationObject(timeLawRestObjs, EN_WORK_TYPE.REST).toFormat('hh:mm:ss');
     const totalRestTimeStr = Util.reduceDurationObject(timeObjs, EN_WORK_TYPE.REST).toFormat('hh:mm:ss');
