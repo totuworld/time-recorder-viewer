@@ -51,7 +51,8 @@ const bgColor = [
   {targetKey: 'REST', color: '#ffc107'},
   {targetKey: 'WORK', color: '#63c2de'},
   {targetKey: 'EMERGENCY', color: '#f86c6b'},
-  {targetKey: 'REMOTE', color: '#36A2EB'}
+  {targetKey: 'REMOTE', color: '#36A2EB'},
+  {targetKey: 'VACATION', color: '#4caf50'}
 ];
 
 interface IRecordContainerProps {
@@ -320,6 +321,7 @@ IRecordContainerStates & { isModalOpen: boolean, updateData?: { key: string, dat
         acc.datasets[1].data.push(!!data.REST ? data.REST : 0);
         acc.datasets[2].data.push(!!data.EMERGENCY ? data.EMERGENCY : 0);
         acc.datasets[3].data.push(!!data.REMOTE ? data.REMOTE : 0);
+        acc.datasets[4].data.push(!!data.VACATION ? data.VACATION : 0);
         return acc;
       },
       {
@@ -328,6 +330,7 @@ IRecordContainerStates & { isModalOpen: boolean, updateData?: { key: string, dat
           { label: 'REST', data: new Array<number>(), backgroundColor: bgColor[0].color },
           { label: 'EMERGENCY', data: new Array<number>(), backgroundColor: bgColor[2].color },
           { label: 'REMOTE', data: new Array<number>(), backgroundColor: bgColor[3].color },
+          { label: 'VACATION', data: new Array<number>(), backgroundColor: bgColor[4].color },
         ]
       });
     return {
@@ -375,7 +378,7 @@ IRecordContainerStates & { isModalOpen: boolean, updateData?: { key: string, dat
       },
       {
         data: [],
-        backgroundColor: [bgColor[1].color, bgColor[0].color, bgColor[2].color, bgColor[3].color]
+        backgroundColor: [bgColor[1].color, bgColor[0].color, bgColor[2].color, bgColor[3].color, bgColor[4].color]
       });
     const haveRecord = !!this.store.Records && this.store.Records.length > 0;
     let records: JSX.Element[] | null = null;
@@ -462,6 +465,8 @@ IRecordContainerStates & { isModalOpen: boolean, updateData?: { key: string, dat
         REST: true,
         EMERGENCY: true,
         DONE: true,
+        VACATION: true,
+        HALFVACATION: true,
       };
       return (
         <RecordButtons
@@ -501,6 +506,8 @@ IRecordContainerStates & { isModalOpen: boolean, updateData?: { key: string, dat
       REST: false,
       EMERGENCY: false,
       DONE: false,
+      VACATION: true,
+      HALFVACATION: true,
     };
     if (this.isOneDay === false) {
       return returnValue;
