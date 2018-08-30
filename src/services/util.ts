@@ -5,6 +5,7 @@ export interface ITimeObj {
   WORK: {[key: string]: number};
   EMERGENCY: {[key: string]: number};
   REMOTE: {[key: string]: number};
+  VACATION: {[key: string]: number};
 }
 
 export class Util {

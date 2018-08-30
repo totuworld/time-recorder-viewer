@@ -140,13 +140,14 @@ export class TimeRecord {
       const dateStr = Object.keys(mv)[0];
       const data = {
         name: dateStr,
-        data: { REST: 0, WORK: 0, EMERGENCY: 0, REMOTE: 0 },
-        timeObj: { REST: {}, WORK: {}, EMERGENCY: {}, REMOTE: {} },
+        data: { REST: 0, WORK: 0, EMERGENCY: 0, REMOTE: 0, VACATION: 0 },
+        timeObj: { REST: {}, WORK: {}, EMERGENCY: {}, REMOTE: {}, VACATION: {} },
       };
       const workTime = TimeRecord.extractWorkTime(mv[dateStr]);
       const remoteTime = TimeRecord.extractWorkTime(mv[dateStr], EN_WORK_TYPE.REMOTE, EN_WORK_TYPE.REMOTEDONE);
       const restTime = TimeRecord.extractRestTime(mv[dateStr]);
       const emergencyTime = TimeRecord.extractEmergencyTime(mv[dateStr]);
+      const vacationTime = TimeRecord.extractEtcTime(mv[dateStr], EN_WORK_TYPE.VACATION);
       data.data.WORK = workTime.time;
       data.timeObj.WORK = workTime.timeObj;
       data.data.REMOTE = remoteTime.time;
@@ -155,6 +156,8 @@ export class TimeRecord {
       data.timeObj.REST = restTime.timeObj;
       data.data.EMERGENCY = emergencyTime.time;
       data.timeObj.EMERGENCY = emergencyTime.timeObj;
+      data.data.VACATION = vacationTime.time;
+      data.timeObj.VACATION = vacationTime.timeObj;
       return data;
     }) : [];
     const timeObjs = updateDatas.map((mv) => mv.timeObj);
@@ -178,6 +181,9 @@ export class TimeRecord {
     calWorkTimeObj = Util.calTimeObj(
         calWorkTimeObj,
         Util.reduceTimeObj(timeObjs, EN_WORK_TYPE.REMOTE));
+    calWorkTimeObj = Util.calTimeObj(
+      calWorkTimeObj,
+      Util.reduceTimeObj(timeObjs, EN_WORK_TYPE.VACATION));
     calWorkTimeObj = Util.calTimeObj(calWorkTimeObj, Util.reduceTimeObj(timeObjs, EN_WORK_TYPE.REST), 'minus');
     calWorkTimeObj = Util.calTimeObj(calWorkTimeObj, Util.reduceTimeObj(timeLawRestObjs, EN_WORK_TYPE.REST), 'minus');
     const calWorkTimeStr = luxon.Duration.fromObject(calWorkTimeObj).toFormat('hh:mm:ss');
