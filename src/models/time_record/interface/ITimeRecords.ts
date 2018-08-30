@@ -15,4 +15,5 @@ export interface IAddTimeRecord {
 
 export interface IUpdateTimeRecord {
   type: EN_REQUEST_RESULT;
+  status?: number;
 }

@@ -108,7 +108,7 @@ export class TimeRecordController {
     );
 
     return {
-      status: actionResp.type === EN_REQUEST_RESULT.ERROR ? 400 : 200,
+      status: actionResp.type === EN_REQUEST_RESULT.ERROR ? !!actionResp.status ? actionResp.status : 400 : 200,
     };
   }
 }

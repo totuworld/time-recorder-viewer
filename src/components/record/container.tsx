@@ -359,10 +359,10 @@ IRecordContainerStates & { isModalOpen: boolean, updateData?: { key: string, dat
     const userInfo = this.loginUserStore.UserInfo;
     const loginUserInfo = this.loginUserStore.LoginUserInfo;
     // 자신의 데이터 이거나 관리자 일때만 modal open한다.
-    console.log(userInfo);
-    console.log(loginUserInfo);
     if (!!userInfo && !!loginUserInfo) {
-      if (this.props.userId === userInfo.id || !!loginUserInfo.auth) {
+      const today = luxon.DateTime.utc().setZone('Asia/Seoul').toFormat('yyyy-LL-dd');
+      const startDate = luxon.DateTime.fromJSDate(this.state.startDate).toFormat('yyyy-LL-dd');
+      if ((this.props.userId === userInfo.id && today === startDate) || !!loginUserInfo.auth) {
         this.setState({...this.state, isModalOpen: true, updateData: { key, data }});
       }
     }
@@ -586,7 +586,7 @@ IRecordContainerStates & { isModalOpen: boolean, updateData?: { key: string, dat
     if (originalStart.toFormat('yyyy-LL-dd HH:mm') !== start.toFormat('yyyy-LL-dd HH:mm')) {
       await this.store.updateTimeRecord(
         Auth.loginUserTokenKey!,
-        this.loginUserStore.UserInfo!.id,
+        this.props.userId,
         start.toFormat('yyyyLLdd'),
         updateData!.key,
         'time',

@@ -374,7 +374,7 @@ export class TimeRecord {
 
     const result = await response;
     if (result.type === EN_REQUEST_RESULT.ERROR) {
-      return { type: EN_REQUEST_RESULT.ERROR };
+      return { type: EN_REQUEST_RESULT.ERROR, status: result.statusCode };
     }
     log(result.payload);
     return { type: EN_REQUEST_RESULT.SUCCESS };
