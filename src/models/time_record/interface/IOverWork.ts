@@ -13,3 +13,15 @@ export interface IOverWorks {
   type: EN_REQUEST_RESULT;
   data: IOverWork[];
 }
+
+export interface IFuseOverWork {
+  /** luxon (yyyyLLdd) */
+  date: string;
+  /** ISO 8601 duration(PT4H2M) */
+  use: string;
+}
+
+export interface IFuseOverWorks {
+  type: EN_REQUEST_RESULT;
+  data: IFuseOverWork[];
+}

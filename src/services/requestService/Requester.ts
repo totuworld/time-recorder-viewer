@@ -12,7 +12,11 @@ export class Requester {
   public static validateParam(param: object, schema: object): boolean {
     try {
       const ajv = new Ajv();
-      const valid = ajv.validate(schema, param);
+      const validate = ajv.compile(schema);
+      const valid = validate(param);
+      if (valid === false) {
+        log(validate.errors);
+      }
       return !!valid && typeof valid === 'boolean' ? valid : false;
     } catch (err) {
       log(err);
