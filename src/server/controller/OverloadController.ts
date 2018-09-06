@@ -2,11 +2,15 @@ import debug from 'debug';
 import { Request } from 'express';
 
 import { Config } from '../../config/Config';
-import { IOverWorks } from '../../models/time_record/interface/IOverWork';
+import { IFuseOverWorks, IOverWorks } from '../../models/time_record/interface/IOverWork';
+import { IAddTimeRecord } from '../../models/time_record/interface/ITimeRecords';
 import { GetOverloadsJSONSchema } from '../../models/time_record/JSONSchema/GetOverloadsJSONSchema';
 import {
     GetTimeRecordsJSONSchema
 } from '../../models/time_record/JSONSchema/GetTimeRecordsJSONSchema';
+import {
+    PostAddOverloadJSONSchema
+} from '../../models/time_record/JSONSchema/PostAddOverloadJSONSchema';
 import {
     PostTimeRecordJSONSchema
 } from '../../models/time_record/JSONSchema/PostTimeRecordJSONSchema';
@@ -40,6 +44,60 @@ export class OverloadController {
     const actionResp = await findAction.findAll(
       checkParams,
       GetOverloadsJSONSchema,
+    );
+
+    return {
+      status: actionResp.type === EN_REQUEST_RESULT.ERROR ? 400 : 200,
+      payload: actionResp.data,
+    };
+  }
+
+  public async findAllFuse(req: Request): Promise<TControllerResp<IFuseOverWorks['data']>> {
+    const rbParam: RequestBuilderParams = { baseURI: Config.getApiURI() };
+    const { auth_user_id } = req.query;
+
+    const checkParams = {
+      query: {
+        auth_user_id
+      }
+    };
+
+    log(checkParams);
+
+    const rb = new OverloadRequestBuilder(rbParam);
+    const findAction = new Overload(rb);
+
+    const actionResp = await findAction.findAllFuse(
+      checkParams,
+      GetOverloadsJSONSchema,
+    );
+
+    return {
+      status: actionResp.type === EN_REQUEST_RESULT.ERROR ? 400 : 200,
+      payload: actionResp.data,
+    };
+  }
+
+  /** 초과근무 시간 차감 요청 */
+  public async addFuseOverload(req: Request): Promise<TControllerResp<IAddTimeRecord['data']>> {
+    const rbParam: RequestBuilderParams = { baseURI: Config.getApiURI() };
+    const { user_id, auth_user_id, target_date, duration } = req.body;
+
+    const checkParams = {
+      body: {
+        auth_user_id,
+        user_id,
+        target_date,
+        duration,
+      }
+    };
+
+    const rb = new OverloadRequestBuilder(rbParam);
+    const findAction = new Overload(rb);
+
+    const actionResp = await findAction.addFuseLog(
+      checkParams,
+      PostAddOverloadJSONSchema,
     );
 
     return {

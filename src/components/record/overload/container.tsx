@@ -34,7 +34,8 @@ class RecordOverloadContainer extends React.Component<any, IRecordOverloadContai
 
     this.isLogined = this.isLogined.bind(this);
     this.getAvatar = this.getAvatar.bind(this);
-    this.getRows = this.getRows.bind(this);
+    this.getOverTimeRows = this.getOverTimeRows.bind(this);
+    this.getFuseOverTimeRows = this.getFuseOverTimeRows.bind(this);
     this.getRemainTimes = this.getRemainTimes.bind(this);
     this.handleClickRow = this.handleClickRow.bind(this);
 
@@ -74,12 +75,13 @@ class RecordOverloadContainer extends React.Component<any, IRecordOverloadContai
     return <Card>none</Card>;
   }
 
-  public getRows() {
+  public getOverTimeRows() {
     if (this.overloadStore === null) {
       return null;
     }
 
     return this.overloadStore.Records
+    .sort((a, b) => a.week > b.week ? -1 : 1)
     .map((mv) => {
       const { week } = mv;
       const startDate = luxon.DateTime.fromISO(`${week}-1`).minus({ days: 1 });
@@ -89,7 +91,6 @@ class RecordOverloadContainer extends React.Component<any, IRecordOverloadContai
       // 그리고 toFormat('hh:mm:ss')로 표시
       // 위와 같은 작업을 remain에도 진행한다.
       const overTimeStr = !!mv.over ? luxon.Duration.fromObject(mv.over).toFormat('hh:mm:ss') : '-';
-      const remainTimeStr = !!mv.remain ? luxon.Duration.fromObject(mv.remain).toFormat('hh:mm:ss') : '-';
       return (
         <tr
           key={mv.week}
@@ -105,8 +106,33 @@ class RecordOverloadContainer extends React.Component<any, IRecordOverloadContai
           <td>
             {overTimeStr}
           </td>
+        </tr>
+      );
+    });
+  }
+
+  public getFuseOverTimeRows() {
+    if (this.overloadStore === null) {
+      return null;
+    }
+
+    return this.overloadStore.FuseRecords
+    .sort((a, b) => a.date > b.date ? -1 : 1)
+    .map((mv) => {
+      const { date, use } = mv;
+      const useDate = luxon.DateTime.fromFormat(date, 'yyyyLLdd');
+      const useDateStr = useDate.toFormat('yyyy-LL-dd');
+      const duration = luxon.Duration.fromISO(use);
+      const durationStr = duration.toFormat('hh:mm:ss');
+      return (
+        <tr
+          key={mv.date}
+        >
           <td>
-            {remainTimeStr}
+            {useDateStr}
+          </td>
+          <td>
+            {durationStr}
           </td>
         </tr>
       );
@@ -117,14 +143,10 @@ class RecordOverloadContainer extends React.Component<any, IRecordOverloadContai
     if (this.overloadStore === null) {
       return '-';
     }
-    const totalRemainDurationObj = this.overloadStore.Records.reduce(
-      (acc, cur) => {
-        if (!!cur.remain) {
-          acc = Util.calTimeObj(acc, cur.remain);
-        }
-        return acc;
-      },
-      {});
+    const totalRemainDurationObj = this.overloadStore.totalRemain();
+    if (totalRemainDurationObj === null) {
+      return '-';
+    }
     if (Object.keys(totalRemainDurationObj).length <= 0) {
       return 'a';
     }
@@ -152,12 +174,14 @@ class RecordOverloadContainer extends React.Component<any, IRecordOverloadContai
       await this.loginUserStore.findUserInfo(Auth.loginUserKey);
       await this.loginUserStore.findLoginUserInfo(Auth.loginUserTokenKey);
       await this.overloadStore.findAllOverload(Auth.loginUserTokenKey);
+      await this.overloadStore.findAllFuseOverload(Auth.loginUserTokenKey);
     }
   }
 
   public render() {
     const avatar = this.getAvatar();
-    const rows = this.getRows();
+    const rows = this.getOverTimeRows();
+    const fuseRows = this.getFuseOverTimeRows();
     const totalRemainTime = this.getRemainTimes();
     return (
       <div className="app">
@@ -181,23 +205,48 @@ class RecordOverloadContainer extends React.Component<any, IRecordOverloadContai
               </CardBody>
             </Card>
             <Card>
-              <Table
-                responsive={true}
-                className="d-sm-table"
-                hover={true}
-              >
-                <thead className="thead-light">
-                  <tr>
-                    <th>기록</th>
-                    <th className="d-none d-sm-block">기록기간</th>
-                    <th>초과시간</th>
-                    <th>남은시간</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows}
-                </tbody>
-              </Table>
+              <CardHeader>
+                누적된 초과 근무
+              </CardHeader>
+              <CardBody>
+                <Table
+                  responsive={true}
+                  className="d-sm-table"
+                  hover={true}
+                >
+                  <thead className="thead-light">
+                    <tr>
+                      <th>기록</th>
+                      <th className="d-none d-sm-block">기록기간</th>
+                      <th>초과시간</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rows}
+                  </tbody>
+                </Table>
+              </CardBody>
+            </Card>
+            <Card>
+              <CardHeader>
+                사용한 초과 근무
+              </CardHeader>
+              <CardBody>
+                <Table
+                  responsive={true}
+                  className="d-sm-table"
+                >
+                  <thead className="thead-light">
+                    <tr>
+                      <th>사용일자</th>
+                      <th>사용시간</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {fuseRows}
+                  </tbody>
+                </Table>
+              </CardBody>
             </Card>
           </Container>
         </div>

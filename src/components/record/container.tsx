@@ -31,6 +31,7 @@ import { RequestBuilderParams } from '../../services/requestService/RequestBuild
 import { EN_REQUEST_RESULT } from '../../services/requestService/requesters/AxiosRequester';
 import { Util } from '../../services/util';
 import LoginStore from '../../stores/LoginStore';
+import OverloadStore from '../../stores/OverloadStore';
 import TimeRecordStore from '../../stores/TimeRecordStore';
 import ChartBarStacked from '../chart/bar/Stacked';
 import ChartBarStacked2, { IChartBarStacked2Props } from '../chart/bar/Stacked2';
@@ -71,12 +72,21 @@ export interface IRecordContainerStates {
   isServer: boolean;
 }
 
+interface IetcStates {
+  isModalOpen: boolean;
+  /** 차감 모달 on/off */
+  isFuseModalOpen: boolean;
+  updateData?: { key: string, data: ITimeRecordLogData };
+  fuseHours: luxon.Duration;
+}
+
 @observer
 class RecordContainer extends React.Component<
 IRecordContainerProps,
-IRecordContainerStates & { isModalOpen: boolean, updateData?: { key: string, data: ITimeRecordLogData } }> {
+IRecordContainerStates & IetcStates   > {
   private store: TimeRecordStore;
   private loginUserStore: LoginStore;
+  private overloadStore: OverloadStore;
 
   private modalStartDateRef = React.createRef<HTMLInputElement>();
   private modalStartTimeRef = React.createRef<HTMLInputElement>();
@@ -148,6 +158,8 @@ IRecordContainerStates & { isModalOpen: boolean, updateData?: { key: string, dat
       backupDate: { start: null, end: null },
       isServer: true,
       isModalOpen: false,
+      isFuseModalOpen: false,
+      fuseHours: luxon.Duration.fromObject({hours: 0}),
     };
 
     this.onDatesChangeForDRP = this.onDatesChangeForDRP.bind(this);
@@ -165,8 +177,13 @@ IRecordContainerStates & { isModalOpen: boolean, updateData?: { key: string, dat
     this.handleRecordButtonClick = this.handleRecordButtonClick.bind(this);
     this.saveWorklog = this.saveWorklog.bind(this);
     this.getModalBody = this.getModalBody.bind(this);
+    this.addFuseLog = this.addFuseLog.bind(this);
+    this.getFuseModalBody = this.getFuseModalBody.bind(this);
+    this.addFuseTime = this.addFuseTime.bind(this);
+    this.closeFuseModal = this.closeFuseModal.bind(this);
     this.store = new TimeRecordStore(props.records);
     this.loginUserStore = new LoginStore(null);
+    this.overloadStore = new OverloadStore();
   }
 
   public onDatesChangeForDRP({ startDate, endDate }: {
@@ -322,6 +339,7 @@ IRecordContainerStates & { isModalOpen: boolean, updateData?: { key: string, dat
         acc.datasets[2].data.push(!!data.EMERGENCY ? data.EMERGENCY : 0);
         acc.datasets[3].data.push(!!data.REMOTE ? data.REMOTE : 0);
         acc.datasets[4].data.push(!!data.VACATION ? data.VACATION : 0);
+        acc.datasets[5].data.push(!!data.FUSEOVERLOAD ? data.FUSEOVERLOAD : 0);
         return acc;
       },
       {
@@ -331,6 +349,7 @@ IRecordContainerStates & { isModalOpen: boolean, updateData?: { key: string, dat
           { label: 'EMERGENCY', data: new Array<number>(), backgroundColor: bgColor[2].color },
           { label: 'REMOTE', data: new Array<number>(), backgroundColor: bgColor[3].color },
           { label: 'VACATION', data: new Array<number>(), backgroundColor: bgColor[4].color },
+          { label: 'FUSE', data: new Array<number>() },
         ]
       });
     return {
@@ -360,8 +379,16 @@ IRecordContainerStates & { isModalOpen: boolean, updateData?: { key: string, dat
     const loginUserInfo = this.loginUserStore.LoginUserInfo;
     // 자신의 데이터 이거나 관리자 일때만 modal open한다.
     if (!!userInfo && !!loginUserInfo) {
-      if ((this.props.userId === userInfo.id && this.isCurrentWeek) || !!loginUserInfo.auth) {
-        this.setState({...this.state, isModalOpen: true, updateData: { key, data }});
+      if (!!loginUserInfo.auth && data.type !== EN_WORK_TYPE.FUSEOVERLOAD) {
+        // 관리자는 하고 싶은거 다해~ 대신 차감만 못건드려. 이건 민감하거든 :)
+        this.setState({...this.state,
+          isModalOpen: true, isFuseModalOpen: false,
+          fuseHours: luxon.Duration.fromObject({hours: 0}), updateData: { key, data }});
+      } else if (this.props.userId === userInfo.id && this.isCurrentWeek && data.type !== EN_WORK_TYPE.FUSEOVERLOAD) {
+        // 자신의 데이터는 금주의 데이터 && 자신의 데이터 && 차감이 아닐 때
+        this.setState({...this.state,
+          isModalOpen: true, isFuseModalOpen: false,
+          fuseHours: luxon.Duration.fromObject({hours: 0}), updateData: { key, data }});
       }
     }
   }
@@ -465,6 +492,7 @@ IRecordContainerStates & { isModalOpen: boolean, updateData?: { key: string, dat
         DONE: true,
         VACATION: true,
         HALFVACATION: true,
+        FUSEOVERLOAD: true,
       };
       return (
         <RecordButtons
@@ -507,6 +535,7 @@ IRecordContainerStates & { isModalOpen: boolean, updateData?: { key: string, dat
       DONE: false,
       VACATION: true,
       HALFVACATION: true,
+      FUSEOVERLOAD: false,
     };
     if (this.isOneDay === false) {
       return returnValue;
@@ -541,18 +570,32 @@ IRecordContainerStates & { isModalOpen: boolean, updateData?: { key: string, dat
     return returnValue;
   }
 
+  /** [기록 버튼] 클릭 핸들러 */
   public async handleRecordButtonClick(type: EN_WORK_TYPE) {
     if (this.isOneDay === true && !!Auth.loginUserTokenKey) {
-      await this.store.addTimeRecord(
-        Auth.loginUserTokenKey,
-        this.props.userId,
-        type,
-        luxon.DateTime.fromJSDate(this.state.startDate)
-      );
-      await this.store.findTimeRecord(
-        this.props.userId,
-        moment(this.state.startDate).format('YYYY-MM-DD'),
-        moment(this.state.endDate).format('YYYY-MM-DD'));
+      // 차감 메뉴를 클릭했나?
+      if (type === EN_WORK_TYPE.FUSEOVERLOAD) {
+        // 차감용 모달을 연다.
+        this.setState({
+          ...this.state,
+          isModalOpen: false,
+          isFuseModalOpen: true,
+          updateData: undefined,
+          fuseHours: luxon.Duration.fromObject({hours: 0}),
+        });
+      } else {
+        // 차감 메뉴 외에는 아래에서 처리한다.
+        await this.store.addTimeRecord(
+          Auth.loginUserTokenKey,
+          this.props.userId,
+          type,
+          luxon.DateTime.fromJSDate(this.state.startDate)
+        );
+        await this.store.findTimeRecord(
+          this.props.userId,
+          moment(this.state.startDate).format('YYYY-MM-DD'),
+          moment(this.state.endDate).format('YYYY-MM-DD'));
+      }
     }
   }
 
@@ -734,6 +777,92 @@ IRecordContainerStates & { isModalOpen: boolean, updateData?: { key: string, dat
     );
   }
 
+  public async addFuseLog() {
+    if (this.state.isServer === true || Auth.loginUserTokenKey === null) {
+      return;
+    }
+    const fuseDuration = this.state.fuseHours;
+    const targetDate = luxon.DateTime.fromJSDate(this.state.startDate);
+    const userId = this.props.userId;
+    await this.overloadStore.addFuseOverload(
+      Auth.loginUserTokenKey,
+      userId,
+      targetDate,
+      fuseDuration,
+    );
+    this.setState({...this.state, isFuseModalOpen: false, fuseHours: luxon.Duration.fromObject({hours: 0})});
+    await this.store.findTimeRecord(
+      this.props.userId,
+      moment(this.state.startDate).format('YYYY-MM-DD'),
+      moment(this.state.endDate).format('YYYY-MM-DD'));
+  }
+
+  public getFuseModalBody() {
+    const totalRemain = this.overloadStore.totalRemain();
+    const haveFuseData = !!this.overloadStore.Records && !!totalRemain;
+    const duration = this.state.fuseHours;
+    let message = <Label>추가 근무 기록이 없습니다.</Label>;
+    if (haveFuseData === true) {
+      const totalRemainTime = this.overloadStore.totalRemainTime();
+      message = (
+        <>
+          <ul className="list-group list-group-flush">
+            <li className="list-group-item">사용가능한 시간 {totalRemainTime}</li>
+            <li className="list-group-item">
+              <Button onClick={() => { this.addFuseTime(luxon.Duration.fromObject({minutes: 30})); }}>+00:30 추가</Button>
+              <Button onClick={() => { this.addFuseTime(luxon.Duration.fromObject({hours: 1})); }}>+01:00 추가</Button>
+              <Button
+                className="btn-danger"
+                onClick={() => this.setState({...this.state, fuseHours: luxon.Duration.fromObject({hours: 0})})}
+              >
+                초기화
+              </Button>
+            </li>
+          </ul>
+          <div className="h4 mb-0">{duration.toFormat('hh:mm:ss')}</div>
+        </>
+      );
+    }
+    return (
+      <>
+      <ModalHeader>
+        추가 근무 차감
+      </ModalHeader>
+      <ModalBody>
+        {message}
+      </ModalBody>
+      <ModalFooter>
+        {haveFuseData === false ? null : <Button onClick={this.addFuseLog} color="success">저장</Button>}
+        <Button
+          onClick={() => { this.closeFuseModal(); }}
+        >
+          닫기
+        </Button>
+      </ModalFooter>
+      </>
+    );
+  }
+
+  private closeFuseModal() {
+    this.setState({ ...this.state, isFuseModalOpen: false, fuseHours: luxon.Duration.fromObject({ hours: 0 }) });
+  }
+
+  private addFuseTime(addTime: luxon.Duration) {
+    const totalRemain = this.overloadStore.totalRemain();
+    if (totalRemain === null) {
+      return;
+    }
+    const update = this.state.fuseHours.plus(addTime);
+    // 총 시간보다 더 큰지 확인해야한다.
+    const duration = update.normalize();
+    const totalRemainDuration = luxon.Duration.fromObject(totalRemain).normalize();
+    if (duration <= totalRemainDuration) {
+      this.setState({ ...this.state, fuseHours: update });
+    } else {
+      alert('차감 가능한 시간을 초과한 입력입니다.');
+    }
+  }
+
   public async componentDidMount() {
     this.setState({
       ...this.state,
@@ -742,6 +871,7 @@ IRecordContainerStates & { isModalOpen: boolean, updateData?: { key: string, dat
     if (Auth.isLogined === true && !!Auth.loginUserKey && !!Auth.loginUserTokenKey) {
       await this.loginUserStore.findUserInfo(Auth.loginUserKey);
       await this.loginUserStore.findLoginUserInfo(Auth.loginUserTokenKey);
+      await this.overloadStore.findAllOverload(Auth.loginUserTokenKey);
     }
   }
 
@@ -752,6 +882,7 @@ IRecordContainerStates & { isModalOpen: boolean, updateData?: { key: string, dat
     const avatar = this.getAvatar();
     const recordButtons = this.recordButtons();
     const modalBody = this.getModalBody();
+    const fuseModalBody = this.getFuseModalBody();
     return (
       <div className="app">
         <Helmet>
@@ -794,6 +925,11 @@ IRecordContainerStates & { isModalOpen: boolean, updateData?: { key: string, dat
             isOpen={this.state.isModalOpen}
           >
             {modalBody}
+          </Modal>
+          <Modal
+            isOpen={this.state.isFuseModalOpen}
+          >
+            {fuseModalBody}
           </Modal>
         </div>
       </div>
