@@ -360,9 +360,7 @@ IRecordContainerStates & { isModalOpen: boolean, updateData?: { key: string, dat
     const loginUserInfo = this.loginUserStore.LoginUserInfo;
     // 자신의 데이터 이거나 관리자 일때만 modal open한다.
     if (!!userInfo && !!loginUserInfo) {
-      const today = luxon.DateTime.utc().setZone('Asia/Seoul').toFormat('yyyy-LL-dd');
-      const startDate = luxon.DateTime.fromJSDate(this.state.startDate).toFormat('yyyy-LL-dd');
-      if ((this.props.userId === userInfo.id && today === startDate) || !!loginUserInfo.auth) {
+      if ((this.props.userId === userInfo.id && this.isCurrentWeek) || !!loginUserInfo.auth) {
         this.setState({...this.state, isModalOpen: true, updateData: { key, data }});
       }
     }
@@ -475,20 +473,21 @@ IRecordContainerStates & { isModalOpen: boolean, updateData?: { key: string, dat
         />);
     }
     // 로그인 했고!
-    // 당일이며!
+    // 현재 날짜가 있는 주(week)이며
+    // 날짜 길이가 1일 정도를 선택했을 때!
     // 자신의 정보일 때!
-    if (this.isLogined() === true && !!this.loginUserStore.UserInfo
-      && this.isToday === true && this.loginUserStore.UserInfo.id === this.props.userId) {
+    if (this.isLogined() === true && !!this.loginUserStore.UserInfo && this.isOneDay === true
+      && this.isCurrentWeek === true && this.loginUserStore.UserInfo.id === this.props.userId) {
       return <RecordButtons menuOnOff={this.getAvailableRecordBtns()} handleClickMenu={this.handleRecordButtonClick} />;
     }
     return null;
   }
 
-  get isToday() {
-    const now = moment();
-    const diffStart = now.diff(moment(this.state.startDate), 'days');
-    const diffEnd = now.diff(moment(this.state.endDate), 'days');
-    return (diffStart === 0 && diffEnd === 0);
+  get isCurrentWeek() {
+    const now = moment().zone('Asia/Seoul');
+    const startDate = moment(this.state.startDate);
+    const endDate = moment(this.state.endDate);
+    return now.week() === startDate.week() && now.week() === endDate.week();
   }
 
   get isOneDay() {

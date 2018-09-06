@@ -39,5 +39,12 @@ export default [
     component: asyncComponent({
       loader: () => import('./components/login/index')
     })
+  },
+  {
+    path: '/my/overload',
+    exact: true,
+    component: asyncComponent({
+      loader: () => import('./components/record/overload/container')
+    })
   }
 ];

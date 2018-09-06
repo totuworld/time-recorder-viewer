@@ -86,6 +86,9 @@ class DefaultHeader extends React.Component<IDefaultHeaderProps, IDefaultHeaderS
               </DropdownToggle>
               <DropdownMenu right={true} style={{ right: 'auto' }}>
                 {todayMenu}
+                <DropdownItem onClick={() => { window.location.href = '/my/overload'; }}>
+                  적립 추가 근무
+                </DropdownItem>
                 <DropdownItem onClick={this.onClickLogin}>
                   {this.props.isLogin === true ? ' Logout' : ' Login'}
                 </DropdownItem>

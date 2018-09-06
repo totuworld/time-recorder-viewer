@@ -6,6 +6,7 @@ export interface ITimeObj {
   EMERGENCY: {[key: string]: number};
   REMOTE: {[key: string]: number};
   VACATION: {[key: string]: number};
+  FUSEOVERLOAD: {[key: string]: number};
 }
 
 export class Util {
