@@ -6,6 +6,7 @@ import { render } from '@jaredpalmer/after';
 
 import { Config } from './config/Config';
 import routes from './routes';
+import { GroupRoute } from './server/routes/GroupRoute';
 import { OverloadRoute } from './server/routes/OverloadRoute';
 import { TimeRecordRoute } from './server/routes/TimeRecordRoute';
 import { UserRoute } from './server/routes/UserRoute';
@@ -15,6 +16,7 @@ function routeList() {
   router.get('/health', (_, res) => { res.send({result: true}); });
   router.use(TimeRecordRoute.bootstrap().router);
   router.use(UserRoute.bootstrap().router);
+  router.use(GroupRoute.bootstrap().router);
   router.use(OverloadRoute.bootstrap().router);
   return router;
 }

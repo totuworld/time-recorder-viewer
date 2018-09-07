@@ -35,37 +35,20 @@ export class Util {
   public static reduceTimeObj(timeObj: ITimeObj[], target: keyof ITimeObj) {
     return timeObj.reduce(
       (acc, cur) => {
-        const updateData = {...acc};
-        Object.keys(cur[target]).forEach((fv) => {
-          if (!!updateData[fv]) {
-            updateData[fv] += cur[target][fv];
-          } else {
-            updateData[fv] = cur[target][fv];
-          }
-        });
-        return updateData;
+        const updateData = luxon.Duration.fromObject(acc);
+        const durataion = luxon.Duration.fromObject(cur[target]);
+        return updateData.plus(durataion).toObject();
       },
       {});
   }
 
   public static calTimeObj(a: object, b: object, operator: string = 'plus') {
-    const updateObj = {...a};
-    Object.keys(b).forEach((key) => {
-      if (!!updateObj[key]) {
-        if (operator !== 'plus') {
-          updateObj[key] -= b[key];
-        } else {
-          updateObj[key] += b[key];
-        }
-      } else {
-        if (operator !== 'plus') { 
-          updateObj[key] = -b[key];
-        } else {
-          updateObj[key] = b[key];
-        }
-      }
-    });
-    return updateObj;
+    const aDurataion = luxon.Duration.fromObject(a);
+    const bDurataion = luxon.Duration.fromObject(b);
+    if (operator === 'plus') {
+      return aDurataion.plus(bDurataion).toObject();
+    }
+    return aDurataion.minus(bDurataion).toObject();
   }
 
   public static reduceDurationObject(timeObj: ITimeObj[], target: keyof ITimeObj) {

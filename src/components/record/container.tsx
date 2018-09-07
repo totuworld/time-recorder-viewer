@@ -183,7 +183,7 @@ IRecordContainerStates & IetcStates   > {
     this.closeFuseModal = this.closeFuseModal.bind(this);
     this.store = new TimeRecordStore(props.records);
     this.loginUserStore = new LoginStore(null);
-    this.overloadStore = new OverloadStore();
+    this.overloadStore = new OverloadStore([], []);
   }
 
   public onDatesChangeForDRP({ startDate, endDate }: {
@@ -535,7 +535,7 @@ IRecordContainerStates & IetcStates   > {
       DONE: false,
       VACATION: true,
       HALFVACATION: true,
-      FUSEOVERLOAD: false,
+      FUSEOVERLOAD: true,
     };
     if (this.isOneDay === false) {
       return returnValue;
