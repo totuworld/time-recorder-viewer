@@ -72,6 +72,9 @@ class DefaultHeader extends React.Component<IDefaultHeaderProps, IDefaultHeaderS
         <Container>
           <img src={logo} width="30" height="30" alt="Work Logger" className="navbar-brand-minimized" />
           <Nav className="ml-auto" navbar={true}>
+            <NavItem className="px-3">
+              <NavLink href="/groups">그룹 목록</NavLink>
+            </NavItem>
             <Dropdown
               nav={true}
               isOpen={this.state.isOpen}

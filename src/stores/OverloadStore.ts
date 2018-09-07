@@ -3,7 +3,7 @@ import { action, observable, runInAction } from 'mobx';
 
 import { IFuseOverWork, IOverWork } from '../models/time_record/interface/IOverWork';
 import {
-    GetOverloadsByUserIDJSONSchema, GetOverloadsJSONSchema
+    GetOverloadsByUserIDJSONSchema
 } from '../models/time_record/JSONSchema/GetOverloadsJSONSchema';
 import {
     PostAddOverloadJSONSchema
@@ -12,12 +12,19 @@ import { Overload } from '../models/time_record/Overload';
 import { OverloadRequestBuilder } from '../models/time_record/OverloadRequestBuilder';
 import { RequestBuilderParams } from '../services/requestService/RequestBuilder';
 import { EN_REQUEST_RESULT } from '../services/requestService/requesters/AxiosRequester';
-import { Util } from '../services/util';
 
 export default class OverloadStore {
   @observable private records: IOverWork[] = [];
   @observable private fuseRecords: IFuseOverWork[] = [];
   @observable private isLoading: boolean = false;
+
+  constructor(
+    records: IOverWork[],
+    fuseRecords: IFuseOverWork[],
+  ) {
+    this.records = records;
+    this.fuseRecords = fuseRecords;
+  }
 
   get Records() {
     return this.records;
@@ -174,8 +181,6 @@ export default class OverloadStore {
           target_date: targetDate.toFormat('yyyyLLdd'),
         }
       };
-
-      console.log(checkParams);
 
       const rb = new OverloadRequestBuilder(rbParam);
       const findAction = new Overload(rb);

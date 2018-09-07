@@ -7,25 +7,95 @@ import React from 'react';
 import { Helmet } from 'react-helmet';
 import { Card, CardBody, CardHeader, Col, Container, Row, Table } from 'reactstrap';
 
+import { IFuseOverWork, IOverWork } from '../../../models/time_record/interface/IOverWork';
+import {
+    GetOverloadsByUserIDJSONSchema
+} from '../../../models/time_record/JSONSchema/GetOverloadsJSONSchema';
+import { Overload } from '../../../models/time_record/Overload';
+import { OverloadRequestBuilder } from '../../../models/time_record/OverloadRequestBuilder';
+import { IUserInfo } from '../../../models/user/interface/IUserInfo';
+import { GetUserInfoJSONSchema } from '../../../models/user/JSONSchema/GetUserInfoJSONSchema';
+import { User } from '../../../models/user/User';
+import { UserRequestBuilder } from '../../../models/user/UserRequestBuilder';
 import { Auth } from '../../../services/auth';
+import { RequestBuilderParams } from '../../../services/requestService/RequestBuilder';
+import { EN_REQUEST_RESULT } from '../../../services/requestService/requesters/AxiosRequester';
 import { Util } from '../../../services/util';
 import LoginStore from '../../../stores/LoginStore';
 import OverloadStore from '../../../stores/OverloadStore';
 import DefaultHeader from '../../common/DefaultHeader';
 import GroupUserAvatar from '../../group/user/avatar';
+import { IAfterRequestContext } from '../../interface/IAfterRequestContext';
 
 const log = debug('trv:recordOverloadContainer');
+
+interface IRecordOverloadContainerProps {
+  isOtherUser: boolean;
+  userId: string | null;
+  userInfo: IUserInfo | null;
+  records: IOverWork[];
+  fuseRecords: IFuseOverWork[];
+}
 
 interface IRecordOverloadContainerStates {
   isServer: boolean;
 }
 
 @observer
-class RecordOverloadContainer extends React.Component<any, IRecordOverloadContainerStates> {
+class RecordOverloadContainer extends React.Component<IRecordOverloadContainerProps, IRecordOverloadContainerStates> {
   private overloadStore: OverloadStore;
   private loginUserStore: LoginStore;
 
-  constructor(props: any) {
+  public static async getInitialProps({
+    req,
+    res,
+    match
+  }: IAfterRequestContext<{ user_id: string }>): Promise<IRecordOverloadContainerProps> {
+
+    const user_id = match.params.user_id;
+    if (!!user_id === false || user_id.length <= 0) {
+      return {
+        isOtherUser: false,
+        userId: null,
+        userInfo: null,
+        records: [],
+        fuseRecords: [],
+      };
+    }
+
+    let rbParam: RequestBuilderParams = { isProxy: true };
+    if (!!req && !!req.config) {
+      rbParam = { baseURI: req.config.getApiURI(), isProxy: false };
+    }
+
+    const checkParams = {
+      query: {
+        user_id,
+      }
+    };
+
+    const userRb = new UserRequestBuilder(rbParam);
+    const userAction = new User(userRb);
+    
+    const rb = new OverloadRequestBuilder(rbParam);
+    const action = new Overload(rb);
+
+    const [recordsResp, fuseRecordsResp, userInfoResp] = await Promise.all([
+      action.findAllByUserID(checkParams, GetOverloadsByUserIDJSONSchema),
+      action.findAllFuseUserID(checkParams, GetOverloadsByUserIDJSONSchema),
+      userAction.find({query: { userId: match.params.user_id }}, GetUserInfoJSONSchema)
+    ]);
+
+    return {
+      isOtherUser: true,
+      userId: user_id,
+      userInfo: userInfoResp.type === EN_REQUEST_RESULT.SUCCESS ? userInfoResp.data : null,
+      records: recordsResp.type === EN_REQUEST_RESULT.SUCCESS ? recordsResp.data : [],
+      fuseRecords: fuseRecordsResp.type === EN_REQUEST_RESULT.SUCCESS ? fuseRecordsResp.data : [],
+    };
+  }
+
+  constructor(props: IRecordOverloadContainerProps) {
     super(props);
 
     this.state = {
@@ -39,7 +109,10 @@ class RecordOverloadContainer extends React.Component<any, IRecordOverloadContai
     this.getRemainTimes = this.getRemainTimes.bind(this);
     this.handleClickRow = this.handleClickRow.bind(this);
 
-    this.overloadStore = new OverloadStore();
+    this.overloadStore = new OverloadStore(
+      this.props.records.length > 0 ? this.props.records : [],
+      this.props.fuseRecords.length > 0 ? this.props.fuseRecords : [],
+      );
     this.loginUserStore = new LoginStore(null);
   }
 
@@ -51,8 +124,9 @@ class RecordOverloadContainer extends React.Component<any, IRecordOverloadContai
   }
 
   public getAvatar() {
-    if (!!this.loginUserStore.UserInfo) {
-      const userInfo = this.loginUserStore.UserInfo;
+    const usedUserInfo = !!this.props.userInfo ? this.props.userInfo : this.loginUserStore.UserInfo;
+    if (!!usedUserInfo) {
+      const userInfo = usedUserInfo;
       return (
         <Row className="justify-content-start">
           <Col className="col-sm-1">
@@ -90,7 +164,15 @@ class RecordOverloadContainer extends React.Component<any, IRecordOverloadContai
       // mv.over가 존재하면 luxon.Duration으로 뽑아낸다.
       // 그리고 toFormat('hh:mm:ss')로 표시
       // 위와 같은 작업을 remain에도 진행한다.
-      const overTimeStr = !!mv.over ? luxon.Duration.fromObject(mv.over).toFormat('hh:mm:ss') : '-';
+      let overTimeStr = '-';
+      if (!!mv.over) {
+        let overTimeDuration = luxon.Duration.fromObject(mv.over);
+        const isMinus = overTimeDuration.as('milliseconds') < 0;
+        if (isMinus) {
+          overTimeDuration = luxon.Duration.fromMillis(-overTimeDuration.as('milliseconds'));
+        }
+        overTimeStr = `${isMinus ? '-' : ''}${overTimeDuration.toFormat('hh:mm:ss')}`;
+      }
       return (
         <tr
           key={mv.week}
@@ -148,10 +230,14 @@ class RecordOverloadContainer extends React.Component<any, IRecordOverloadContai
       return '-';
     }
     if (Object.keys(totalRemainDurationObj).length <= 0) {
-      return 'a';
+      return '-';
     }
-    const duration = luxon.Duration.fromObject(totalRemainDurationObj);
-    return duration.toFormat('hh:mm:ss');
+    let duration = luxon.Duration.fromObject(totalRemainDurationObj);
+    const milliseconds = duration.as('milliseconds');
+    if (milliseconds < 0) {
+      duration = luxon.Duration.fromMillis(Math.abs(milliseconds));
+    }
+    return milliseconds < 0 ? `-${duration.toFormat('hh:mm:ss')}` : duration.toFormat('hh:mm:ss');
   }
 
   public handleClickRow(week: string) {
@@ -170,9 +256,16 @@ class RecordOverloadContainer extends React.Component<any, IRecordOverloadContai
       ...this.state,
       isServer: false,
     });
-    if (Auth.isLogined === true && !!Auth.loginUserKey && !!Auth.loginUserTokenKey) {
+    if (Auth.isLogined === true && !!Auth.loginUserKey) {
       await this.loginUserStore.findUserInfo(Auth.loginUserKey);
+    }
+    if (!!Auth.loginUserTokenKey) {
       await this.loginUserStore.findLoginUserInfo(Auth.loginUserTokenKey);
+    }
+    if (this.props.isOtherUser === true && this.props.userId !== null) {
+      await this.overloadStore.findAllOverload(this.props.userId);
+      await this.overloadStore.findAllFuseOverload(this.props.userId);
+    } else if (Auth.isLogined === true && !!Auth.loginUserKey) {
       await this.overloadStore.findAllOverload(Auth.loginUserKey);
       await this.overloadStore.findAllFuseOverload(Auth.loginUserKey);
     }

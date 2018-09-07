@@ -147,7 +147,6 @@ export class Overload {
   ): Promise<IAddTimeRecord> {
     log(params);
     const validParam = Requester.validateParam(params, schema);
-    console.log(validParam);
     log('validParam: ', validParam);
     if (validParam === false) {
       return { type: EN_REQUEST_RESULT.ERROR, data: { text: null } };

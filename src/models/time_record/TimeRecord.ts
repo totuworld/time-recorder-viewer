@@ -27,7 +27,7 @@ export class TimeRecord {
         childData[fv].type === target
       )
       .map((mv) => childData[mv])
-      .reduce<{ time: number; lastWorkTimeStamp: string; timeObj: {[key: string]: number} }>(
+      .reduce<{ time: number; lastWorkTimeStamp: string; timeObj: luxon.DurationObject }>(
         (acc, cur: ITimeRecordLogData) => {
           if (!!cur.done) {
             const duration = Util.getBetweenDuration(
@@ -35,15 +35,7 @@ export class TimeRecord {
               cur.done
             );
             acc.time += duration.as('hours');
-            const durationObj = duration.toObject();
-            const updateTimeObj = {...acc.timeObj};
-            Object.keys(durationObj).forEach((fv) => {
-              if (!!updateTimeObj[fv]) {
-                updateTimeObj[fv] += durationObj[fv];
-              } else {
-                updateTimeObj[fv] = durationObj[fv];
-              }
-            });
+            const updateTimeObj = luxon.Duration.fromObject(acc.timeObj).plus(duration).toObject();
             acc.timeObj = updateTimeObj;
           }
           return acc;
@@ -81,7 +73,7 @@ export class TimeRecord {
         childData[fv].type === endType
       )
       .map((mv) => childData[mv])
-      .reduce<{ time: number; lastWorkTimeStamp: string, timeObj: {[key: string]: number} }>(
+      .reduce<{ time: number; lastWorkTimeStamp: string, timeObj: luxon.DurationObject }>(
         (acc, cur: ITimeRecordLogData) => {
           // 출근인가?
           if (cur.type === startType) {
@@ -96,15 +88,7 @@ export class TimeRecord {
                 cur.time
               );
               acc.time += duration.as('hours');
-              const durationObj = duration.toObject();
-              const updateTimeObj = {...acc.timeObj};
-              Object.keys(durationObj).forEach((fv) => {
-                if (!!updateTimeObj[fv]) {
-                  updateTimeObj[fv] += durationObj[fv];
-                } else {
-                  updateTimeObj[fv] = durationObj[fv];
-                }
-              });
+              const updateTimeObj = luxon.Duration.fromObject(acc.timeObj).plus(duration).toObject();
               acc.timeObj = updateTimeObj;
             }
           }
@@ -169,8 +153,8 @@ export class TimeRecord {
       .filter((fv) => fv.data.WORK >= 4)
       .map((mv) => {
         const extraTime  = mv.data.WORK % 4;
-        const lawRestTime = (((mv.data.WORK - extraTime) / 4) * 0.5) * 60;
-        const updateObj = { ...mv.timeObj, REST: { minutes: lawRestTime } };
+        const lawRestTime = (((mv.data.WORK - extraTime) / 4) * 0.5) * 60 * 60 * 1000;
+        const updateObj = { ...mv.timeObj, REST: { milliseconds: lawRestTime } };
         return updateObj;
       });
     const totalWorkTimeStr = Util.reduceDurationObject(timeObjs, EN_WORK_TYPE.WORK).toFormat('hh:mm:ss');
@@ -200,9 +184,15 @@ export class TimeRecord {
       const weekCount = (range - (range % 7)) / 7;
       range -= (weekCount * 2);
     }
-    const overTimeObj = luxon.Duration
-      .fromObject(Util.calTimeObj(calWorkTimeObj, { minutes: 8 * 60 * range }, 'minus'));
-    const overTimeStr = overTimeObj.toFormat('hh:mm:ss');
+    const workDuration = luxon.Duration.fromObject(calWorkTimeObj);
+    const weekWorkDuration = luxon.Duration.fromISO('PT40H');
+    let overTimeObj = workDuration > weekWorkDuration ?
+      workDuration.minus(weekWorkDuration) :
+      weekWorkDuration.minus(workDuration);
+    const overTimeStr = `${workDuration < weekWorkDuration ? '-' : ''}${overTimeObj.toFormat('hh:mm:ss')}`;
+    if (weekWorkDuration > workDuration) {
+      overTimeObj = workDuration.minus(weekWorkDuration);
+    }
     return {
       updateDatas,
       calWorkTimeObj,

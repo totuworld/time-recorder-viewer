@@ -27,6 +27,13 @@ export default [
     })
   },
   {
+    path: '/groups',
+    exact: true,
+    component: asyncComponent({
+      loader: () => import('./components/group/info/container')
+    })
+  },
+  {
     path: '/groups/:group_id',
     exact: true,
     component: asyncComponent({
@@ -42,6 +49,13 @@ export default [
   },
   {
     path: '/my/overload',
+    exact: true,
+    component: asyncComponent({
+      loader: () => import('./components/record/overload/container')
+    })
+  },
+  {
+    path: '/overload/:user_id',
     exact: true,
     component: asyncComponent({
       loader: () => import('./components/record/overload/container')
