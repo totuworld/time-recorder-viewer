@@ -2,7 +2,7 @@ import '@coreui/icons/css/coreui-icons.min.css';
 import '../../styles/style.css';
 
 import React, { Component } from 'react';
-import { Button, Card, CardBody, CardGroup, Col, Container, Row } from 'reactstrap';
+import { Button, Card, CardBody, CardGroup, CardHeader, Col, Container, Row } from 'reactstrap';
 
 import { appTokenKey, firebaseAuthKey, loginUserKey } from '../../constants/constants';
 import { PostLoginUserJSONSchema } from '../../models/user/JSONSchema/PostLoginUserJSONSchema';
@@ -78,8 +78,12 @@ class Login extends Component {
               <CardGroup>
                 <Card>
                   <CardBody className="text-center">
+                    구글 계정으로 시작할 수 있습니다.
+                  </CardBody>
+                </Card>
+                <Card>
+                  <CardBody className="text-center">
                     <div>
-                      <h2>Login</h2>
                       <Button className="btn-google-plus btn-brand" active={true} onClick={this.clickLogin}>
                         <i className="fa fa-google-plus" /><span>Log in with Google</span>
                       </Button>
