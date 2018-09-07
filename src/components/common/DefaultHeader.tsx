@@ -54,9 +54,14 @@ class DefaultHeader extends React.Component<IDefaultHeaderProps, IDefaultHeaderS
       const today = luxon.DateTime.local().toFormat('yyyy-LL-dd');
       const url = `/records/${userInfo!.id}?startDate=${today}&endDate=${today}`;
       return (
+        <>
         <DropdownItem onClick={() => { window.location.href = url; }}>
           오늘 기록
         </DropdownItem>
+        <DropdownItem onClick={() => { window.location.href = '/my/overload'; }}>
+          초과 근무 내역
+        </DropdownItem>
+        </>
       );
     }
     return null;
@@ -67,13 +72,21 @@ class DefaultHeader extends React.Component<IDefaultHeaderProps, IDefaultHeaderS
       this.props.userInfo.profile_url :
       avatar;
     const todayMenu = this.todayMenu();
+    const groupList = this.props.isLogin === true ? <NavLink href="/groups">그룹 목록</NavLink> : null;
     return (
       <header className="app-header navbar">
         <Container>
-          <img src={logo} width="30" height="30" alt="Work Logger" className="navbar-brand-minimized" />
+          <img
+            src={logo}
+            width="30"
+            height="30"
+            alt="Work Logger"
+            className="navbar-brand-minimized"
+            onClick={() => { window.location.href = '/'; }}
+          />
           <Nav className="ml-auto" navbar={true}>
             <NavItem className="px-3">
-              <NavLink href="/groups">그룹 목록</NavLink>
+              {groupList}
             </NavItem>
             <Dropdown
               nav={true}
@@ -89,9 +102,6 @@ class DefaultHeader extends React.Component<IDefaultHeaderProps, IDefaultHeaderS
               </DropdownToggle>
               <DropdownMenu right={true} style={{ right: 'auto' }}>
                 {todayMenu}
-                <DropdownItem onClick={() => { window.location.href = '/my/overload'; }}>
-                  초과 근무 내역
-                </DropdownItem>
                 <DropdownItem onClick={this.onClickLogin}>
                   {this.props.isLogin === true ? ' Logout' : ' Login'}
                 </DropdownItem>
