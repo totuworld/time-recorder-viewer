@@ -4,7 +4,9 @@ import { Request } from 'express';
 import { Config } from '../../config/Config';
 import { IFuseOverWorks, IOverWorks } from '../../models/time_record/interface/IOverWork';
 import { IAddTimeRecord } from '../../models/time_record/interface/ITimeRecords';
-import { GetOverloadsJSONSchema } from '../../models/time_record/JSONSchema/GetOverloadsJSONSchema';
+import {
+    GetOverloadsByUserIDJSONSchema, GetOverloadsJSONSchema
+} from '../../models/time_record/JSONSchema/GetOverloadsJSONSchema';
 import {
     GetTimeRecordsJSONSchema
 } from '../../models/time_record/JSONSchema/GetTimeRecordsJSONSchema';
@@ -70,6 +72,58 @@ export class OverloadController {
     const actionResp = await findAction.findAllFuse(
       checkParams,
       GetOverloadsJSONSchema,
+    );
+
+    return {
+      status: actionResp.type === EN_REQUEST_RESULT.ERROR ? 400 : 200,
+      payload: actionResp.data,
+    };
+  }
+
+  public async findAllByUserID(req: Request): Promise<TControllerResp<IOverWorks['data']>> {
+    const rbParam: RequestBuilderParams = { baseURI: Config.getApiURI() };
+    const { user_id } = req.query;
+
+    const checkParams = {
+      query: {
+        user_id
+      }
+    };
+
+    log(checkParams);
+
+    const rb = new OverloadRequestBuilder(rbParam);
+    const findAction = new Overload(rb);
+
+    const actionResp = await findAction.findAllByUserID(
+      checkParams,
+      GetOverloadsByUserIDJSONSchema,
+    );
+
+    return {
+      status: actionResp.type === EN_REQUEST_RESULT.ERROR ? 400 : 200,
+      payload: actionResp.data,
+    };
+  }
+
+  public async findAllFuseByUserID(req: Request): Promise<TControllerResp<IFuseOverWorks['data']>> {
+    const rbParam: RequestBuilderParams = { baseURI: Config.getApiURI() };
+    const { user_id } = req.query;
+
+    const checkParams = {
+      query: {
+        user_id
+      }
+    };
+
+    log(checkParams);
+
+    const rb = new OverloadRequestBuilder(rbParam);
+    const findAction = new Overload(rb);
+
+    const actionResp = await findAction.findAllFuseUserID(
+      checkParams,
+      GetOverloadsByUserIDJSONSchema,
     );
 
     return {

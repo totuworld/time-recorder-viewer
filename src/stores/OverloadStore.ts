@@ -2,7 +2,9 @@ import * as luxon from 'luxon';
 import { action, observable, runInAction } from 'mobx';
 
 import { IFuseOverWork, IOverWork } from '../models/time_record/interface/IOverWork';
-import { GetOverloadsJSONSchema } from '../models/time_record/JSONSchema/GetOverloadsJSONSchema';
+import {
+    GetOverloadsByUserIDJSONSchema, GetOverloadsJSONSchema
+} from '../models/time_record/JSONSchema/GetOverloadsJSONSchema';
 import {
     PostAddOverloadJSONSchema
 } from '../models/time_record/JSONSchema/PostAddOverloadJSONSchema';
@@ -76,7 +78,7 @@ export default class OverloadStore {
   }
 
   @action
-  public async findAllOverload(authUserId: string): Promise<IOverWork[]> {
+  public async findAllOverload(userId: string): Promise<IOverWork[]> {
     if (this.isLoading === true) {
       return [];
     }
@@ -87,16 +89,16 @@ export default class OverloadStore {
 
       const checkParams = {
         query: {
-          auth_user_id: authUserId,
+          user_id: userId,
         }
       };
 
       const rb = new OverloadRequestBuilder(rbParam);
       const findAction = new Overload(rb);
 
-      const actionResp = await findAction.findAll(
+      const actionResp = await findAction.findAllByUserID(
         checkParams,
-        GetOverloadsJSONSchema,
+        GetOverloadsByUserIDJSONSchema,
       );
       return runInAction(() => {
         this.isLoading = false;
@@ -113,7 +115,7 @@ export default class OverloadStore {
   }
 
   @action
-  public async findAllFuseOverload(authUserId: string): Promise<IFuseOverWork[]> {
+  public async findAllFuseOverload(userId: string): Promise<IFuseOverWork[]> {
     if (this.isLoading === true) {
       return [];
     }
@@ -124,16 +126,16 @@ export default class OverloadStore {
 
       const checkParams = {
         query: {
-          auth_user_id: authUserId,
+          user_id: userId,
         }
       };
 
       const rb = new OverloadRequestBuilder(rbParam);
       const findAction = new Overload(rb);
 
-      const actionResp = await findAction.findAllFuse(
+      const actionResp = await findAction.findAllFuseUserID(
         checkParams,
-        GetOverloadsJSONSchema,
+        GetOverloadsByUserIDJSONSchema,
       );
       return runInAction(() => {
         this.isLoading = false;
