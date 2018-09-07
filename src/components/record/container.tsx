@@ -795,6 +795,7 @@ IRecordContainerStates & IetcStates   > {
       this.props.userId,
       moment(this.state.startDate).format('YYYY-MM-DD'),
       moment(this.state.endDate).format('YYYY-MM-DD'));
+    await this.overloadStore.findAllFuseOverload(userId);
   }
 
   public getFuseModalBody() {
@@ -871,7 +872,8 @@ IRecordContainerStates & IetcStates   > {
     if (Auth.isLogined === true && !!Auth.loginUserKey && !!Auth.loginUserTokenKey) {
       await this.loginUserStore.findUserInfo(Auth.loginUserKey);
       await this.loginUserStore.findLoginUserInfo(Auth.loginUserTokenKey);
-      await this.overloadStore.findAllOverload(Auth.loginUserTokenKey);
+      await this.overloadStore.findAllOverload(this.props.userId);
+      await this.overloadStore.findAllFuseOverload(this.props.userId);
     }
   }
 

@@ -173,8 +173,8 @@ class RecordOverloadContainer extends React.Component<any, IRecordOverloadContai
     if (Auth.isLogined === true && !!Auth.loginUserKey && !!Auth.loginUserTokenKey) {
       await this.loginUserStore.findUserInfo(Auth.loginUserKey);
       await this.loginUserStore.findLoginUserInfo(Auth.loginUserTokenKey);
-      await this.overloadStore.findAllOverload(Auth.loginUserTokenKey);
-      await this.overloadStore.findAllFuseOverload(Auth.loginUserTokenKey);
+      await this.overloadStore.findAllOverload(Auth.loginUserKey);
+      await this.overloadStore.findAllFuseOverload(Auth.loginUserKey);
     }
   }
 

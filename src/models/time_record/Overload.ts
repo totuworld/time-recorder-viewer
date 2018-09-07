@@ -7,7 +7,9 @@ import { IJSONSchemaType } from '../common/IJSONSchemaType';
 import { AddFuseOverloadRequestParam } from './interface/AddFuseOverloadRequestParam';
 import { IFuseOverWork, IFuseOverWorks, IOverWork, IOverWorks } from './interface/IOverWork';
 import { IAddTimeRecord } from './interface/ITimeRecords';
-import { OverloadsRequestParam } from './interface/OverloadsRequestParam';
+import {
+    OverloadsByUserIDRequestParam, OverloadsRequestParam
+} from './interface/OverloadsRequestParam';
 import { OverloadRequestBuilder } from './OverloadRequestBuilder';
 
 const log = debug('trv:Overload');
@@ -57,6 +59,68 @@ export class Overload {
       return { type: EN_REQUEST_RESULT.ERROR, data: [] };
     }
     const query = this.rb.createGetUserFuseOverloadsQuery({
+      method: 'GET',
+      headers: {},
+      query: params.query
+    });
+
+    log(query);
+
+    const requester = RequestService.create(query.url);
+    const response = await requester.call<
+    IFuseOverWork[]
+    >(query);
+
+    const result = await response;
+    if (result.type === EN_REQUEST_RESULT.ERROR) {
+      return { type: EN_REQUEST_RESULT.ERROR, data: [] };
+    }
+    log(result.payload);
+    return { type: EN_REQUEST_RESULT.SUCCESS, data: result.payload };
+  }
+
+  public async findAllByUserID(
+    params: OverloadsByUserIDRequestParam,
+    schema: IJSONSchemaType
+  ): Promise<IOverWorks> {
+    log(params);
+    const validParam = Requester.validateParam(params, schema);
+    log('validParam: ', validParam);
+    if (validParam === false) {
+      return { type: EN_REQUEST_RESULT.ERROR, data: [] };
+    }
+    const query = this.rb.createGetUserByUserIDOverloadsQuery({
+      method: 'GET',
+      headers: {},
+      query: params.query
+    });
+
+    log(query);
+
+    const requester = RequestService.create(query.url);
+    const response = await requester.call<
+    IOverWork[]
+    >(query);
+
+    const result = await response;
+    if (result.type === EN_REQUEST_RESULT.ERROR) {
+      return { type: EN_REQUEST_RESULT.ERROR, data: [] };
+    }
+    log(result.payload);
+    return { type: EN_REQUEST_RESULT.SUCCESS, data: result.payload };
+  }
+
+  public async findAllFuseUserID(
+    params: OverloadsByUserIDRequestParam,
+    schema: IJSONSchemaType
+  ): Promise<IFuseOverWorks> {
+    log(params);
+    const validParam = Requester.validateParam(params, schema);
+    log('validParam: ', validParam);
+    if (validParam === false) {
+      return { type: EN_REQUEST_RESULT.ERROR, data: [] };
+    }
+    const query = this.rb.createGetUserFuseOverloadsByUserIDQuery({
       method: 'GET',
       headers: {},
       query: params.query

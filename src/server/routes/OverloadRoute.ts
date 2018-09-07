@@ -16,6 +16,14 @@ export class OverloadRoute extends CommonRoute {
       '/fuse_over_works',
       oRoute.controller.findAllFuse.bind(oRoute.controller),
     );
+    oRoute.route(EN_REQUEST_METHODS.GET)(
+      '/over_works_by_user_id',
+      oRoute.controller.findAllByUserID.bind(oRoute.controller),
+    );
+    oRoute.route(EN_REQUEST_METHODS.GET)(
+      '/fuse_over_works_by_user_id',
+      oRoute.controller.findAllFuseByUserID.bind(oRoute.controller),
+    );
     oRoute.route(EN_REQUEST_METHODS.POST)(
       '/fuse_over_work',
       oRoute.controller.addFuseOverload.bind(oRoute.controller),
