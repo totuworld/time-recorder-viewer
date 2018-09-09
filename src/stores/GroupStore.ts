@@ -1,5 +1,6 @@
 import { action, observable, runInAction } from 'mobx';
 
+import { IFuseOverWork, IOverWork } from '../models/time_record/interface/IOverWork';
 import { ITimeRecordLogData } from '../models/time_record/interface/ITimeRecordLogData';
 import {
     GetTimeRecordsJSONSchema
@@ -11,18 +12,33 @@ import { RequestBuilderParams } from '../services/requestService/RequestBuilder'
 import { EN_REQUEST_RESULT } from '../services/requestService/requesters/AxiosRequester';
 
 type Records = {[key: string]: Array<{ [key: string]: { [key: string]: ITimeRecordLogData } }>};
+type OverWorks = {[key: string]: IOverWork[]};
+type FuseOverWorks = {[key: string]: IFuseOverWork[]};
 
 export default class GroupStore {
   @observable private records: Records;
   @observable private isLoading: boolean = false;
   @observable private group: IUserInfo[] = [];
+  @observable private overWorks: OverWorks;
+  @observable private fuseOverWorks: FuseOverWorks;
 
   constructor(
     records: Records,
     group: IUserInfo[],
+    overWorks?: OverWorks,
+    fuseOverWorks?: FuseOverWorks,
   ) {
     this.records = records;
     this.group = group;
+
+    this.overWorks = {};
+    this.fuseOverWorks = {};
+    if (!!overWorks) {
+      this.overWorks = overWorks;
+    }
+    if (!!fuseOverWorks) {
+      this.fuseOverWorks = fuseOverWorks;
+    }
   }
 
   get Records() {
@@ -30,6 +46,12 @@ export default class GroupStore {
   }
   set Records(value: Records) {
     this.records = value;
+  }
+  get OverWorks() {
+    return this.overWorks;
+  }
+  get FuseOverWorks() {
+    return this.fuseOverWorks;
   }
 
   get isIdle(): boolean {

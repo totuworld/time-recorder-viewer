@@ -12,13 +12,19 @@ import React from 'react';
 import { DateRangePicker } from 'react-dates';
 import { Helmet } from 'react-helmet';
 import {
-    Card, CardBody, CardFooter, CardHeader, CardTitle, Col, Container, Row, Table
+    Button, Card, CardBody, CardFooter, CardHeader, CardTitle, Col, Container, Row, Table
 } from 'reactstrap';
 
+import { IFuseOverWork, IOverWork } from '../../models/time_record/interface/IOverWork';
 import { ITimeRecordLogData } from '../../models/time_record/interface/ITimeRecordLogData';
+import {
+    GetOverloadsByUserIDJSONSchema
+} from '../../models/time_record/JSONSchema/GetOverloadsJSONSchema';
 import {
     GetTimeRecordsJSONSchema
 } from '../../models/time_record/JSONSchema/GetTimeRecordsJSONSchema';
+import { Overload } from '../../models/time_record/Overload';
+import { OverloadRequestBuilder } from '../../models/time_record/OverloadRequestBuilder';
 import { TimeRecord } from '../../models/time_record/TimeRecord';
 import { TimeRecordRequestBuilder } from '../../models/time_record/TimeRecordRequestBuilder';
 import { IUserInfo } from '../../models/user/interface/IUserInfo';
@@ -30,6 +36,7 @@ import { UserRequestBuilder } from '../../models/user/UserRequestBuilder';
 import { Auth } from '../../services/auth';
 import { RequestBuilderParams } from '../../services/requestService/RequestBuilder';
 import { EN_REQUEST_RESULT } from '../../services/requestService/requesters/AxiosRequester';
+import { Util } from '../../services/util';
 import GroupStore from '../../stores/GroupStore';
 import LoginStore from '../../stores/LoginStore';
 import DefaultHeader from '../common/DefaultHeader';
@@ -41,6 +48,8 @@ export interface IGroupContainerProps {
   groupId: string;
   group: IUserInfo[];
   records: {[key: string]: Array<{ [key: string]: { [key: string]: ITimeRecordLogData } }>};
+  overloads: {[key: string]: IOverWork[]};
+  fuseOverloads: {[key: string]: IFuseOverWork[]};
   initialStartDate: string;
   initialEndDate: string;
 }
@@ -85,16 +94,25 @@ export default class GroupContainer extends React.Component<IGroupContainerProps
       GetGroupUserInfosJSONSchema,
     );
     const records = {};
+    const overloads = {};
+    const fuseOverloads = {};
     log('actionResp.type: ', actionResp.type);
     if (actionResp.type === EN_REQUEST_RESULT.SUCCESS) {
       log('actionResp.type: ', actionResp.type);
+      const trRb = new TimeRecordRequestBuilder(rbParam);
+      const trAction = new TimeRecord(trRb);
+      const olRb = new OverloadRequestBuilder(rbParam);
+      const olAction = new Overload(olRb);
       // 각 사용자의 일한 시간도 뽑아내자.
       const promises = actionResp.data.map(async (mv, i) => {
-        const trRb = new TimeRecordRequestBuilder(rbParam);
-        const trAction = new TimeRecord(trRb);
         const resp = await trAction.findAll({query: { userId: mv.id, startDate, endDate }}, GetTimeRecordsJSONSchema);
         log(resp.data);
         records[mv.id] = !!resp && resp.type === EN_REQUEST_RESULT.SUCCESS ? resp.data : [];
+        const olQuery = { query: {user_id: mv.id} };
+        const olResp = await olAction.findAllByUserID(olQuery, GetOverloadsByUserIDJSONSchema);
+        overloads[mv.id] = !!olResp && olResp.type === EN_REQUEST_RESULT.SUCCESS ? olResp.data : [];
+        const olFuseResp = await olAction.findAllFuseUserID(olQuery, GetOverloadsByUserIDJSONSchema);
+        fuseOverloads[mv.id] = !!olFuseResp && olFuseResp.type === EN_REQUEST_RESULT.SUCCESS ? olFuseResp.data : [];
       });
       while (promises.length > 0) {
         await promises.pop();
@@ -106,6 +124,8 @@ export default class GroupContainer extends React.Component<IGroupContainerProps
       group: actionResp.type === EN_REQUEST_RESULT.SUCCESS ?
         actionResp.data.sort((a, b) => a.real_name > b.real_name ? 1 : -1) : [],
       records,
+      overloads,
+      fuseOverloads,
       initialStartDate: startDate,
       initialEndDate: endDate,
     };
@@ -125,9 +145,10 @@ export default class GroupContainer extends React.Component<IGroupContainerProps
     this.onDatesChangeForDRP = this.onDatesChangeForDRP.bind(this);
     this.handleClosePopover = this.handleClosePopover.bind(this);
     this.handleClickRow = this.handleClickRow.bind(this);
+    this.getTimeObjectToString = this.getTimeObjectToString.bind(this);
     this.getRows = this.getRows.bind(this);
     this.isLogined = this.isLogined.bind(this);
-    this.store = new GroupStore(props.records, props.group);
+    this.store = new GroupStore(props.records, props.group, props.overloads, props.fuseOverloads);
     this.loginUserStore = new LoginStore(null);
   }
 
@@ -164,6 +185,15 @@ export default class GroupContainer extends React.Component<IGroupContainerProps
     }
   }
 
+  public getTimeObjectToString(totalRemainDurationObj: luxon.DurationObject) {
+    let duration = luxon.Duration.fromObject(totalRemainDurationObj);
+    const milliseconds = duration.as('milliseconds');
+    if (milliseconds < 0) {
+      duration = luxon.Duration.fromMillis(Math.abs(milliseconds));
+    }
+    return milliseconds < 0 ? `-${duration.toFormat('hh:mm:ss')}` : duration.toFormat('hh:mm:ss');
+  }
+
   public getRows() {
     return this.props.group
     .map((mv) => {
@@ -177,6 +207,14 @@ export default class GroupContainer extends React.Component<IGroupContainerProps
         convertData.updateDatas[convertData.updateDatas.length - 1].name : 'none';
       const badgeStatus = lastActive !== 'none' && !!convertData.overTimeObj ?
         luxon.Duration.fromObject(convertData.overTimeObj).as('hours') >= 1 ? 'danger' : 'success' : null;
+      const totalRemain = Util.totalRemain(this.store.OverWorks[mv.id], this.store.FuseOverWorks[mv.id]);
+      const totalRemainStr = totalRemain === null ? '-' : this.getTimeObjectToString(totalRemain);
+      const totalRemainBtn = totalRemain === null ? '-' :
+        (<Button
+          onClick={(e) => { e.stopPropagation(); window.location.href = `/overload/${mv.id}`; }}
+        >
+          {totalRemainStr}
+        </Button>);
       return (
         <tr
           key={mv.id}
@@ -204,7 +242,7 @@ export default class GroupContainer extends React.Component<IGroupContainerProps
             {convertData.overTimeStr}
           </td>
           <td>
-            {lastActive}
+            {totalRemainBtn}
           </td>
         </tr>
       );
@@ -275,8 +313,8 @@ export default class GroupContainer extends React.Component<IGroupContainerProps
                       </th>
                       <th className="d-none d-sm-block">사용자</th>
                       <th>근무시간</th>
-                      <th>초과시간</th>
-                      <th>마지막 기록</th>
+                      <th>기간 내 초과시간</th>
+                      <th>누적 초과시간</th>
                     </tr>
                   </thead>
                   <tbody>

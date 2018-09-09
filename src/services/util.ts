@@ -1,5 +1,7 @@
 import * as luxon from 'luxon';
 
+import { IFuseOverWork, IOverWork } from '../models/time_record/interface/IOverWork';
+
 export interface ITimeObj {
   REST: {[key: string]: number};
   WORK: {[key: string]: number};
@@ -54,5 +56,67 @@ export class Util {
   public static reduceDurationObject(timeObj: ITimeObj[], target: keyof ITimeObj) {
     const totalWorkTimeObj = this.reduceTimeObj(timeObj, target);
     return luxon.Duration.fromObject(totalWorkTimeObj);
+  }
+  public static totalRemain(records: IOverWork[], fuseRecords: IFuseOverWork[]): luxon.DurationObject | null {
+    if (this.isEmpty(records) || records.length <= 0) {
+      return null;
+    }
+    const storeDuration = records.reduce(
+      (acc, cur) => {
+        if (!!cur.over) {
+          const duration = luxon.Duration.fromObject(cur.over);
+          const updateAcc = acc.plus(duration);
+          return updateAcc;
+        }
+        return acc;
+      },
+      luxon.Duration.fromObject({hours: 0}));
+    const fuseDuration = this.isEmpty(fuseRecords) || fuseRecords.length <= 0 ?
+      luxon.Duration.fromObject({hours: 0}) :
+      fuseRecords.reduce(
+        (acc: luxon.Duration, cur) => {
+          if (!!cur.use) {
+            const duration = luxon.Duration.fromISO(cur.use);
+            const updateAcc = acc.plus(duration);
+            return updateAcc;
+          }
+          return acc;
+        },
+        luxon.Duration.fromObject({hours: 0}));
+    return storeDuration.minus(fuseDuration).toObject();
+  }
+
+  public static isEmpty<T>(
+    value?: T | undefined | null
+  ): value is null | undefined {
+    if (value === undefined || value === null) {
+      return true;
+    }
+
+    if (typeof value === 'number' && isNaN(value)) {
+      return true;
+    }
+
+    if (typeof value === 'string' && value === '') {
+      return true;
+    }
+
+    if (typeof value === 'object' && Array.isArray(value) && value.length < 1) {
+      return true;
+    }
+
+    if (
+      typeof value === 'object' &&
+      !(value instanceof Date) &&
+      Object.keys(value).length < 1
+    ) {
+      return true;
+    }
+
+    return false;
+  }
+
+  public static isNotEmpty<T>(value?: T | null | undefined): value is T {
+    return !Util.isEmpty<T>(value);
   }
 }

@@ -12,6 +12,7 @@ import { Overload } from '../models/time_record/Overload';
 import { OverloadRequestBuilder } from '../models/time_record/OverloadRequestBuilder';
 import { RequestBuilderParams } from '../services/requestService/RequestBuilder';
 import { EN_REQUEST_RESULT } from '../services/requestService/requesters/AxiosRequester';
+import { Util } from '../services/util';
 
 export default class OverloadStore {
   @observable private records: IOverWork[] = [];
@@ -47,32 +48,7 @@ export default class OverloadStore {
   }
 
   public totalRemain(): luxon.DurationObject | null {
-    if (this.records.length <= 0) {
-      return null;
-    }
-    const storeDuration = this.records.reduce(
-      (acc, cur) => {
-        if (!!cur.over) {
-          const duration = luxon.Duration.fromObject(cur.over);
-          const updateAcc = acc.plus(duration);
-          return updateAcc;
-        }
-        return acc;
-      },
-      luxon.Duration.fromObject({hours: 0}));
-    const fuseDuration = this.fuseRecords.length <= 0 ?
-      luxon.Duration.fromObject({hours: 0}) :
-      this.fuseRecords.reduce(
-        (acc: luxon.Duration, cur) => {
-          if (!!cur.use) {
-            const duration = luxon.Duration.fromISO(cur.use);
-            const updateAcc = acc.plus(duration);
-            return updateAcc;
-          }
-          return acc;
-        },
-        luxon.Duration.fromObject({hours: 0}));
-    return storeDuration.minus(fuseDuration).toObject();
+    return Util.totalRemain(this.records, this.fuseRecords);
   }
 
   public totalRemainTime(format: string = 'hh:mm:ss'): string {
