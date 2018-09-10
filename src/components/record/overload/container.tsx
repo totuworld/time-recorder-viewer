@@ -244,7 +244,7 @@ class RecordOverloadContainer extends React.Component<IRecordOverloadContainerPr
     const startDate = luxon.DateTime.fromISO(`${week}-1`).minus({ days: 1 });
     const endDate = luxon.DateTime.fromISO(`${week}-6`);
     if (this.state.isServer === false && !!this.loginUserStore && !!this.loginUserStore.UserInfo) {
-      const { id } = this.loginUserStore.UserInfo;
+      const id = this.props.isOtherUser === true ? this.props.userId : this.loginUserStore.UserInfo.id;
       const startDateStr = startDate.toFormat('yyyy-LL-dd');
       const endDateStr = endDate.toFormat('yyyy-LL-dd');
       window.location.href = `/records/${id}?startDate=${startDateStr}&endDate=${endDateStr}`;
