@@ -147,6 +147,8 @@ export default class GroupContainer extends React.Component<IGroupContainerProps
     this.handleClickRow = this.handleClickRow.bind(this);
     this.getTimeObjectToString = this.getTimeObjectToString.bind(this);
     this.getRows = this.getRows.bind(this);
+    this.calGroupWorkTime = this.calGroupWorkTime.bind(this);
+    this.getDataElements = this.getDataElements.bind(this);
     this.isLogined = this.isLogined.bind(this);
     this.store = new GroupStore(props.records, props.group, props.overloads, props.fuseOverloads);
     this.loginUserStore = new LoginStore(null);
@@ -249,6 +251,79 @@ export default class GroupContainer extends React.Component<IGroupContainerProps
     });
   }
 
+  public calGroupWorkTime() {
+    function getMedian(numbers: number[]) {
+      const numsLen = numbers.length;
+      const sortNumbers = numbers.sort();
+
+      if (numsLen % 2 === 0) {
+        return (sortNumbers[numsLen / 2 - 1] + sortNumbers[numsLen / 2]) / 2;
+      }
+      return sortNumbers[(numsLen - 1) / 2];
+    }
+    const workTimeValues = {
+      totalWorkTime: luxon.Duration.fromObject({}),
+      totalOverWorkTime: luxon.Duration.fromObject({}),
+      averageOverWorkTime: luxon.Duration.fromObject({}),
+      medianOverWorkTime: luxon.Duration.fromObject({}),
+    };
+    // record 데이터가 비어있다면 기본 값을 바로 리턴한다.
+    if (Util.isEmpty(this.store.Records)) {
+      return workTimeValues;
+    }
+    const filterOutEmptyWorklog = Object.values(this.store.Records)
+      .filter((fv) => Util.isNotEmpty(fv));
+    const workTimeObjs = filterOutEmptyWorklog
+      .map((mv) => TimeRecord.convertWorkTime(mv, this.state.startDate, this.state.endDate));
+    const reduceTimes = workTimeObjs.reduce(
+      (acc, cur) => {
+        const updateAcc = {...acc};
+        updateAcc.totalWorkTime += luxon.Duration.fromObject(cur.calWorkTimeObj).as('milliseconds');
+        const overtime = luxon.Duration.fromObject(cur.overTimeObj).as('milliseconds');
+        updateAcc.totalOverWorkTime += overtime;
+        return updateAcc;
+      },
+      { totalWorkTime: 0, totalOverWorkTime: 0 });
+    workTimeValues.totalWorkTime = luxon.Duration.fromMillis(reduceTimes.totalWorkTime);
+    workTimeValues.totalOverWorkTime = luxon.Duration.fromMillis(reduceTimes.totalOverWorkTime);
+    workTimeValues.averageOverWorkTime = luxon.Duration.fromMillis(reduceTimes.totalOverWorkTime / workTimeObjs.length);
+    workTimeValues.medianOverWorkTime = luxon.Duration.fromMillis(
+      getMedian(workTimeObjs.map((mv) =>  luxon.Duration.fromObject(mv.overTimeObj).as('milliseconds'))));
+    return workTimeValues;
+  }
+
+  public getDataElements() {
+    const workTimeValues = this.calGroupWorkTime();
+    return (
+      <Row>
+        <Col md={true} className="mb-sm-2 mb-0">
+          <div className="callout callout-primary">
+            <div className="text-muted">{workTimeValues.totalWorkTime.toFormat('hh:mm:ss')}</div>
+            <div>총 근무 시간</div>
+          </div>
+        </Col>
+        <Col md={true} className="mb-sm-2 mb-0">
+          <div className="callout callout-danger">
+            <div className="text-muted">{workTimeValues.totalOverWorkTime.toFormat('hh:mm:ss')}</div>
+            <div>총 초과근무</div>
+          </div>
+        </Col>
+        <Col md={true} className="mb-sm-2 mb-0">
+          <div className="callout callout-primary">
+            <div className="text-muted">{workTimeValues.averageOverWorkTime.toFormat('hh:mm:ss')}</div>
+            <div>평균 초과근무</div>
+          </div>
+        </Col>
+        <Col md={true} className="mb-sm-2 mb-0">
+          <div className="callout callout-warning">
+            <div className="text-muted">{workTimeValues.medianOverWorkTime.toFormat('hh:mm:ss')}</div>
+            <div>초과근무 중위값</div>
+          </div>
+        </Col>
+      </Row>
+    );
+  }
+
   public isLogined() {
     if (this.state.isServer === true) {
       return false;
@@ -270,6 +345,7 @@ export default class GroupContainer extends React.Component<IGroupContainerProps
 
   public render() {
     const rows = this.getRows();
+    const dataElements = this.getDataElements();
     return (
       <div className="app">
         <Helmet>
@@ -322,6 +398,9 @@ export default class GroupContainer extends React.Component<IGroupContainerProps
                   </tbody>
                 </Table>
               </CardBody>
+              <CardFooter>
+                {dataElements}
+              </CardFooter>
             </Card>
           </Container>
         </div>
