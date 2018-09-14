@@ -196,6 +196,7 @@ export class TimeRecord {
     return {
       updateDatas,
       calWorkTimeObj,
+      overTimeIsMinus: workDuration < weekWorkDuration,
       overTimeObj: overTimeObj.toObject(),
       calWorkTimeStr, overTimeStr, totalWorkTimeStr,
       totalEmergencyTimeStr, totalRestTimeStr, totalLawRestTimeStr, totalRemoteTimeStr };
