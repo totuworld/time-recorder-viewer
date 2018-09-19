@@ -5,7 +5,7 @@ import { observer } from 'mobx-react';
 import React from 'react';
 import { Helmet } from 'react-helmet';
 import {
-    Button, Card, CardBody, CardFooter, CardHeader, CardTitle, Col, Container, Row, Table
+    Button, Card, CardBody, CardFooter, CardHeader, CardTitle, Container, ListGroup, ListGroupItem
 } from 'reactstrap';
 
 import { Group } from '../../../models/group/Group';
@@ -76,20 +76,20 @@ export default class GroupInfoContainer extends React.Component<IGroupInfoContai
     return this.props.groupInfos
     .map((mv) => {
       return (
-        <tr
+        <ListGroupItem
           key={mv.group_id}
         >
-          <td>
+          <span>
             {mv.desc}
-          </td>
-          <td>
+          </span>
+          <span className="list-group-button">
             <Button
               onClick={() => { this.handleClickGotoGroup(mv.group_id); }}
             >
               로그확인
             </Button>
-          </td>
-        </tr>
+          </span>
+        </ListGroupItem>
       );
     });
   }
@@ -131,14 +131,9 @@ export default class GroupInfoContainer extends React.Component<IGroupInfoContai
                 그룹 목록
               </CardHeader>
               <CardBody>
-                <Table
-                  responsive={true}
-                  className="d-sm-table"
-                >
-                  <tbody>
-                    {rows}
-                  </tbody>
-                </Table>
+                <ListGroup>
+                  {rows}
+                </ListGroup>
               </CardBody>
             </Card>
           </Container>
