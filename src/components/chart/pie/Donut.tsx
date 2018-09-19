@@ -18,7 +18,7 @@ export default class ChartPieDonut extends React.Component<IChartBarStacked2Prop
     return (
       <Doughnut
         data={{labels: this.props.labels, datasets: this.props.datasets}}
-        options={{ legend: { position: 'bottom' } }}
+        options={{ legend: { position: 'left' } }}
         width={this.props.width}
         height={this.props.height}
       />
