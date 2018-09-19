@@ -416,6 +416,7 @@ IRecordContainerStates & IetcStates   > {
         return (
           <tr
             key={mv}
+            className="clickable"
             onClick={() => { this.handleOnClickSingleDayTableRow(mv, tData); }}
           >
             <td>{EN_WORK_TITLE_KR[tData.type]}</td>

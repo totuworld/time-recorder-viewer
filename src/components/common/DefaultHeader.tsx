@@ -81,7 +81,7 @@ class DefaultHeader extends React.Component<IDefaultHeaderProps, IDefaultHeaderS
             width="30"
             height="30"
             alt="Work Logger"
-            className="navbar-brand-minimized"
+            className="navbar-brand-minimized clickable"
             onClick={() => { window.location.href = '/'; }}
           />
           <Nav className="ml-auto" navbar={true}>
