@@ -3,3 +3,13 @@
 
 .clickable {
   cursor: pointer; }
+
+.list-group-item .list-group-button {
+  position: absolute;
+  top: 50%;
+  right: 1.25rem;
+  margin-top: -1.1rem;
+}
+
+.chart-wrapper {
+  margin-bottom: 1rem; }
