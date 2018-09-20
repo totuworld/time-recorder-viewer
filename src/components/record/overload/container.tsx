@@ -123,26 +123,28 @@ class RecordOverloadContainer extends React.Component<IRecordOverloadContainerPr
     return this.loginUserStore.isLogin;
   }
 
-  public getAvatar() {
+  public getAvatar(totalRemainTime: string) {
     const usedUserInfo = !!this.props.userInfo ? this.props.userInfo : this.loginUserStore.UserInfo;
     if (!!usedUserInfo) {
       const userInfo = usedUserInfo;
       return (
         <Row className="justify-content-start">
-          <Col className="col-sm-1">
+          <Col className="col-7">
             <GroupUserAvatar
               img_url={userInfo.profile_url}
               alt={userInfo.real_name}
               badge_status={null}
             />
-          </Col>
-          <Col className="col-md-6">
-            <div>
-              <div>{userInfo.real_name}</div>
-              <div className="small text-muted">
+            <span className="group-user-info">
+              <span>{userInfo.real_name}</span>
+              <span className="small text-muted">
                 slack id: {userInfo.name}
-              </div>
-            </div>
+              </span>
+            </span>
+          </Col>
+          <Col className="col total-remain-time">
+            <strong>차감 가능한 시간</strong>
+            <span>{totalRemainTime}</span>
           </Col>
         </Row>);
     }
@@ -182,7 +184,7 @@ class RecordOverloadContainer extends React.Component<IRecordOverloadContainerPr
           <td>
             {mv.week}
           </td>
-          <td className="d-none d-sm-block">
+          <td className="d-none d-sm-table-cell">
             <div>{period}</div>
           </td>
           <td>
@@ -272,10 +274,10 @@ class RecordOverloadContainer extends React.Component<IRecordOverloadContainerPr
   }
 
   public render() {
-    const avatar = this.getAvatar();
+    const totalRemainTime = this.getRemainTimes();
+    const avatar = this.getAvatar(totalRemainTime);
     const rows = this.getOverTimeRows();
     const fuseRows = this.getFuseOverTimeRows();
-    const totalRemainTime = this.getRemainTimes();
     return (
       <div className="app">
         <Helmet>
@@ -290,54 +292,41 @@ class RecordOverloadContainer extends React.Component<IRecordOverloadContainerPr
         <div className="app-body">
           <Container>
             <Card>
-              <CardHeader>
-                {avatar}
-              </CardHeader>
               <CardBody>
-                차감 가능한 시간: {totalRemainTime}
+                <h2 className="blind">사용자 정보 및 차감 가능 시간</h2>
+                {avatar}
               </CardBody>
             </Card>
             <Card>
               <CardHeader>
-                누적된 초과 근무
+                <h2>누적된 초과 근무</h2>
               </CardHeader>
               <CardBody>
-                <Table
-                  responsive={true}
-                  className="d-sm-table"
-                  hover={true}
-                >
+                <Table responsive={true} className="d-sm-table" hover={true}>
                   <thead className="thead-light">
                     <tr>
                       <th>기록</th>
-                      <th className="d-none d-sm-block">기록기간</th>
+                      <th className="d-none d-sm-table-cell">기록기간</th>
                       <th>초과시간</th>
                     </tr>
                   </thead>
-                  <tbody>
-                    {rows}
-                  </tbody>
+                  <tbody>{rows}</tbody>
                 </Table>
               </CardBody>
             </Card>
             <Card>
               <CardHeader>
-                사용한 초과 근무
+                <h2>사용한 초과 근무</h2>
               </CardHeader>
               <CardBody>
-                <Table
-                  responsive={true}
-                  className="d-sm-table"
-                >
+                <Table responsive={true} className="d-sm-table">
                   <thead className="thead-light">
                     <tr>
                       <th>사용일자</th>
                       <th>사용시간</th>
                     </tr>
                   </thead>
-                  <tbody>
-                    {fuseRows}
-                  </tbody>
+                  <tbody>{fuseRows}</tbody>
                 </Table>
               </CardBody>
             </Card>
