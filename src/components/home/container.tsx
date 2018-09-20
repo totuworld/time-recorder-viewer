@@ -23,8 +23,8 @@ export default class HomeContainer extends Component {
           onClickLogout={() => { console.log('test'); }}
         />
         <div className="app-body">
-          <Container className="bg-white">
-            <Jumbotron>
+          <Container>
+            <Jumbotron className="bg-white">
               <h1 className="display-4">Work Log</h1>
               <p className="lead">유연한 업무 환경 조성을 돕고, 주 40시간 초과 근무를 수호합니다</p>
               <hr className="my-4" />
