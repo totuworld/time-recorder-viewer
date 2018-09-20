@@ -128,7 +128,7 @@ export default class GroupInfoContainer extends React.Component<IGroupInfoContai
           <Container>
             <Card>
               <CardHeader>
-                그룹 목록
+                <h2>그룹 목록</h2>
               </CardHeader>
               <CardBody>
                 <ListGroup>
