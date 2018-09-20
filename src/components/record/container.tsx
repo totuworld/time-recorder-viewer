@@ -900,9 +900,11 @@ IRecordContainerStates & IetcStates   > {
         <div className="app-body">
           <Container>
             <Card>
-              <CardHeader>
+              <CardBody>
                 {avatar}
-              </CardHeader>
+              </CardBody>
+            </Card>
+            <Card>
               <CardBody>
                 <DateRangePicker
                   startDate={moment(this.state.startDate)}
@@ -916,6 +918,8 @@ IRecordContainerStates & IetcStates   > {
                   minimumNights={0}
                   isOutsideRange={(day) => false}
                   onClose={this.handleClosePopover}
+                  noBorder={true}
+                  block={true}
                 />
               </CardBody>
             </Card>
