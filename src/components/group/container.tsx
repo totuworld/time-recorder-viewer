@@ -231,7 +231,7 @@ export default class GroupContainer extends React.Component<IGroupContainerProps
               badge_status={badgeStatus}
             />
           </td>
-          <td className="d-none d-sm-block">
+          <td className="d-none d-sm-table-cell">
             <div>{mv.real_name}</div>
             <div className="small text-muted">
               slack id: {mv.name}
@@ -240,7 +240,7 @@ export default class GroupContainer extends React.Component<IGroupContainerProps
           <td>
             {convertData.calWorkTimeStr}
           </td>
-          <td>
+          <td className="d-none d-sm-table-cell">
             {convertData.overTimeStr}
           </td>
           <td>
@@ -359,22 +359,28 @@ export default class GroupContainer extends React.Component<IGroupContainerProps
         />
         <div className="app-body">
           <Container>
-            <DateRangePicker
-              startDate={moment(this.state.startDate)}
-              endDate={moment(this.state.endDate)}
-              startDateId="startDate"
-              endDateId="endDate"
-              orientation="vertical"
-              focusedInput={this.state.focusedInput}
-              onDatesChange={this.onDatesChangeForDRP}
-              onFocusChange={(focusedInput) => this.setState({...this.state, focusedInput})}
-              minimumNights={0}
-              isOutsideRange={(day) => false}
-              onClose={this.handleClosePopover}
-            />
+            <Card>
+              <CardBody>
+                <DateRangePicker
+                  startDate={moment(this.state.startDate)}
+                  endDate={moment(this.state.endDate)}
+                  startDateId="startDate"
+                  endDateId="endDate"
+                  orientation="vertical"
+                  focusedInput={this.state.focusedInput}
+                  onDatesChange={this.onDatesChangeForDRP}
+                  onFocusChange={(focusedInput) => this.setState({...this.state, focusedInput})}
+                  minimumNights={0}
+                  isOutsideRange={(day) => false}
+                  onClose={this.handleClosePopover}
+                  noBorder={true}
+                  block={true}
+                />
+              </CardBody>
+            </Card>
             <Card>
               <CardHeader>
-                {this.props.groupId}
+                <h2>{this.props.groupId}</h2>
               </CardHeader>
               <CardBody>
                 <Table
@@ -387,9 +393,9 @@ export default class GroupContainer extends React.Component<IGroupContainerProps
                       <th className="text-center">
                         <i className="cui-people icons font-2xl" />
                       </th>
-                      <th className="d-none d-sm-block">사용자</th>
+                      <th className="d-none d-sm-table-cell">사용자</th>
                       <th>근무시간</th>
-                      <th>기간 내 초과시간</th>
+                      <th className="d-none d-sm-table-cell">기간 내 초과시간</th>
                       <th>누적 초과시간</th>
                     </tr>
                   </thead>
