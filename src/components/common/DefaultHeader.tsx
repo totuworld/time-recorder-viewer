@@ -5,7 +5,7 @@ import {
 } from 'reactstrap';
 
 import avatar from '../../assets/img/avatar.svg';
-import logo from '../../assets/img/logo.svg';
+import worklog_logo from '../../assets/img/worklog_logo.svg';
 import { IUserInfo } from '../../models/user/interface/IUserInfo';
 
 export interface IDefaultHeaderProps {
@@ -71,15 +71,16 @@ class DefaultHeader extends React.Component<IDefaultHeaderProps, IDefaultHeaderS
     const imgUrl = this.props.isLogin === true && !!this.props.userInfo ?
       this.props.userInfo.profile_url :
       avatar;
+    const isLogin = this.props.isLogin === true && !!this.props.userInfo;
+    const userName = this.props.isLogin === true && !!this.props.userInfo ? this.props.userInfo.real_name : '';
     const todayMenu = this.todayMenu();
     const groupList = this.props.isLogin === true ? <NavLink href="/groups">그룹 목록</NavLink> : null;
     return (
       <header className="app-header navbar">
         <Container>
           <img
-            src={logo}
-            width="30"
-            height="30"
+            src={worklog_logo}
+            width="150"
             alt="Work Logger"
             className="navbar-brand-minimized clickable"
             onClick={() => { window.location.href = '/'; }}
@@ -94,11 +95,14 @@ class DefaultHeader extends React.Component<IDefaultHeaderProps, IDefaultHeaderS
               toggle={this.toggleDropdown}
             >
               <DropdownToggle nav={true}>
-                <img
-                  src={imgUrl}
-                  className="img-avatar"
-                  alt={this.props.isLogin === true && !!this.props.userInfo ? this.props.userInfo.real_name : 'empty'}
-                />
+                <span className="circle-border">
+                  <img
+                    src={imgUrl}
+                    className="img-avatar"
+                    alt={userName}
+                  />
+                </span>
+                {isLogin && <span className="header-username">{userName}</span>}
               </DropdownToggle>
               <DropdownMenu right={true} style={{ right: 'auto' }}>
                 {todayMenu}
