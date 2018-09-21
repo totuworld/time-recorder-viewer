@@ -55,7 +55,7 @@
 .list-group .list-group-item {
   margin-bottom: 0.25rem;
   border: 1px solid rgba(112, 112, 112, 0.125);
-  box-shadow: 5px 5px 9px 5px #f2f2f2; }
+  box-shadow: 5px 5px 40px 5px #f7f7f7; }
 
 .list-group-item .list-group-button {
   position: absolute;
