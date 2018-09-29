@@ -23,6 +23,11 @@ export class TimeRecordRoute extends CommonRoute {
       trRoute.controller.updateTimeRecord.bind(trRoute.controller),
     );
 
+    trRoute.route(EN_REQUEST_METHODS.GET)(
+      '/holidays',
+      trRoute.controller.getHolidays.bind(trRoute.controller),
+    );
+
     return trRoute;
   }
 

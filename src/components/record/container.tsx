@@ -11,12 +11,14 @@ import React from 'react';
 import { DateRangePicker } from 'react-dates';
 import { Helmet } from 'react-helmet';
 import {
-    Button, Card, CardBody, CardFooter, CardHeader, Col, Container, FormGroup, Input,
-    InputGroupAddon, InputGroupText, Label, Modal, ModalBody, ModalFooter, ModalHeader, Row, Table
+    Button, Card, CardBody, CardFooter, Col, Container, FormGroup, Input,
+    Label, Modal, ModalBody, ModalFooter, ModalHeader, Row, Table
 } from 'reactstrap';
 
 import { EN_WORK_TITLE_KR, EN_WORK_TYPE } from '../../models/time_record/interface/EN_WORK_TYPE';
+import { IHoliday } from '../../models/time_record/interface/IHoliday';
 import { ITimeRecordLogData } from '../../models/time_record/interface/ITimeRecordLogData';
+import { GetHolidyasJSONSchema } from '../../models/time_record/JSONSchema/GetHolidyasJSONSchema';
 import {
     GetTimeRecordsJSONSchema
 } from '../../models/time_record/JSONSchema/GetTimeRecordsJSONSchema';
@@ -62,6 +64,7 @@ interface IRecordContainerProps {
   records: Array<{ [key: string]: { [key: string]: ITimeRecordLogData } }>;
   initialStartDate: string;
   initialEndDate: string;
+  holidays: IHoliday[];
 }
 
 export interface IRecordContainerStates {
@@ -123,10 +126,21 @@ IRecordContainerStates & IetcStates   > {
     const rb = new TimeRecordRequestBuilder(rbParam);
     const action = new TimeRecord(rb);
 
-    const actionResp = await action.findAll(
-      checkParams,
-      GetTimeRecordsJSONSchema,
-    );
+    const [actionResp, holidaysResp] = await Promise.all([
+      action.findAll(
+        checkParams,
+        GetTimeRecordsJSONSchema,
+      ),
+      action.getHolidays(
+        {
+          query: {
+            start_date: startDate,
+            end_date: endDate,
+          }
+        },
+        GetHolidyasJSONSchema,
+      )
+    ]);
     let userInfo: IUserInfo | null = null;
     if (actionResp.type === EN_REQUEST_RESULT.SUCCESS) {
       const userRb = new UserRequestBuilder(rbParam);
@@ -145,6 +159,7 @@ IRecordContainerStates & IetcStates   > {
       records: actionResp.type === EN_REQUEST_RESULT.SUCCESS ? actionResp.data : [],
       initialStartDate: startDate,
       initialEndDate: endDate,
+      holidays: holidaysResp.type === EN_REQUEST_RESULT.SUCCESS ? holidaysResp.data : [],
     };
   }
 
@@ -181,7 +196,7 @@ IRecordContainerStates & IetcStates   > {
     this.getFuseModalBody = this.getFuseModalBody.bind(this);
     this.addFuseTime = this.addFuseTime.bind(this);
     this.closeFuseModal = this.closeFuseModal.bind(this);
-    this.store = new TimeRecordStore(props.records);
+    this.store = new TimeRecordStore(props.records, props.holidays);
     this.loginUserStore = new LoginStore(null);
     this.overloadStore = new OverloadStore([], []);
   }
@@ -325,11 +340,12 @@ IRecordContainerStates & IetcStates   > {
   }
 
   private getWorkTime() {
+    const holidayDuration = luxon.Duration.fromISO(`PT${this.store.Holidays.length * 8}H`);
     const {
       updateDatas,
       calWorkTimeStr, overTimeStr, totalWorkTimeStr,
       totalEmergencyTimeStr, totalRestTimeStr, totalLawRestTimeStr, totalRemoteTimeStr }
-      = TimeRecord.convertWorkTime(this.store.Records, this.state.startDate, this.state.endDate);
+      = TimeRecord.convertWorkTime(this.store.Records, this.state.startDate, this.state.endDate, holidayDuration);
     const datasets: IChartBarStacked2Props = updateDatas.reduce(
       (acc, cur) => {
         const { name, data } = cur;

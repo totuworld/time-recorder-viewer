@@ -4,6 +4,7 @@ import { RequestParams } from '../../services/requestService/interface/IRequestP
 import { RequestBuilder, RequestBuilderParams } from '../../services/requestService/RequestBuilder';
 import { IAxiosRequesterConfig } from '../../services/requestService/requesters/AxiosRequester';
 import { AddTimeRecordRequestParam } from './interface/AddTimeRecordRequestParam';
+import { GetHolidaysParam } from './interface/GetHolidaysParam';
 import { TimeRecordRecordsRequestsParam } from './interface/TimeRecordRecordsRequestsParam';
 import { UpdateTimeRecordRequestParam } from './interface/UpdateTimeRecordRequestParam';
 
@@ -92,6 +93,34 @@ export class TimeRecordRequestBuilder extends RequestBuilder {
     return {
       method,
       data,
+      headers: {
+        ...this.AccessTokenObject
+      },
+      timeout: 10000,
+      url: endPoint,
+    };
+  }
+
+  public getHolidaysQuery({
+    method,
+    query,
+  }: RequestParams<{}, GetHolidaysParam>): IAxiosRequesterConfig {
+    const apiPath = this.getAPIPath('/holidays');
+    let endPoint = apiPath.href();
+    if (!!query) {
+      const reqQueryStr = Object.keys(query).reduce(
+        (acc: string[], cur) => {
+          if (!!query[cur]) {
+            acc.push(`${cur}=${query[cur]}`);
+          }
+          return acc;
+        },
+        []).join('&');
+      endPoint = `${endPoint}?${reqQueryStr}`;
+    }
+
+    return {
+      method,
       headers: {
         ...this.AccessTokenObject
       },

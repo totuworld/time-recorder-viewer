@@ -2,7 +2,9 @@ import debug from 'debug';
 import { Request } from 'express';
 
 import { Config } from '../../config/Config';
+import { IHolidayBox } from '../../models/time_record/interface/IHoliday';
 import { IAddTimeRecord, ITimeRecords } from '../../models/time_record/interface/ITimeRecords';
+import { GetHolidyasJSONSchema } from '../../models/time_record/JSONSchema/GetHolidyasJSONSchema';
 import {
     GetTimeRecordsJSONSchema
 } from '../../models/time_record/JSONSchema/GetTimeRecordsJSONSchema';
@@ -109,6 +111,31 @@ export class TimeRecordController {
 
     return {
       status: actionResp.type === EN_REQUEST_RESULT.ERROR ? !!actionResp.status ? actionResp.status : 400 : 200,
+    };
+  }
+
+  public async getHolidays(req: Request): Promise<TControllerResp<IHolidayBox['data']>> {
+    const rbParam: RequestBuilderParams = { baseURI: Config.getApiURI() };
+    const { start_date, end_date } = req.query;
+
+    const checkParams = {
+      query: {
+        start_date,
+        end_date,
+      }
+    };
+
+    const rb = new TimeRecordRequestBuilder(rbParam);
+    const findAction = new TimeRecord(rb);
+
+    const actionResp = await findAction.getHolidays(
+      checkParams,
+      GetHolidyasJSONSchema,
+    );
+
+    return {
+      status: actionResp.type === EN_REQUEST_RESULT.ERROR ? 400 : 200,
+      payload: actionResp.data,
     };
   }
 }

@@ -1,7 +1,9 @@
 import { action, observable, runInAction } from 'mobx';
 
+import { IHoliday } from '../models/time_record/interface/IHoliday';
 import { IFuseOverWork, IOverWork } from '../models/time_record/interface/IOverWork';
 import { ITimeRecordLogData } from '../models/time_record/interface/ITimeRecordLogData';
+import { GetHolidyasJSONSchema } from '../models/time_record/JSONSchema/GetHolidyasJSONSchema';
 import {
     GetTimeRecordsJSONSchema
 } from '../models/time_record/JSONSchema/GetTimeRecordsJSONSchema';
@@ -21,12 +23,14 @@ export default class GroupStore {
   @observable private group: IUserInfo[] = [];
   @observable private overWorks: OverWorks;
   @observable private fuseOverWorks: FuseOverWorks;
+  @observable private holidays: IHoliday[] = [];
 
   constructor(
     records: Records,
     group: IUserInfo[],
     overWorks?: OverWorks,
     fuseOverWorks?: FuseOverWorks,
+    holidays?: IHoliday[],
   ) {
     this.records = records;
     this.group = group;
@@ -38,6 +42,9 @@ export default class GroupStore {
     }
     if (!!fuseOverWorks) {
       this.fuseOverWorks = fuseOverWorks;
+    }
+    if (!!holidays) {
+      this.holidays = holidays;
     }
   }
 
@@ -52,6 +59,9 @@ export default class GroupStore {
   }
   get FuseOverWorks() {
     return this.fuseOverWorks;
+  }
+  get Holidays() {
+    return this.holidays;
   }
 
   get isIdle(): boolean {
@@ -70,20 +80,33 @@ export default class GroupStore {
       this.isLoading = true;
 
       const rbParam: RequestBuilderParams = { isProxy: true };
+      const trRb = new TimeRecordRequestBuilder(rbParam);
+      const trAction = new TimeRecord(trRb);
 
       const loadedRecords = {};
       const promises = this.group.map(async (mv, i) => {
-        const trRb = new TimeRecordRequestBuilder(rbParam);
-        const trAction = new TimeRecord(trRb);
         const resp = await trAction.findAll({query: { userId: mv.id, startDate, endDate }}, GetTimeRecordsJSONSchema);
         loadedRecords[mv.id] = !!resp && resp.type === EN_REQUEST_RESULT.SUCCESS ? resp.data : [];
       });
+
+      const holidaysResp = await trAction.getHolidays(
+        {
+          query: {
+            start_date: startDate,
+            end_date: endDate
+          }
+        },
+        GetHolidyasJSONSchema
+      );
 
       await Promise.all(promises);
       
       return runInAction(() => {
         this.isLoading = false;
         this.records = loadedRecords;
+        if (holidaysResp.type === EN_REQUEST_RESULT.SUCCESS) {
+          this.holidays = holidaysResp.data;
+        }
         return this.records;
       });
     } catch (error) {

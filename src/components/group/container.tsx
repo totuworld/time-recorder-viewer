@@ -15,8 +15,10 @@ import {
     Button, Card, CardBody, CardFooter, CardHeader, CardTitle, Col, Container, Row, Table
 } from 'reactstrap';
 
+import { IHoliday } from '../../models/time_record/interface/IHoliday';
 import { IFuseOverWork, IOverWork } from '../../models/time_record/interface/IOverWork';
 import { ITimeRecordLogData } from '../../models/time_record/interface/ITimeRecordLogData';
+import { GetHolidyasJSONSchema } from '../../models/time_record/JSONSchema/GetHolidyasJSONSchema';
 import {
     GetOverloadsByUserIDJSONSchema
 } from '../../models/time_record/JSONSchema/GetOverloadsJSONSchema';
@@ -52,6 +54,7 @@ export interface IGroupContainerProps {
   fuseOverloads: {[key: string]: IFuseOverWork[]};
   initialStartDate: string;
   initialEndDate: string;
+  holidays: IHoliday[];
 }
 
 const log = debug('trv:GroupContainer');
@@ -93,14 +96,28 @@ export default class GroupContainer extends React.Component<IGroupContainerProps
       checkParams,
       GetGroupUserInfosJSONSchema,
     );
+    
     const records = {};
     const overloads = {};
     const fuseOverloads = {};
+    let holidays: IHoliday[] = [];
     log('actionResp.type: ', actionResp.type);
     if (actionResp.type === EN_REQUEST_RESULT.SUCCESS) {
       log('actionResp.type: ', actionResp.type);
       const trRb = new TimeRecordRequestBuilder(rbParam);
       const trAction = new TimeRecord(trRb);
+      const holidaysResp = await trAction.getHolidays(
+        {
+          query: {
+            start_date: startDate,
+            end_date: endDate,
+          }
+        },
+        GetHolidyasJSONSchema,
+      );
+      if (holidaysResp.type === EN_REQUEST_RESULT.SUCCESS) {
+        holidays = holidaysResp.data;
+      }
       const olRb = new OverloadRequestBuilder(rbParam);
       const olAction = new Overload(olRb);
       // 각 사용자의 일한 시간도 뽑아내자.
@@ -128,6 +145,7 @@ export default class GroupContainer extends React.Component<IGroupContainerProps
       fuseOverloads,
       initialStartDate: startDate,
       initialEndDate: endDate,
+      holidays,
     };
   }
 
@@ -150,7 +168,7 @@ export default class GroupContainer extends React.Component<IGroupContainerProps
     this.calGroupWorkTime = this.calGroupWorkTime.bind(this);
     this.getDataElements = this.getDataElements.bind(this);
     this.isLogined = this.isLogined.bind(this);
-    this.store = new GroupStore(props.records, props.group, props.overloads, props.fuseOverloads);
+    this.store = new GroupStore(props.records, props.group, props.overloads, props.fuseOverloads, props.holidays);
     this.loginUserStore = new LoginStore(null);
   }
 
@@ -197,6 +215,7 @@ export default class GroupContainer extends React.Component<IGroupContainerProps
   }
 
   public getRows() {
+    const holidaysDuration = luxon.Duration.fromISO(`PT${this.store.Holidays.length * 8}H`);
     return this.props.group
     .map((mv) => {
       const convertData = !!this.store.Records[mv.id] && this.store.Records[mv.id].length > 0 ?
@@ -204,6 +223,7 @@ export default class GroupContainer extends React.Component<IGroupContainerProps
         this.store.Records[mv.id],
         this.state.startDate,
         this.state.endDate,
+        holidaysDuration
       ) : { updateDatas: null, overTimeObj: null, calWorkTimeStr: 'none', overTimeStr: 'none' };
       const lastActive = !!convertData.updateDatas && convertData.calWorkTimeStr !== 'none' ?
         convertData.updateDatas[convertData.updateDatas.length - 1].name : 'none';
@@ -261,6 +281,7 @@ export default class GroupContainer extends React.Component<IGroupContainerProps
       }
       return sortNumbers[(numsLen - 1) / 2];
     }
+    const holidaysDuration = luxon.Duration.fromISO(`PT${this.store.Holidays.length * 8}H`);
     const workTimeValues = {
       totalWorkTime: luxon.Duration.fromObject({}),
       totalOverWorkTime: luxon.Duration.fromObject({}),
@@ -274,7 +295,7 @@ export default class GroupContainer extends React.Component<IGroupContainerProps
     const filterOutEmptyWorklog = Object.values(this.store.Records)
       .filter((fv) => Util.isNotEmpty(fv));
     const workTimeObjs = filterOutEmptyWorklog
-      .map((mv) => TimeRecord.convertWorkTime(mv, this.state.startDate, this.state.endDate));
+      .map((mv) => TimeRecord.convertWorkTime(mv, this.state.startDate, this.state.endDate, holidaysDuration));
     const reduceTimes = workTimeObjs.reduce(
       (acc, cur) => {
         const updateAcc = {...acc};

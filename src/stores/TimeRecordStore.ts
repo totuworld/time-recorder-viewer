@@ -1,10 +1,10 @@
 import * as luxon from 'luxon';
 import { action, observable, runInAction } from 'mobx';
 
-import {
-    EN_WORK_TYPE
-} from '../models/time_record/interface/EN_WORK_TYPE';
+import { EN_WORK_TYPE } from '../models/time_record/interface/EN_WORK_TYPE';
+import { IHoliday } from '../models/time_record/interface/IHoliday';
 import { ITimeRecordLogData } from '../models/time_record/interface/ITimeRecordLogData';
+import { GetHolidyasJSONSchema } from '../models/time_record/JSONSchema/GetHolidyasJSONSchema';
 import {
     GetTimeRecordsJSONSchema
 } from '../models/time_record/JSONSchema/GetTimeRecordsJSONSchema';
@@ -21,12 +21,15 @@ import { EN_REQUEST_RESULT } from '../services/requestService/requesters/AxiosRe
 
 export default class TimeRecordStore {
   @observable private records: Array<{ [key: string]: { [key: string]: ITimeRecordLogData } }> = [];
+  @observable private holidays: IHoliday[];
   @observable private isLoading: boolean = false;
 
   constructor(
     records: Array<{ [key: string]: { [key: string]: ITimeRecordLogData } }>,
+    holidays: IHoliday[],
   ) {
     this.records = records;
+    this.holidays = holidays;
   }
 
   get Records() {
@@ -34,6 +37,10 @@ export default class TimeRecordStore {
   }
   set Records(value: Array<{ [key: string]: { [key: string]: ITimeRecordLogData } }>) {
     this.records = value;
+  }
+
+  get Holidays() {
+    return this.holidays;
   }
 
   get isIdle(): boolean {
@@ -65,12 +72,26 @@ export default class TimeRecordStore {
       const rb = new TimeRecordRequestBuilder(rbParam);
       const findAction = new TimeRecord(rb);
 
-      const actionResp = await findAction.findAll(
-        checkParams,
-        GetTimeRecordsJSONSchema,
-      );
+      const [actionResp, holidaysResp] = await Promise.all([
+        findAction.findAll(
+          checkParams,
+          GetTimeRecordsJSONSchema,
+        ),
+        findAction.getHolidays(
+          {
+            query: {
+              start_date: startDate,
+              end_date: endDate
+            }
+          },
+          GetHolidyasJSONSchema
+        )
+      ]);
       return runInAction(() => {
         this.isLoading = false;
+        if (holidaysResp.type === EN_REQUEST_RESULT.SUCCESS) {
+          this.holidays = holidaysResp.data;
+        }
         if (actionResp.type === EN_REQUEST_RESULT.SUCCESS) {
           this.Records = actionResp.data;
           return actionResp.data;

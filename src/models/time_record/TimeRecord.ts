@@ -9,6 +9,8 @@ import { Util } from '../../services/util';
 import { IJSONSchemaType } from '../common/IJSONSchemaType';
 import { AddTimeRecordRequestParam } from './interface/AddTimeRecordRequestParam';
 import { EN_WORK_TYPE } from './interface/EN_WORK_TYPE';
+import { GetHolidaysParam } from './interface/GetHolidaysParam';
+import { IHoliday, IHolidayBox } from './interface/IHoliday';
 import { ITimeRecordLogData } from './interface/ITimeRecordLogData';
 import { IAddTimeRecord, ITimeRecords, IUpdateTimeRecord } from './interface/ITimeRecords';
 import { TimeRecordRecordsRequestsParam } from './interface/TimeRecordRecordsRequestsParam';
@@ -120,6 +122,7 @@ export class TimeRecord {
     value: Array<{ [key: string]: { [key: string]: ITimeRecordLogData } }>,
     startDate: Date,
     endDate: Date,
+    holidayDuration?: luxon.Duration,
   ) {
     const updateDatas = value.length > 0 ? value.map((mv) => {
       const dateStr = Object.keys(mv)[0];
@@ -185,7 +188,10 @@ export class TimeRecord {
       range -= (weekCount * 2);
     }
     const workDuration = luxon.Duration.fromObject(calWorkTimeObj);
-    const weekWorkDuration = luxon.Duration.fromISO('PT40H');
+    let weekWorkDuration = luxon.Duration.fromISO('PT40H');
+    if (!!holidayDuration) {
+      weekWorkDuration = weekWorkDuration.minus(holidayDuration);
+    }
     let overTimeObj = workDuration > weekWorkDuration ?
       workDuration.minus(weekWorkDuration) :
       weekWorkDuration.minus(workDuration);
@@ -378,5 +384,34 @@ export class TimeRecord {
     }
     log(result.payload);
     return { type: EN_REQUEST_RESULT.SUCCESS };
+  }
+
+  public async getHolidays(
+    params: GetHolidaysParam,
+    schema: IJSONSchemaType
+  ): Promise<IHolidayBox> {
+    log(params);
+    const validParam = Requester.validateParam(params, schema);
+    log('validParam: ', validParam);
+    if (validParam === false) {
+      return { type: EN_REQUEST_RESULT.ERROR, data: [] };
+    }
+    const query = this.rb.getHolidaysQuery({
+      method: 'GET',
+      headers: {},
+      query: params.query
+    });
+
+    log(query);
+
+    const requester = RequestService.create(query.url);
+    const response = await requester.call<IHoliday[]>(query);
+
+    const result = await response;
+    if (result.type === EN_REQUEST_RESULT.ERROR) {
+      return { type: EN_REQUEST_RESULT.ERROR, data: [] };
+    }
+    log(result.payload);
+    return { type: EN_REQUEST_RESULT.SUCCESS, data: result.payload };
   }
 }
