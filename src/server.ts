@@ -32,7 +32,7 @@ const staticPath = !isDocker() ? process.env.RAZZLE_PUBLIC_DIR! : path.join(__di
 
 const server = express();
 server.disable('x-powered-by');
-server.use(express.static(staticPath));
+server.use(express.static(staticPath, { maxAge: 30 * 24 * 60 * 60 * 1000 }));
 server.use((req, _, next) => {
   req['config'] = Config; // tslint:disable-line
   next();
