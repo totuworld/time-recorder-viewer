@@ -8,6 +8,7 @@ import { Config } from './config/Config';
 import routes from './routes';
 import { GroupRoute } from './server/routes/GroupRoute';
 import { OverloadRoute } from './server/routes/OverloadRoute';
+import { SlackRoute } from './server/routes/SlackRoute';
 import { TimeRecordRoute } from './server/routes/TimeRecordRoute';
 import { UserRoute } from './server/routes/UserRoute';
 
@@ -18,6 +19,7 @@ function routeList() {
   router.use(UserRoute.bootstrap().router);
   router.use(GroupRoute.bootstrap().router);
   router.use(OverloadRoute.bootstrap().router);
+  router.use(SlackRoute.bootstrap().router);
   return router;
 }
 
