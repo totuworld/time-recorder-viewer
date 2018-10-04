@@ -3,7 +3,7 @@ import { Request } from 'express';
 import { Config } from '../../config/Config';
 import { IAddLoginUser } from '../../models/user/interface/IAddLoginUser';
 import { ILoginUser } from '../../models/user/interface/ILoginUser';
-import { IUserInfo } from '../../models/user/interface/IUserInfo';
+import { ISlackUserInfo, IUserInfo } from '../../models/user/interface/IUserInfo';
 import {
     GetGroupUserInfosJSONSchema
 } from '../../models/user/JSONSchema/GetGroupUserInfosJSONSchema';
@@ -102,6 +102,79 @@ export class UserController {
     const actionResp = await findAction.findLoginUser(
       checkParams,
     );
+
+    return {
+      status: actionResp.type === EN_REQUEST_RESULT.ERROR ? 400 : 200,
+      payload: actionResp.data,
+    };
+  }
+
+  public async getAllSlackUserInfo(_: Request): Promise<TControllerResp<ISlackUserInfo[]>> {
+    const rbParam: RequestBuilderParams = { baseURI: Config.getApiURI() };
+
+    const rb = new UserRequestBuilder(rbParam);
+    const findAction = new User(rb);
+
+    const actionResp = await findAction.findAllSlackUsers();
+
+    return {
+      status: actionResp.type === EN_REQUEST_RESULT.ERROR ? 400 : 200,
+      payload: actionResp.data,
+    };
+  }
+
+  public async findQueue(req: Request): Promise<TControllerResp<ISlackUserInfo[]>> {
+    const rbParam: RequestBuilderParams = { baseURI: Config.getApiURI() };
+
+    const { authId } = req.params;
+
+    const rb = new UserRequestBuilder(rbParam);
+    const findAction = new User(rb);
+
+    const actionResp = await findAction.findQueue({
+      authId
+    });
+
+    return {
+      status: actionResp.type === EN_REQUEST_RESULT.ERROR ? 400 : 200,
+      payload: actionResp.data,
+    };
+  }
+
+  public async addQueue(req: Request): Promise<TControllerResp<ISlackUserInfo[]>> {
+    const rbParam: RequestBuilderParams = { baseURI: Config.getApiURI() };
+
+    const { userId } = req.params;
+    const { reqUserId } = req.body;
+
+    const rb = new UserRequestBuilder(rbParam);
+    const findAction = new User(rb);
+
+    const actionResp = await findAction.addQueue({
+      userId,
+      body: {
+        reqUserId
+      }
+    });
+
+    return {
+      status: actionResp.type === EN_REQUEST_RESULT.ERROR ? 400 : 200,
+      payload: actionResp.data,
+    };
+  }
+
+  public async deleteQueue(req: Request): Promise<TControllerResp<ISlackUserInfo[]>> {
+    const rbParam: RequestBuilderParams = { baseURI: Config.getApiURI() };
+
+    const { authId, key } = req.params;
+
+    const rb = new UserRequestBuilder(rbParam);
+    const findAction = new User(rb);
+
+    const actionResp = await findAction.deleteQueue({
+      authId,
+      key,
+    });
 
     return {
       status: actionResp.type === EN_REQUEST_RESULT.ERROR ? 400 : 200,

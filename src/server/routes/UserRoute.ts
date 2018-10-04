@@ -28,6 +28,26 @@ export class UserRoute extends CommonRoute {
       trRoute.controller.getLoginUserInfo.bind(trRoute.controller),
     );
 
+    trRoute.route(EN_REQUEST_METHODS.GET)(
+      '/slack_users',
+      trRoute.controller.getAllSlackUserInfo.bind(trRoute.controller),
+    );
+
+    trRoute.route(EN_REQUEST_METHODS.GET)(
+      '/get_user/:authId/queue',
+      trRoute.controller.findQueue.bind(trRoute.controller),
+    );
+
+    trRoute.route(EN_REQUEST_METHODS.POST)(
+      '/get_user/:userId/queue',
+      trRoute.controller.addQueue.bind(trRoute.controller),
+    );
+
+    trRoute.route(EN_REQUEST_METHODS.DELETE)(
+      '/get_user/:authId/queue/:key',
+      trRoute.controller.deleteQueue.bind(trRoute.controller),
+    );
+
     return trRoute;
   }
 

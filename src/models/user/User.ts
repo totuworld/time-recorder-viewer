@@ -5,10 +5,14 @@ import { Requester } from '../../services/requestService/Requester';
 import { EN_REQUEST_RESULT } from '../../services/requestService/requesters/AxiosRequester';
 import { IJSONSchemaType } from '../common/IJSONSchemaType';
 import { AddLoginUserRequestParam } from './interface/AddLoginUserRequestParam';
+import { AddQueueRequestBodyParam, AddQueueRequestParam } from './interface/AddQueueRequestParam';
+import { DeleteQueueRequestParam } from './interface/DeleteQueueRequestParam';
+import { FindQueueRequestParam } from './interface/FindQueueRequestParam';
 import { GroupsFindRequestParam } from './interface/GroupsFindRequestParam';
 import { IAddLoginUser } from './interface/IAddLoginUser';
 import { ILoginUser } from './interface/ILoginUser';
-import { IUserInfo } from './interface/IUserInfo';
+import { IQueue } from './interface/IQueue';
+import { ISlackUserInfo, IUserInfo } from './interface/IUserInfo';
 import { LoginUserRequestParam } from './interface/LoginUserRequestParam';
 import { UserFindRequestParam } from './interface/UserFindRequestParam';
 import { UserRequestBuilder } from './UserRequestBuilder';
@@ -110,6 +114,88 @@ export class User {
     });
     const requester = RequestService.create(query.url);
     const response = await requester.call<ILoginUser>(query);
+
+    const result = await response;
+    if (result.type === EN_REQUEST_RESULT.ERROR) {
+      return { type: EN_REQUEST_RESULT.ERROR };
+    }
+    log(result.payload);
+    return { type: EN_REQUEST_RESULT.SUCCESS, data: result.payload };
+  }
+
+  /** 슬랙에 가압되어있고, work log에 auth까지 마친 사용자 그룹 조회 */
+  public async findAllSlackUsers(): Promise<{ type: EN_REQUEST_RESULT, data?: ISlackUserInfo[] }> {
+    const query = this.rb.getAllSlackUserInfosQuery({
+      method: 'GET',
+      headers: {},
+    });
+    const requester = RequestService.create(query.url);
+    const response = await requester.call<ISlackUserInfo[]>(query);
+
+    const result = await response;
+    if (result.type === EN_REQUEST_RESULT.ERROR) {
+      return { type: EN_REQUEST_RESULT.ERROR };
+    }
+    log(result.payload);
+    return { type: EN_REQUEST_RESULT.SUCCESS, data: result.payload };
+  }
+
+  public async findQueue(
+    params: FindQueueRequestParam
+  ): Promise<{ type: EN_REQUEST_RESULT, data?: IQueue[] }> {
+    const query = this.rb.readUserQueueQuery({
+      method: 'GET',
+      headers: {},
+      resources: {
+        authId: params.authId,
+      },
+    });
+    const requester = RequestService.create(query.url);
+    const response = await requester.call<IQueue[]>(query);
+
+    const result = await response;
+    if (result.type === EN_REQUEST_RESULT.ERROR) {
+      return { type: EN_REQUEST_RESULT.ERROR };
+    }
+    log(result.payload);
+    return { type: EN_REQUEST_RESULT.SUCCESS, data: result.payload };
+  }
+
+  public async addQueue(
+    params: AddQueueRequestParam & AddQueueRequestBodyParam
+  ): Promise<{ type: EN_REQUEST_RESULT, data?: IQueue[] }> {
+    const query = this.rb.addUserQueueQuery({
+      method: 'POST',
+      headers: {},
+      resources: {
+        userId: params.userId,
+      },
+      body: params.body,
+    });
+    const requester = RequestService.create(query.url);
+    const response = await requester.call<IQueue[]>(query);
+
+    const result = await response;
+    if (result.type === EN_REQUEST_RESULT.ERROR) {
+      return { type: EN_REQUEST_RESULT.ERROR };
+    }
+    log(result.payload);
+    return { type: EN_REQUEST_RESULT.SUCCESS, data: result.payload };
+  }
+
+  public async deleteQueue(
+    params: DeleteQueueRequestParam
+  ): Promise<{type: EN_REQUEST_RESULT, data?: IQueue[]}> {
+    const query = this.rb.deleteUserQueueQuery({
+      method: 'DELETE',
+      headers: {},
+      resources: {
+        authId: params.authId,
+        key: params.key,
+      },
+    });
+    const requester = RequestService.create(query.url);
+    const response = await requester.call<IQueue[]>(query);
 
     const result = await response;
     if (result.type === EN_REQUEST_RESULT.ERROR) {
