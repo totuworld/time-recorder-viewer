@@ -8,7 +8,9 @@ import { Helmet } from 'react-helmet';
 import {
   Card,
   CardBody,
+  CardFooter,
   CardHeader,
+  CardTitle,
   Container,
   Input,
   InputGroup,
@@ -154,6 +156,9 @@ class QueueFindContainer extends React.Component<Props, States> {
           <Container>
             <Card>
               <CardHeader>
+                <CardTitle>
+                  저기요
+                </CardTitle>
                 <InputGroup>
                   <InputGroupAddon addonType="prepend">사람 찾기</InputGroupAddon>
                   <Input
@@ -169,6 +174,11 @@ class QueueFindContainer extends React.Component<Props, States> {
               <CardBody>
                 <ListGroup>{items}</ListGroup>
               </CardBody>
+              <CardFooter>
+                저기요는 개인 사용자의 비동기 커뮤니케이션을 돕는 서비스입니다.
+                <br />
+                원하는 사용자를 선택한 뒤 줄서기 해보세요.
+              </CardFooter>
             </Card>
           </Container>
         </div>
