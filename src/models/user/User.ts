@@ -1,4 +1,5 @@
 import debug from 'debug';
+import * as luxon from 'luxon';
 
 import RequestService from '../../services/requestService';
 import { Requester } from '../../services/requestService/Requester';
@@ -158,7 +159,17 @@ export class User {
       return { type: EN_REQUEST_RESULT.ERROR };
     }
     log(result.payload);
-    return { type: EN_REQUEST_RESULT.SUCCESS, data: result.payload };
+    return this.sortReturnValue(result);
+  }
+
+  private sortReturnValue(result: { type: EN_REQUEST_RESULT.SUCCESS; statusCode: number; payload: IQueue[]; }) {
+    const sortPayload = result.payload
+      .sort((a, b) => {
+        const aDate = luxon.DateTime.fromISO(a.created);
+        const bDate = luxon.DateTime.fromISO(b.created);
+        return aDate > bDate ? 1 : -1;
+      });
+    return { type: EN_REQUEST_RESULT.SUCCESS, data: sortPayload };
   }
 
   public async addQueue(
@@ -180,7 +191,7 @@ export class User {
       return { type: EN_REQUEST_RESULT.ERROR };
     }
     log(result.payload);
-    return { type: EN_REQUEST_RESULT.SUCCESS, data: result.payload };
+    return this.sortReturnValue(result);
   }
 
   public async deleteQueue(
@@ -202,6 +213,6 @@ export class User {
       return { type: EN_REQUEST_RESULT.ERROR };
     }
     log(result.payload);
-    return { type: EN_REQUEST_RESULT.SUCCESS, data: result.payload };
+    return this.sortReturnValue(result);
   }
 }

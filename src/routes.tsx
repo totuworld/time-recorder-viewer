@@ -19,6 +19,13 @@ export default [
     })
   },
   {
+    path: '/queue', // queue 찾기
+    exact: true,
+    component: asyncComponent({
+      loader: () => import('./components/queue/find/container')
+    })
+  },
+  {
     path: '/queue/add/:user_id', // 개인 queue
     exact: true,
     component: asyncComponent({

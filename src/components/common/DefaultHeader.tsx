@@ -5,7 +5,7 @@ import {
 } from 'reactstrap';
 
 import avatar from '../../assets/img/avatar.svg';
-import worklog_logo from '../../assets/img/worklog_logo.svg';
+import logo from '../../assets/img/logo.svg';
 import { IUserInfo } from '../../models/user/interface/IUserInfo';
 
 export interface IDefaultHeaderProps {
@@ -61,6 +61,9 @@ class DefaultHeader extends React.Component<IDefaultHeaderProps, IDefaultHeaderS
         <DropdownItem onClick={() => { window.location.href = '/my/overload'; }}>
           초과 근무 내역
         </DropdownItem>
+        <DropdownItem onClick={() => { window.location.href = `/queue/add/${userInfo!.id}`; }}>
+          저기요 목록
+        </DropdownItem>
         </>
       );
     }
@@ -75,17 +78,21 @@ class DefaultHeader extends React.Component<IDefaultHeaderProps, IDefaultHeaderS
     const userName = this.props.isLogin === true && !!this.props.userInfo ? this.props.userInfo.real_name : '';
     const todayMenu = this.todayMenu();
     const groupList = this.props.isLogin === true ? <NavLink href="/groups">그룹 목록</NavLink> : null;
+    const queue = this.props.isLogin === true ? <NavLink href="/queue">저기요</NavLink> : null;
     return (
       <header className="app-header navbar">
         <Container>
           <img
-            src={worklog_logo}
-            width="150"
+            src={logo}
+            width="30"
             alt="Work Logger"
             className="navbar-brand-minimized clickable"
             onClick={() => { window.location.href = '/'; }}
           />
           <Nav className="ml-auto" navbar={true}>
+            <NavItem className="px-3">
+              {queue}
+            </NavItem>
             <NavItem className="px-3">
               {groupList}
             </NavItem>
@@ -102,7 +109,7 @@ class DefaultHeader extends React.Component<IDefaultHeaderProps, IDefaultHeaderS
                     alt={userName}
                   />
                 </span>
-                {isLogin && <span className="header-username">{userName}</span>}
+                {isLogin && <span className="header-username d-none d-sm-inline-block">{userName}</span>}
               </DropdownToggle>
               <DropdownMenu right={true} style={{ right: 'auto' }}>
                 {todayMenu}

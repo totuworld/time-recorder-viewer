@@ -95,6 +95,7 @@ class QueueAddContainer extends React.Component<Props, States> {
     this.userQueue = this.userQueue.bind(this);
     this.onClickDeleteQueueBtn = this.onClickDeleteQueueBtn.bind(this);
     this.callNext = this.callNext.bind(this);
+    this.addQueue = this.addQueue.bind(this);
     this.getButton = this.getButton.bind(this);
     this.loginUserStore = new LoginStore(null);
     this.queueStore = new QueueStore(this.props.queue);
@@ -132,6 +133,9 @@ class QueueAddContainer extends React.Component<Props, States> {
   }
 
   public userQueue() {
+    if (Util.isEmpty(this.queueStore.Queue)) {
+      return '저기요에 당도한 것을 환영하오, 낯선이여';
+    }
     const items = this.queueStore.Queue.map((mv) => {
       const props = {...mv, isOwned: this.queueStore.IsOwned};
       return <QueueItem key={mv.id} {...props} onClickDeleteBtn={this.onClickDeleteQueueBtn} />;
@@ -150,7 +154,20 @@ class QueueAddContainer extends React.Component<Props, States> {
   }
 
   private async callNext() {
-    this.onClickDeleteQueueBtn(this.queueStore.Queue[0].id);
+    const targetQueue = this.queueStore.Queue[0];
+    await this.queueStore.sendSlackMsg(
+      targetQueue.slack_id,
+      `저기요, <@${this.props.userId}>님이 부릅니다.`,
+    );
+    await this.onClickDeleteQueueBtn(targetQueue.id);
+  }
+
+  private async addQueue() {
+    await this.queueStore.sendSlackMsg(
+      this.props.userId,
+      `저기요, <@${this.props.userId}>님이 기다려요.`,
+    );
+    await this.queueStore.addQueue(this.props.userId, this.loginUserStore.UserInfo!.id);
   }
 
   private getButton() {
@@ -169,7 +186,7 @@ class QueueAddContainer extends React.Component<Props, States> {
       return (
       <Button
         className="btn-primary"
-        onClick={() => { this.queueStore.addQueue(this.props.userId, this.loginUserStore.UserInfo!.id); }}
+        onClick={this.addQueue}
       >
         줄서기
       </Button>);
