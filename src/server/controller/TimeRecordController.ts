@@ -4,7 +4,7 @@ import { Request } from 'express';
 import { Config } from '../../config/Config';
 import { IHolidayBox } from '../../models/time_record/interface/IHoliday';
 import { IAddTimeRecord, ITimeRecords } from '../../models/time_record/interface/ITimeRecords';
-import { GetHolidyasJSONSchema } from '../../models/time_record/JSONSchema/GetHolidyasJSONSchema';
+import { GetHolidaysJSONSchema } from '../../models/time_record/JSONSchema/GetHolidaysJSONSchema';
 import {
     GetTimeRecordsJSONSchema
 } from '../../models/time_record/JSONSchema/GetTimeRecordsJSONSchema';
@@ -130,7 +130,7 @@ export class TimeRecordController {
 
     const actionResp = await findAction.getHolidays(
       checkParams,
-      GetHolidyasJSONSchema,
+      GetHolidaysJSONSchema,
     );
 
     return {
