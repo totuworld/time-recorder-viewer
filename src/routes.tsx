@@ -19,6 +19,13 @@ export default [
     })
   },
   {
+    path: '/queue/add/:user_id', // 개인 queue
+    exact: true,
+    component: asyncComponent({
+      loader: () => import('./components/queue/addContainer')
+    })
+  },
+  {
     path: '/groups', // 전체 그룹 목록 출력
     exact: true,
     component: asyncComponent({
