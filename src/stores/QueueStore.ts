@@ -87,9 +87,7 @@ export default class QueueStore {
 
       return runInAction(() => {
         this.isLoading = false;
-        if (Util.isNotEmpty(deleteResp.data)) {
-          this.queue = deleteResp.data;
-        }
+        this.queue = Util.isNotEmpty(deleteResp.data) ? deleteResp.data : [];
         return this.queue;
       });
     } catch (error) {
