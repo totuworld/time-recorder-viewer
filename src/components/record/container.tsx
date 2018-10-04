@@ -18,7 +18,7 @@ import {
 import { EN_WORK_TITLE_KR, EN_WORK_TYPE } from '../../models/time_record/interface/EN_WORK_TYPE';
 import { IHoliday } from '../../models/time_record/interface/IHoliday';
 import { ITimeRecordLogData } from '../../models/time_record/interface/ITimeRecordLogData';
-import { GetHolidyasJSONSchema } from '../../models/time_record/JSONSchema/GetHolidyasJSONSchema';
+import { GetHolidaysJSONSchema } from '../../models/time_record/JSONSchema/GetHolidaysJSONSchema';
 import {
     GetTimeRecordsJSONSchema
 } from '../../models/time_record/JSONSchema/GetTimeRecordsJSONSchema';
@@ -138,7 +138,7 @@ IRecordContainerStates & IetcStates   > {
             end_date: endDate,
           }
         },
-        GetHolidyasJSONSchema,
+        GetHolidaysJSONSchema,
       )
     ]);
     let userInfo: IUserInfo | null = null;

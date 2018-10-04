@@ -4,7 +4,7 @@ import { action, observable, runInAction } from 'mobx';
 import { EN_WORK_TYPE } from '../models/time_record/interface/EN_WORK_TYPE';
 import { IHoliday } from '../models/time_record/interface/IHoliday';
 import { ITimeRecordLogData } from '../models/time_record/interface/ITimeRecordLogData';
-import { GetHolidyasJSONSchema } from '../models/time_record/JSONSchema/GetHolidyasJSONSchema';
+import { GetHolidaysJSONSchema } from '../models/time_record/JSONSchema/GetHolidaysJSONSchema';
 import {
     GetTimeRecordsJSONSchema
 } from '../models/time_record/JSONSchema/GetTimeRecordsJSONSchema';
@@ -84,7 +84,7 @@ export default class TimeRecordStore {
               end_date: endDate
             }
           },
-          GetHolidyasJSONSchema
+          GetHolidaysJSONSchema
         )
       ]);
       return runInAction(() => {

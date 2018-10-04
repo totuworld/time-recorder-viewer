@@ -18,7 +18,7 @@ import {
 import { IHoliday } from '../../models/time_record/interface/IHoliday';
 import { IFuseOverWork, IOverWork } from '../../models/time_record/interface/IOverWork';
 import { ITimeRecordLogData } from '../../models/time_record/interface/ITimeRecordLogData';
-import { GetHolidyasJSONSchema } from '../../models/time_record/JSONSchema/GetHolidyasJSONSchema';
+import { GetHolidaysJSONSchema } from '../../models/time_record/JSONSchema/GetHolidaysJSONSchema';
 import {
     GetOverloadsByUserIDJSONSchema
 } from '../../models/time_record/JSONSchema/GetOverloadsJSONSchema';
@@ -113,7 +113,7 @@ export default class GroupContainer extends React.Component<IGroupContainerProps
             end_date: endDate,
           }
         },
-        GetHolidyasJSONSchema,
+        GetHolidaysJSONSchema,
       );
       if (holidaysResp.type === EN_REQUEST_RESULT.SUCCESS) {
         holidays = holidaysResp.data;

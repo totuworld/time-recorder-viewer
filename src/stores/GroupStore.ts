@@ -3,7 +3,7 @@ import { action, observable, runInAction } from 'mobx';
 import { IHoliday } from '../models/time_record/interface/IHoliday';
 import { IFuseOverWork, IOverWork } from '../models/time_record/interface/IOverWork';
 import { ITimeRecordLogData } from '../models/time_record/interface/ITimeRecordLogData';
-import { GetHolidyasJSONSchema } from '../models/time_record/JSONSchema/GetHolidyasJSONSchema';
+import { GetHolidaysJSONSchema } from '../models/time_record/JSONSchema/GetHolidaysJSONSchema';
 import {
     GetTimeRecordsJSONSchema
 } from '../models/time_record/JSONSchema/GetTimeRecordsJSONSchema';
@@ -96,7 +96,7 @@ export default class GroupStore {
             end_date: endDate
           }
         },
-        GetHolidyasJSONSchema
+        GetHolidaysJSONSchema
       );
 
       await Promise.all(promises);

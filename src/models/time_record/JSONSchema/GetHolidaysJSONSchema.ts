@@ -1,6 +1,6 @@
 import { IJSONSchemaType } from '../../common/IJSONSchemaType';
 
-export const GetHolidyasJSONSchema: IJSONSchemaType = {
+export const GetHolidaysJSONSchema: IJSONSchemaType = {
   description: '공휴일 조회',
   properties: {
     query: {
