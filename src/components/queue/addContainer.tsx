@@ -165,7 +165,7 @@ class QueueAddContainer extends React.Component<Props, States> {
   private async addQueue() {
     await this.queueStore.sendSlackMsg(
       this.props.userId,
-      `저기요, <@${this.props.userId}>님이 기다려요.`,
+      `저기요, <@${this.loginUserStore.UserInfo!.id}>님이 기다려요.`,
     );
     await this.queueStore.addQueue(this.props.userId, this.loginUserStore.UserInfo!.id);
   }
@@ -177,7 +177,7 @@ class QueueAddContainer extends React.Component<Props, States> {
     }
     // 자신의 큐인가?
     if (this.queueStore.IsOwned === true && Util.isNotEmpty(this.queueStore.Queue)) {
-      return <Button onClick={this.callNext}>다음 사람 호출</Button>;
+      return <Button onClick={this.callNext}>띵동(다음 사람 호출)</Button>;
     }
     const haveUserInfo = Util.isNotEmpty(this.loginUserStore.UserInfo);
     // 타인의 큐인가?
