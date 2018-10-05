@@ -10,6 +10,7 @@ import {
     ModalBody, ModalFooter, ModalHeader, Row, Table
 } from 'reactstrap';
 
+import cow from '../../assets/img/cow.svg';
 import { IQueue } from '../../models/user/interface/IQueue';
 import { ISlackUserInfo } from '../../models/user/interface/IUserInfo';
 import { User } from '../../models/user/User';
@@ -134,10 +135,16 @@ class QueueAddContainer extends React.Component<Props, States> {
 
   public userQueue() {
     if (Util.isEmpty(this.queueStore.Queue)) {
-      return '저기요에 당도한 것을 환영하오, 낯선이여';
+      const msg = this.queueStore.IsOwned === true ? '거기 누구 없소?' : '1등을 원한다면!! 지금이에요!!';
+      return (
+        <div>
+          <p className="text-center">{msg}</p>
+          <img className="mx-auto d-block" src={cow} width="40%" />
+        </div>
+      );
     }
-    const items = this.queueStore.Queue.map((mv) => {
-      const props = {...mv, isOwned: this.queueStore.IsOwned};
+    const items = this.queueStore.Queue.map((mv, index) => {
+      const props = {...mv, isOwned: this.queueStore.IsOwned, orderNo: index + 1};
       return <QueueItem key={mv.id} {...props} onClickDeleteBtn={this.onClickDeleteQueueBtn} />;
     });
     return (
