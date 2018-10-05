@@ -1,11 +1,12 @@
 import * as luxon from 'luxon';
 import React from 'react';
-import { Button, ListGroupItem } from 'reactstrap';
+import { Button, Col, ListGroupItem, Row } from 'reactstrap';
 
 import { IQueue } from '../../models/user/interface/IQueue';
 
 interface Props {
   isOwned: boolean;
+  orderNo: number;
   onClickDeleteBtn?(id: string): void;
 }
 
@@ -33,9 +34,14 @@ class QueueItem extends React.PureComponent<TProps> {
       </span> :
       null;
     return (
-      <ListGroupItem>
+      <ListGroupItem className="justify-content-between">
+        <span
+          className={`float-right badge badge-${this.props.orderNo === 1 ? 'primary' : 'secondary'} badge-pill`}
+        >
+          {this.props.orderNo}
+        </span>
         <div>{this.props.real_name}</div>
-        <div>{date}</div>
+        <div className="small text-muted">{date}</div>
         {deleteBtn}
       </ListGroupItem>
     );

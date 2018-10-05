@@ -18,6 +18,7 @@ import {
   ListGroup,
 } from 'reactstrap';
 
+import cow from '../../../assets/img/cow.svg';
 import { ISlackUserInfo } from '../../../models/user/interface/IUserInfo';
 import { User } from '../../../models/user/User';
 import { UserRequestBuilder } from '../../../models/user/UserRequestBuilder';
@@ -97,7 +98,13 @@ class QueueFindContainer extends React.Component<Props, States> {
 
   private getMatchItems() {
     if (Util.isEmpty(this.state.matchUsers)) {
-      return null;
+      const msg = '검색하소!';
+      return (
+        <div>
+          <p className="text-center">{msg}</p>
+          <img className="mx-auto d-block" src={cow} width="40%" />
+        </div>
+      );
     }
     return this.state.matchUsers.map((mv) => {
       return <QueueFindItem key={mv.id} {...mv} />;
