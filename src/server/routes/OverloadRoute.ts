@@ -21,6 +21,10 @@ export class OverloadRoute extends CommonRoute {
       oRoute.controller.findAllByUserID.bind(oRoute.controller),
     );
     oRoute.route(EN_REQUEST_METHODS.GET)(
+      '/over_work/:target_date',
+      oRoute.controller.findByUserIDWithDate.bind(oRoute.controller),
+    );
+    oRoute.route(EN_REQUEST_METHODS.GET)(
       '/fuse_over_works_by_user_id',
       oRoute.controller.findAllFuseByUserID.bind(oRoute.controller),
     );
