@@ -9,3 +9,13 @@ export interface OverloadsByUserIDRequestParam {
     user_id: string;
   };
 }
+
+export interface OverLoadByUserIDWithDateRequestParam {
+  target_date: string;
+}
+
+export interface OverLoadByUserIDWithDateQueryRequestParam {
+  query: {
+    user_id: string;
+  };
+}

@@ -14,6 +14,11 @@ export interface IOverWorks {
   data: IOverWork[];
 }
 
+export interface IOverWorkWithType {
+  type: EN_REQUEST_RESULT;
+  data?: IOverWork;
+}
+
 export interface IFuseOverWork {
   /** luxon (yyyyLLdd) */
   date: string;

@@ -518,11 +518,10 @@ IRecordContainerStates & IetcStates   > {
         />);
     }
     // 로그인 했고!
-    // 현재 날짜가 있는 주(week)이며
     // 날짜 길이가 1일 정도를 선택했을 때!
     // 자신의 정보일 때!
     if (this.isLogined() === true && !!this.loginUserStore.UserInfo && this.isOneDay === true
-      && this.isCurrentWeek === true && this.loginUserStore.UserInfo.id === this.props.userId) {
+      && this.loginUserStore.UserInfo.id === this.props.userId) {
       return <RecordButtons menuOnOff={this.getAvailableRecordBtns()} handleClickMenu={this.handleRecordButtonClick} />;
     }
     return null;

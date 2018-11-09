@@ -5,10 +5,19 @@ import { Requester } from '../../services/requestService/Requester';
 import { EN_REQUEST_RESULT } from '../../services/requestService/requesters/AxiosRequester';
 import { IJSONSchemaType } from '../common/IJSONSchemaType';
 import { AddFuseOverloadRequestParam } from './interface/AddFuseOverloadRequestParam';
-import { IFuseOverWork, IFuseOverWorks, IOverWork, IOverWorks } from './interface/IOverWork';
+import {
+  IFuseOverWork,
+  IFuseOverWorks,
+  IOverWork,
+  IOverWorks,
+  IOverWorkWithType
+} from './interface/IOverWork';
 import { IAddTimeRecord } from './interface/ITimeRecords';
 import {
-    OverloadsByUserIDRequestParam, OverloadsRequestParam
+  OverLoadByUserIDWithDateQueryRequestParam,
+  OverLoadByUserIDWithDateRequestParam,
+  OverloadsByUserIDRequestParam,
+  OverloadsRequestParam
 } from './interface/OverloadsRequestParam';
 import { OverloadRequestBuilder } from './OverloadRequestBuilder';
 
@@ -36,9 +45,7 @@ export class Overload {
     log(query);
 
     const requester = RequestService.create(query.url);
-    const response = await requester.call<
-    IOverWork[]
-    >(query);
+    const response = await requester.call<IOverWork[]>(query);
 
     const result = await response;
     if (result.type === EN_REQUEST_RESULT.ERROR) {
@@ -67,9 +74,7 @@ export class Overload {
     log(query);
 
     const requester = RequestService.create(query.url);
-    const response = await requester.call<
-    IFuseOverWork[]
-    >(query);
+    const response = await requester.call<IFuseOverWork[]>(query);
 
     const result = await response;
     if (result.type === EN_REQUEST_RESULT.ERROR) {
@@ -98,15 +103,46 @@ export class Overload {
     log(query);
 
     const requester = RequestService.create(query.url);
-    const response = await requester.call<
-    IOverWork[]
-    >(query);
+    const response = await requester.call<IOverWork[]>(query);
 
     const result = await response;
     if (result.type === EN_REQUEST_RESULT.ERROR) {
       return { type: EN_REQUEST_RESULT.ERROR, data: [] };
     }
     log(result.payload);
+    return { type: EN_REQUEST_RESULT.SUCCESS, data: result.payload };
+  }
+
+  public async findByUserIdWithDate(
+    params: OverLoadByUserIDWithDateRequestParam &
+      OverLoadByUserIDWithDateQueryRequestParam,
+    schema: IJSONSchemaType
+  ): Promise<IOverWorkWithType> {
+    log(params);
+    const validParam = Requester.validateParam(params, schema);
+    log('validParam: ', validParam);
+    if (validParam === false) {
+      return { type: EN_REQUEST_RESULT.ERROR };
+    }
+    const query = this.rb.createGetUserOverloadByUserIDQuery({
+      method: 'GET',
+      headers: {},
+      query: params.query,
+      resources: {
+        target_date: params.target_date
+      }
+    });
+
+    log(query);
+
+    const requester = RequestService.create(query.url);
+    const response = await requester.call<IOverWork>(query);
+
+    const result = await response;
+    if (result.type === EN_REQUEST_RESULT.ERROR || result.statusCode !== 200) {
+      return { type: EN_REQUEST_RESULT.ERROR };
+    }
+    log(result);
     return { type: EN_REQUEST_RESULT.SUCCESS, data: result.payload };
   }
 
@@ -129,9 +165,7 @@ export class Overload {
     log(query);
 
     const requester = RequestService.create(query.url);
-    const response = await requester.call<
-    IFuseOverWork[]
-    >(query);
+    const response = await requester.call<IFuseOverWork[]>(query);
 
     const result = await response;
     if (result.type === EN_REQUEST_RESULT.ERROR) {
@@ -160,7 +194,7 @@ export class Overload {
     log(query);
 
     const requester = RequestService.create(query.url);
-    const response = await requester.call<{text: string | null}>(query);
+    const response = await requester.call<{ text: string | null }>(query);
 
     const result = await response;
     log('addFuseLog result.statusCode: ', result.statusCode);

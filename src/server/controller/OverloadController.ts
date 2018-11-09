@@ -2,23 +2,16 @@ import debug from 'debug';
 import { Request } from 'express';
 
 import { Config } from '../../config/Config';
-import { IFuseOverWorks, IOverWorks } from '../../models/time_record/interface/IOverWork';
+import {
+    IFuseOverWorks, IOverWorks, IOverWorkWithType
+} from '../../models/time_record/interface/IOverWork';
 import { IAddTimeRecord } from '../../models/time_record/interface/ITimeRecords';
 import {
-    GetOverloadsByUserIDJSONSchema, GetOverloadsJSONSchema
+    GetOverloadByUserIDWithDateJSONSchema, GetOverloadsByUserIDJSONSchema, GetOverloadsJSONSchema
 } from '../../models/time_record/JSONSchema/GetOverloadsJSONSchema';
-import {
-    GetTimeRecordsJSONSchema
-} from '../../models/time_record/JSONSchema/GetTimeRecordsJSONSchema';
 import {
     PostAddOverloadJSONSchema
 } from '../../models/time_record/JSONSchema/PostAddOverloadJSONSchema';
-import {
-    PostTimeRecordJSONSchema
-} from '../../models/time_record/JSONSchema/PostTimeRecordJSONSchema';
-import {
-    PostUpdateTimeRecordJSONSchema
-} from '../../models/time_record/JSONSchema/PostUpdateTimeRecordJSONSchema';
 import { Overload } from '../../models/time_record/Overload';
 import { OverloadRequestBuilder } from '../../models/time_record/OverloadRequestBuilder';
 import { RequestBuilderParams } from '../../services/requestService/RequestBuilder';
@@ -98,6 +91,34 @@ export class OverloadController {
     const actionResp = await findAction.findAllByUserID(
       checkParams,
       GetOverloadsByUserIDJSONSchema,
+    );
+
+    return {
+      status: actionResp.type === EN_REQUEST_RESULT.ERROR ? 400 : 200,
+      payload: actionResp.data,
+    };
+  }
+
+  public async findByUserIDWithDate(req: Request): Promise<TControllerResp<IOverWorkWithType['data']>> {
+    const rbParam: RequestBuilderParams = { baseURI: Config.getApiURI() };
+    const { target_date } = req.params;
+    const { user_id } = req.query;
+
+    const checkParams = {
+      target_date,
+      query: {
+        user_id
+      }
+    };
+
+    log(checkParams);
+
+    const rb = new OverloadRequestBuilder(rbParam);
+    const findAction = new Overload(rb);
+
+    const actionResp = await findAction.findByUserIdWithDate(
+      checkParams,
+      GetOverloadByUserIDWithDateJSONSchema,
     );
 
     return {
