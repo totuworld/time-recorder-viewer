@@ -400,7 +400,7 @@ IRecordContainerStates & IetcStates   > {
         this.setState({...this.state,
           isModalOpen: true, isFuseModalOpen: false,
           fuseHours: luxon.Duration.fromObject({hours: 0}), updateData: { key, data }});
-      } else if (this.props.userId === userInfo.id && this.isCurrentWeek && data.type !== EN_WORK_TYPE.FUSEOVERLOAD) {
+      } else if (this.props.userId === userInfo.id && data.type !== EN_WORK_TYPE.FUSEOVERLOAD) {
         // 자신의 데이터는 금주의 데이터 && 자신의 데이터 && 차감이 아닐 때
         this.setState({...this.state,
           isModalOpen: true, isFuseModalOpen: false,
