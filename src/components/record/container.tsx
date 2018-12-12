@@ -191,6 +191,7 @@ IRecordContainerStates & IetcStates   > {
     this.recordButtons = this.recordButtons.bind(this);
     this.handleRecordButtonClick = this.handleRecordButtonClick.bind(this);
     this.saveWorklog = this.saveWorklog.bind(this);
+    this.deleteWorklog = this.deleteWorklog.bind(this);
     this.getModalBody = this.getModalBody.bind(this);
     this.addFuseLog = this.addFuseLog.bind(this);
     this.getFuseModalBody = this.getFuseModalBody.bind(this);
@@ -685,6 +686,30 @@ IRecordContainerStates & IetcStates   > {
       moment(this.state.endDate).format('YYYY-MM-DD'));
   }
 
+  public async deleteWorklog() {
+    const deleteData = this.state.updateData;
+    if (Util.isEmpty(deleteData)) {
+      return this.setState({...this.state, isModalOpen: false, updateData: undefined});
+    }
+
+    // 삭제 진행!
+    const data = deleteData.data;
+    // done 업데이트 여부 결정
+    if (data.type !== EN_WORK_TYPE.FUSEOVERLOAD) {
+      await this.store.deleteTimeRecord(
+        Auth.loginUserTokenKey!,
+        this.loginUserStore.UserInfo!.id,
+        luxon.DateTime.fromISO(data.time),
+        deleteData.key,
+      );
+    }
+    this.setState({...this.state, isModalOpen: false, updateData: undefined});
+    await this.store.findTimeRecord(
+      this.props.userId,
+      moment(this.state.startDate).format('YYYY-MM-DD'),
+      moment(this.state.endDate).format('YYYY-MM-DD'));
+  }
+
   public getModalBody() {
     const updateData = this.state.updateData;
     if (!!updateData === false) {
@@ -777,6 +802,12 @@ IRecordContainerStates & IetcStates   > {
         {doneElement}
       </ModalBody>
       <ModalFooter>
+        <Button
+          color="danger"
+          onClick={this.deleteWorklog}
+        >
+          삭제
+        </Button>
         <Button
           color="success"
           onClick={this.saveWorklog}
