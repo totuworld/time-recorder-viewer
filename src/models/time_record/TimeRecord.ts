@@ -7,7 +7,7 @@ import { Requester } from '../../services/requestService/Requester';
 import { EN_REQUEST_RESULT } from '../../services/requestService/requesters/AxiosRequester';
 import { Util } from '../../services/util';
 import { IJSONSchemaType } from '../common/IJSONSchemaType';
-import { AddTimeRecordRequestParam } from './interface/AddTimeRecordRequestParam';
+import { AddTimeRecordRequestParam, RemoveTimeRecordRequestParam } from './interface/AddTimeRecordRequestParam';
 import { EN_WORK_TYPE } from './interface/EN_WORK_TYPE';
 import { GetHolidaysParam } from './interface/GetHolidaysParam';
 import { IHoliday, IHolidayBox } from './interface/IHoliday';
@@ -385,7 +385,35 @@ export class TimeRecord {
     log(result.payload);
     return { type: EN_REQUEST_RESULT.SUCCESS };
   }
+  
+  public async deleteWorkLog(
+    params: RemoveTimeRecordRequestParam,
+    schema: IJSONSchemaType
+  ): Promise<IAddTimeRecord> {
+    log(params);
+    const validParam = Requester.validateParam(params, schema);
+    log('validParam: ', validParam);
+    if (validParam === false) {
+      return { type: EN_REQUEST_RESULT.ERROR, data: { text: null } };
+    }
+    const query = this.rb.deleteUserRecordQuery({
+      method: 'DELETE',
+      headers: {},
+      body: params.body
+    });
 
+    log(query);
+
+    const requester = RequestService.create(query.url);
+    const response = await requester.call<{text: string | null}>(query);
+
+    const result = await response;
+    if (result.type === EN_REQUEST_RESULT.ERROR) {
+      return { type: EN_REQUEST_RESULT.ERROR, data: { text: null } };
+    }
+    log(result.payload);
+    return { type: EN_REQUEST_RESULT.SUCCESS, data: result.payload };
+  }
   public async getHolidays(
     params: GetHolidaysParam,
     schema: IJSONSchemaType

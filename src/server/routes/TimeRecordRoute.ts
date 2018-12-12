@@ -18,6 +18,11 @@ export class TimeRecordRoute extends CommonRoute {
       trRoute.controller.addTimeRecord.bind(trRoute.controller),
     );
 
+    trRoute.route(EN_REQUEST_METHODS.DELETE)(
+      '/work_log',
+      trRoute.controller.deleteTimeRecord.bind(trRoute.controller),
+    );
+
     trRoute.route(EN_REQUEST_METHODS.POST)(
       '/update_record',
       trRoute.controller.updateTimeRecord.bind(trRoute.controller),

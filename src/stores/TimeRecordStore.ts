@@ -4,6 +4,9 @@ import { action, observable, runInAction } from 'mobx';
 import { EN_WORK_TYPE } from '../models/time_record/interface/EN_WORK_TYPE';
 import { IHoliday } from '../models/time_record/interface/IHoliday';
 import { ITimeRecordLogData } from '../models/time_record/interface/ITimeRecordLogData';
+import {
+    DeleteTimeRecordJSONSchema
+} from '../models/time_record/JSONSchema/DeleteTimeRecordJSONSchema';
 import { GetHolidaysJSONSchema } from '../models/time_record/JSONSchema/GetHolidaysJSONSchema';
 import {
     GetTimeRecordsJSONSchema
@@ -206,4 +209,49 @@ export default class TimeRecordStore {
     }
   }
 
+  @action
+  public async deleteTimeRecord(
+    authUserId: string,
+    userId: string,
+    targetDate: luxon.DateTime,
+    logId: string,
+  ): Promise<{ text: string | null }> {
+    if (this.isLoading === true) {
+      return { text: null };
+    }
+    try {
+      this.isLoading = true;
+
+      const rbParam: RequestBuilderParams = { isProxy: true };
+
+      const today = luxon.DateTime.local();
+
+      const checkParams = {
+        body: {
+          auth_user_id: authUserId,
+          user_id: userId,
+          target_date: targetDate.toFormat('yyyyLLdd'),
+          log_id: logId,
+        }
+      };
+
+      const rb = new TimeRecordRequestBuilder(rbParam);
+      const findAction = new TimeRecord(rb);
+
+      const actionResp = await findAction.deleteWorkLog(
+        checkParams,
+        DeleteTimeRecordJSONSchema,
+      );
+      return runInAction(() => {
+        this.isLoading = false;
+        if (actionResp.type === EN_REQUEST_RESULT.SUCCESS) {
+          return actionResp.data;
+        }
+        return { text: null };
+      });
+    } catch (error) {
+      this.isLoading = false;
+      throw error;
+    }
+  }
 }

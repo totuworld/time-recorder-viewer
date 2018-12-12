@@ -3,7 +3,7 @@ import * as URI from 'urijs';
 import { RequestParams } from '../../services/requestService/interface/IRequestParams';
 import { RequestBuilder, RequestBuilderParams } from '../../services/requestService/RequestBuilder';
 import { IAxiosRequesterConfig } from '../../services/requestService/requesters/AxiosRequester';
-import { AddTimeRecordRequestParam } from './interface/AddTimeRecordRequestParam';
+import { AddTimeRecordRequestParam, RemoveTimeRecordRequestParam } from './interface/AddTimeRecordRequestParam';
 import { GetHolidaysParam } from './interface/GetHolidaysParam';
 import { TimeRecordRecordsRequestsParam } from './interface/TimeRecordRecordsRequestsParam';
 import { UpdateTimeRecordRequestParam } from './interface/UpdateTimeRecordRequestParam';
@@ -53,6 +53,24 @@ export class TimeRecordRequestBuilder extends RequestBuilder {
     method,
     body
   }: RequestParams<{}, AddTimeRecordRequestParam>): IAxiosRequesterConfig {
+    const apiPath = this.getAPIPath('/work_log');
+    const endPoint = apiPath.href();
+
+    return {
+      method,
+      data: body,
+      headers: {
+        ...this.AccessTokenObject
+      },
+      timeout: 10000,
+      url: endPoint,
+    };
+  }
+
+  public deleteUserRecordQuery({
+    method,
+    body
+  }: RequestParams<{}, RemoveTimeRecordRequestParam>): IAxiosRequesterConfig {
     const apiPath = this.getAPIPath('/work_log');
     const endPoint = apiPath.href();
 
