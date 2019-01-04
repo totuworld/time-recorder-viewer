@@ -699,7 +699,7 @@ IRecordContainerStates & IetcStates   > {
       await this.store.deleteTimeRecord(
         Auth.loginUserTokenKey!,
         this.loginUserStore.UserInfo!.id,
-        luxon.DateTime.fromISO(data.time),
+        luxon.DateTime.fromJSDate(this.state.startDate),
         deleteData.key,
       );
     }
