@@ -1,70 +1,62 @@
-import React from 'react';
-
-import { asyncComponent } from '@jaredpalmer/after';
+import CoffeeContainer from './components/coffee/container';
+import GroupContainer from './components/group/container';
+import GroupInfoContainer from './components/group/info/container';
+import HomeContainer from './components/home/container';
+import Login from './components/login';
+import QueueAddContainer from './components/queue/addContainer';
+import QueueFindContainer from './components/queue/find/container';
+import RecordContainer from './components/record/container';
+import RecordOverloadContainer from './components/record/overload/container';
 
 export default [
   {
     path: '/',
     exact: true,
-    component: asyncComponent({
-      loader: () => import('./components/home/container'), // required
-      Placeholder: () => <div>...LOADING...</div> // this is optional, just returns null by default
-    })
+    component: HomeContainer,
   },
   {
     path: '/records/:user_id', // 개인 로그 등록 및 살펴보기
     exact: true,
-    component: asyncComponent({
-      loader: () => import('./components/record/container')
-    })
+    component: RecordContainer
   },
   {
     path: '/queue', // queue 찾기
     exact: true,
-    component: asyncComponent({
-      loader: () => import('./components/queue/find/container')
-    })
+    component: QueueFindContainer
   },
   {
     path: '/queue/add/:user_id', // 개인 queue
     exact: true,
-    component: asyncComponent({
-      loader: () => import('./components/queue/addContainer')
-    })
+    component: QueueAddContainer
   },
   {
     path: '/groups', // 전체 그룹 목록 출력
     exact: true,
-    component: asyncComponent({
-      loader: () => import('./components/group/info/container')
-    })
+    component: GroupInfoContainer
   },
   {
     path: '/groups/:group_id', // 특정 그룹 로그 확인
     exact: true,
-    component: asyncComponent({
-      loader: () => import('./components/group/container')
-    })
+    component: GroupContainer
   },
   {
     path: '/login', // 로그인 페이지
     exact: true,
-    component: asyncComponent({
-      loader: () => import('./components/login/index')
-    })
+    component: Login
   },
   {
     path: '/my/overload', // 개인의 초과근무 누적 확인
     exact: true,
-    component: asyncComponent({
-      loader: () => import('./components/record/overload/container')
-    })
+    component: RecordOverloadContainer
   },
   {
     path: '/overload/:user_id', // 특정 개인의 초과 근무 누적 확인
     exact: true,
-    component: asyncComponent({
-      loader: () => import('./components/record/overload/container')
-    })
+    component: RecordOverloadContainer
+  },
+  {
+    path: '/coffeebreak',
+    exact: true,
+    component: CoffeeContainer
   }
 ];
