@@ -1,11 +1,27 @@
-export type JSONSchemaSupportType = 'string' | 'number' | 'integer' | 'array' | 'object' | 'boolean';
+export type JSONSchemaSupportType =
+  | 'string'
+  | 'number'
+  | 'integer'
+  | 'array'
+  | 'object'
+  | 'boolean';
 export type JSONSchemaSupportDateTypeFormat = 'date-time' | 'date';
-export type JSONSchemaSupportFormat = JSONSchemaSupportDateTypeFormat | 'email' | 'hostname' | 'ipv4' | 'ipv6' | 'uri';
+export type JSONSchemaSupportFormat =
+  | JSONSchemaSupportDateTypeFormat
+  | 'email'
+  | 'hostname'
+  | 'ipv4'
+  | 'ipv6'
+  | 'uri';
 
 export interface IJSONSchemaType {
   properties?: {
     [key: string]: IJSONSchemaType;
   };
+  definitions?: {
+    [key: string]: IJSONSchemaType;
+  };
+  $ref?: string;
   title?: string;
   description?: string;
   default?: any;

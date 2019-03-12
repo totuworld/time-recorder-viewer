@@ -24,6 +24,44 @@ export class Requester {
     }
   }
 
+  public static validateParamWithData<T>(
+    param: T,
+    schema: object
+  ): {
+    result: boolean;
+    data: T;
+    errorMessage?: string;
+  } {
+    try {
+      const ajvyo = new Ajv({
+        coerceTypes: true,
+        useDefaults: true
+      });
+      const validate = ajvyo.compile(schema);
+      const data = param;
+      const valid = validate(data);
+      if (valid === false) {
+        console.log(validate.errors);
+      }
+      const result = typeof valid === 'boolean' ? valid : false;
+      return {
+        result,
+        data,
+        errorMessage:
+          typeof valid === 'boolean' && !valid && !!validate.errors
+            ? validate.errors[0].message
+            : ''
+      };
+    } catch (err) {
+      console.log(err);
+      return {
+        result: false,
+        data: param,
+        errorMessage: 'catch validate error'
+      };
+    }
+  }
+
   constructor(url: string) {
     this.url = url;
   }
