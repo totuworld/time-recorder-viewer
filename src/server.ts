@@ -6,6 +6,7 @@ import { render } from '@jaredpalmer/after';
 
 import { Config } from './config/Config';
 import routes from './routes';
+import { EventRoute } from './server/routes/EventRoute';
 import { GroupRoute } from './server/routes/GroupRoute';
 import { OverloadRoute } from './server/routes/OverloadRoute';
 import { SlackRoute } from './server/routes/SlackRoute';
@@ -14,12 +15,15 @@ import { UserRoute } from './server/routes/UserRoute';
 
 function routeList() {
   const router = express.Router();
-  router.get('/health', (_, res) => { res.send({result: true}); });
+  router.get('/health', (_, res) => {
+    res.send({ result: true });
+  });
   router.use(TimeRecordRoute.bootstrap().router);
   router.use(UserRoute.bootstrap().router);
   router.use(GroupRoute.bootstrap().router);
   router.use(OverloadRoute.bootstrap().router);
   router.use(SlackRoute.bootstrap().router);
+  router.use(EventRoute.bootstrap().router);
   return router;
 }
 
@@ -30,7 +34,9 @@ const syncLoadAssets = () => {
 };
 syncLoadAssets();
 
-const staticPath = !isDocker() ? process.env.RAZZLE_PUBLIC_DIR! : path.join(__dirname, '../build/public');
+const staticPath = !isDocker()
+  ? process.env.RAZZLE_PUBLIC_DIR!
+  : path.join(__dirname, '../build/public');
 
 const server = express();
 server.disable('x-powered-by');

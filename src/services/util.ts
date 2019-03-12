@@ -1,24 +1,34 @@
+import ajv from 'ajv';
 import * as luxon from 'luxon';
 
-import { IFuseOverWork, IOverWork } from '../models/time_record/interface/IOverWork';
+import {
+  IFuseOverWork,
+  IOverWork
+} from '../models/time_record/interface/IOverWork';
 
 export interface ITimeObj {
-  REST: {[key: string]: number};
-  WORK: {[key: string]: number};
-  EMERGENCY: {[key: string]: number};
-  REMOTE: {[key: string]: number};
-  VACATION: {[key: string]: number};
-  FUSEOVERLOAD: {[key: string]: number};
+  REST: { [key: string]: number };
+  WORK: { [key: string]: number };
+  EMERGENCY: { [key: string]: number };
+  REMOTE: { [key: string]: number };
+  VACATION: { [key: string]: number };
+  FUSEOVERLOAD: { [key: string]: number };
 }
 
 export class Util {
   public static dateTimeShort() {
     const time = luxon.DateTime.local();
-    return time.setLocale('ko-kr').setZone('Asia/Seoul').toLocaleString(luxon.DateTime.DATETIME_SHORT);
+    return time
+      .setLocale('ko-kr')
+      .setZone('Asia/Seoul')
+      .toLocaleString(luxon.DateTime.DATETIME_SHORT);
   }
   public static toDateTimeShort(timeStr: string) {
     const time = luxon.DateTime.fromISO(timeStr);
-    return time.setLocale('ko-kr').setZone('Asia/Seoul').toLocaleString(luxon.DateTime.DATETIME_SHORT);
+    return time
+      .setLocale('ko-kr')
+      .setZone('Asia/Seoul')
+      .toLocaleString(luxon.DateTime.DATETIME_SHORT);
   }
   public static currentTimeStamp() {
     const time = luxon.DateTime.utc();
@@ -26,7 +36,10 @@ export class Util {
   }
   public static currentDate() {
     const time = luxon.DateTime.local();
-    return time.setLocale('ko-kr').setZone('Asia/Seoul').toFormat('yyyyLLdd');
+    return time
+      .setLocale('ko-kr')
+      .setZone('Asia/Seoul')
+      .toFormat('yyyyLLdd');
   }
   public static getBetweenDuration(a: string, b: string) {
     const aTime = luxon.DateTime.fromISO(a);
@@ -35,13 +48,11 @@ export class Util {
     return duration;
   }
   public static reduceTimeObj(timeObj: ITimeObj[], target: keyof ITimeObj) {
-    return timeObj.reduce(
-      (acc, cur) => {
-        const updateData = luxon.Duration.fromObject(acc);
-        const durataion = luxon.Duration.fromObject(cur[target]);
-        return updateData.plus(durataion).toObject();
-      },
-      {});
+    return timeObj.reduce((acc, cur) => {
+      const updateData = luxon.Duration.fromObject(acc);
+      const durataion = luxon.Duration.fromObject(cur[target]);
+      return updateData.plus(durataion).toObject();
+    }, {});
   }
 
   public static calTimeObj(a: object, b: object, operator: string = 'plus') {
@@ -53,36 +64,39 @@ export class Util {
     return aDurataion.minus(bDurataion).toObject();
   }
 
-  public static reduceDurationObject(timeObj: ITimeObj[], target: keyof ITimeObj) {
+  public static reduceDurationObject(
+    timeObj: ITimeObj[],
+    target: keyof ITimeObj
+  ) {
     const totalWorkTimeObj = this.reduceTimeObj(timeObj, target);
     return luxon.Duration.fromObject(totalWorkTimeObj);
   }
-  public static totalRemain(records: IOverWork[], fuseRecords: IFuseOverWork[]): luxon.DurationObject | null {
+  public static totalRemain(
+    records: IOverWork[],
+    fuseRecords: IFuseOverWork[]
+  ): luxon.DurationObject | null {
     if (this.isEmpty(records) || records.length <= 0) {
       return null;
     }
-    const storeDuration = records.reduce(
-      (acc, cur) => {
-        if (!!cur.over) {
-          const duration = luxon.Duration.fromObject(cur.over);
-          const updateAcc = acc.plus(duration);
-          return updateAcc;
-        }
-        return acc;
-      },
-      luxon.Duration.fromObject({hours: 0}));
-    const fuseDuration = this.isEmpty(fuseRecords) || fuseRecords.length <= 0 ?
-      luxon.Duration.fromObject({hours: 0}) :
-      fuseRecords.reduce(
-        (acc: luxon.Duration, cur) => {
-          if (!!cur.use) {
-            const duration = luxon.Duration.fromISO(cur.use);
-            const updateAcc = acc.plus(duration);
-            return updateAcc;
-          }
-          return acc;
-        },
-        luxon.Duration.fromObject({hours: 0}));
+    const storeDuration = records.reduce((acc, cur) => {
+      if (!!cur.over) {
+        const duration = luxon.Duration.fromObject(cur.over);
+        const updateAcc = acc.plus(duration);
+        return updateAcc;
+      }
+      return acc;
+    }, luxon.Duration.fromObject({ hours: 0 }));
+    const fuseDuration =
+      this.isEmpty(fuseRecords) || fuseRecords.length <= 0
+        ? luxon.Duration.fromObject({ hours: 0 })
+        : fuseRecords.reduce((acc: luxon.Duration, cur) => {
+            if (!!cur.use) {
+              const duration = luxon.Duration.fromISO(cur.use);
+              const updateAcc = acc.plus(duration);
+              return updateAcc;
+            }
+            return acc;
+          }, luxon.Duration.fromObject({ hours: 0 }));
     return storeDuration.minus(fuseDuration).toObject();
   }
 
