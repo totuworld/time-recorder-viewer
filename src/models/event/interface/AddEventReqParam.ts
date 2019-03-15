@@ -8,5 +8,6 @@ export interface AddEventReqParam {
     private?: boolean;
     last_order?: Date;
     closed?: boolean;
+    guests?: IUserItem[];
   };
 }

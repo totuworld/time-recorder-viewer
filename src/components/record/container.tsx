@@ -11,17 +11,31 @@ import React from 'react';
 import { DateRangePicker } from 'react-dates';
 import { Helmet } from 'react-helmet';
 import {
-    Button, Card, CardBody, CardFooter, Col, Container, FormGroup, Input,
-    Label, Modal, ModalBody, ModalFooter, ModalHeader, Row, Table
+  Button,
+  Card,
+  CardBody,
+  CardFooter,
+  Col,
+  Container,
+  FormGroup,
+  Input,
+  Label,
+  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
+  Row,
+  Table
 } from 'reactstrap';
 
-import { EN_WORK_TITLE_KR, EN_WORK_TYPE } from '../../models/time_record/interface/EN_WORK_TYPE';
+import {
+  EN_WORK_TITLE_KR,
+  EN_WORK_TYPE
+} from '../../models/time_record/interface/EN_WORK_TYPE';
 import { IHoliday } from '../../models/time_record/interface/IHoliday';
 import { ITimeRecordLogData } from '../../models/time_record/interface/ITimeRecordLogData';
 import { GetHolidaysJSONSchema } from '../../models/time_record/JSONSchema/GetHolidaysJSONSchema';
-import {
-    GetTimeRecordsJSONSchema
-} from '../../models/time_record/JSONSchema/GetTimeRecordsJSONSchema';
+import { GetTimeRecordsJSONSchema } from '../../models/time_record/JSONSchema/GetTimeRecordsJSONSchema';
 import { TimeRecord } from '../../models/time_record/TimeRecord';
 import { TimeRecordRequestBuilder } from '../../models/time_record/TimeRecordRequestBuilder';
 import { IUserInfo } from '../../models/user/interface/IUserInfo';
@@ -36,7 +50,9 @@ import LoginStore from '../../stores/LoginStore';
 import OverloadStore from '../../stores/OverloadStore';
 import TimeRecordStore from '../../stores/TimeRecordStore';
 import ChartBarStacked from '../chart/bar/Stacked';
-import ChartBarStacked2, { IChartBarStacked2Props } from '../chart/bar/Stacked2';
+import ChartBarStacked2, {
+  IChartBarStacked2Props
+} from '../chart/bar/Stacked2';
 import ChartPieDonut from '../chart/pie/donut';
 import DefaultHeader from '../common/DefaultHeader';
 import GroupUserAvatar from '../group/user/avatar';
@@ -46,16 +62,19 @@ import { floatButton } from './containerStyle';
 
 const log = debug('trv:recordContainer');
 interface WorkStackedBarChart {
-  new (): ChartBarStacked<{name: string, data: {REST: number, WORK: number, EMERGENCY: number}}>;
+  new (): ChartBarStacked<{
+    name: string;
+    data: { REST: number; WORK: number; EMERGENCY: number };
+  }>;
 }
 const WorkStackedBarChart = ChartBarStacked as WorkStackedBarChart;
 
 const bgColor = [
-  {targetKey: 'REST', color: '#ffc107'},
-  {targetKey: 'WORK', color: '#63c2de'},
-  {targetKey: 'EMERGENCY', color: '#f86c6b'},
-  {targetKey: 'REMOTE', color: '#36A2EB'},
-  {targetKey: 'VACATION', color: '#4caf50'}
+  { targetKey: 'REST', color: '#ffc107' },
+  { targetKey: 'WORK', color: '#63c2de' },
+  { targetKey: 'EMERGENCY', color: '#f86c6b' },
+  { targetKey: 'REMOTE', color: '#36A2EB' },
+  { targetKey: 'VACATION', color: '#4caf50' }
 ];
 
 interface IRecordContainerProps {
@@ -71,7 +90,7 @@ export interface IRecordContainerStates {
   startDate: Date;
   endDate: Date;
   focusedInput: 'startDate' | 'endDate' | null;
-  backupDate: { start: Date | null, end: Date | null };
+  backupDate: { start: Date | null; end: Date | null };
   isServer: boolean;
 }
 
@@ -79,14 +98,15 @@ interface IetcStates {
   isModalOpen: boolean;
   /** 차감 모달 on/off */
   isFuseModalOpen: boolean;
-  updateData?: { key: string, data: ITimeRecordLogData };
+  updateData?: { key: string; data: ITimeRecordLogData };
   fuseHours: luxon.Duration;
 }
 
 @observer
 class RecordContainer extends React.Component<
-IRecordContainerProps,
-IRecordContainerStates & IetcStates   > {
+  IRecordContainerProps,
+  IRecordContainerStates & IetcStates
+> {
   private store: TimeRecordStore;
   private loginUserStore: LoginStore;
   private overloadStore: OverloadStore;
@@ -107,19 +127,26 @@ IRecordContainerStates & IetcStates   > {
     if (!!req && !!req.config) {
       rbParam = { baseURI: req.config.getApiURI(), isProxy: false };
     }
-    const weekStartDay = luxon.DateTime.local().set({weekday: 1}).minus({days: 1}).toFormat('yyyy-LL-dd');
-    const weekEndDay = luxon.DateTime.local().set({weekday: 6}).toFormat('yyyy-LL-dd');
+    const weekStartDay = luxon.DateTime.local()
+      .set({ weekday: 1 })
+      .minus({ days: 1 })
+      .toFormat('yyyy-LL-dd');
+    const weekEndDay = luxon.DateTime.local()
+      .set({ weekday: 6 })
+      .toFormat('yyyy-LL-dd');
     let startDate = weekStartDay;
     let endDate = weekEndDay;
     if (!!req && !!req.query) {
-      startDate = !!req.query['startDate'] ? req.query['startDate'] : weekStartDay;
+      startDate = !!req.query['startDate']
+        ? req.query['startDate']
+        : weekStartDay;
       endDate = !!req.query['endDate'] ? req.query['endDate'] : weekEndDay;
     }
     const checkParams = {
       query: {
         userId: match.params.user_id,
         startDate,
-        endDate,
+        endDate
       }
     };
 
@@ -127,18 +154,15 @@ IRecordContainerStates & IetcStates   > {
     const action = new TimeRecord(rb);
 
     const [actionResp, holidaysResp] = await Promise.all([
-      action.findAll(
-        checkParams,
-        GetTimeRecordsJSONSchema,
-      ),
+      action.findAll(checkParams, GetTimeRecordsJSONSchema),
       action.getHolidays(
         {
           query: {
             start_date: startDate,
-            end_date: endDate,
+            end_date: endDate
           }
         },
-        GetHolidaysJSONSchema,
+        GetHolidaysJSONSchema
       )
     ]);
     let userInfo: IUserInfo | null = null;
@@ -146,20 +170,23 @@ IRecordContainerStates & IetcStates   > {
       const userRb = new UserRequestBuilder(rbParam);
       const userAction = new User(userRb);
       const userInfoResp = await userAction.find(
-        {query: { userId: match.params.user_id }},
-        GetUserInfoJSONSchema);
+        { query: { userId: match.params.user_id } },
+        GetUserInfoJSONSchema
+      );
       if (userInfoResp.type === EN_REQUEST_RESULT.SUCCESS) {
         userInfo = userInfoResp.data;
       }
     }
-    
+
     return {
       userId: match.params.user_id,
       userInfo,
-      records: actionResp.type === EN_REQUEST_RESULT.SUCCESS ? actionResp.data : [],
+      records:
+        actionResp.type === EN_REQUEST_RESULT.SUCCESS ? actionResp.data : [],
       initialStartDate: startDate,
       initialEndDate: endDate,
-      holidays: holidaysResp.type === EN_REQUEST_RESULT.SUCCESS ? holidaysResp.data : [],
+      holidays:
+        holidaysResp.type === EN_REQUEST_RESULT.SUCCESS ? holidaysResp.data : []
     };
   }
 
@@ -174,7 +201,7 @@ IRecordContainerStates & IetcStates   > {
       isServer: true,
       isModalOpen: false,
       isFuseModalOpen: false,
-      fuseHours: luxon.Duration.fromObject({hours: 0}),
+      fuseHours: luxon.Duration.fromObject({ hours: 0 })
     };
 
     this.onDatesChangeForDRP = this.onDatesChangeForDRP.bind(this);
@@ -182,7 +209,9 @@ IRecordContainerStates & IetcStates   > {
     this.getAvatar = this.getAvatar.bind(this);
     this.onClickBar = this.onClickBar.bind(this);
     this.getMultipleDayElement = this.getMultipleDayElement.bind(this);
-    this.handleOnClickSingleDayTableRow = this.handleOnClickSingleDayTableRow.bind(this);
+    this.handleOnClickSingleDayTableRow = this.handleOnClickSingleDayTableRow.bind(
+      this
+    );
     this.getSingleDayElement = this.getSingleDayElement.bind(this);
     this.getWorkTime = this.getWorkTime.bind(this);
     this.gobackList = this.gobackList.bind(this);
@@ -202,10 +231,15 @@ IRecordContainerStates & IetcStates   > {
     this.overloadStore = new OverloadStore([], []);
   }
 
-  public onDatesChangeForDRP({ startDate, endDate }: {
-    startDate: moment.Moment | null, endDate: moment.Moment | null}) {
+  public onDatesChangeForDRP({
+    startDate,
+    endDate
+  }: {
+    startDate: moment.Moment | null;
+    endDate: moment.Moment | null;
+  }) {
     const updateObj = {
-      ...this.state,
+      ...this.state
     };
     if (!!startDate) {
       updateObj['startDate'] = startDate.toDate();
@@ -222,7 +256,7 @@ IRecordContainerStates & IetcStates   > {
       await this.store.findTimeRecord(
         this.props.userId,
         moment(this.state.startDate).format('YYYY-MM-DD'),
-        moment(this.state.endDate).format('YYYY-MM-DD'),
+        moment(this.state.endDate).format('YYYY-MM-DD')
       );
     }
   }
@@ -246,7 +280,8 @@ IRecordContainerStates & IetcStates   > {
               </div>
             </div>
           </Col>
-        </Row>);
+        </Row>
+      );
     }
     return <Card>none</Card>;
   }
@@ -264,7 +299,7 @@ IRecordContainerStates & IetcStates   > {
       await this.store.findTimeRecord(
         this.props.userId,
         target.format('YYYY-MM-DD'),
-        target.format('YYYY-MM-DD'),
+        target.format('YYYY-MM-DD')
       );
     }
   }
@@ -272,8 +307,12 @@ IRecordContainerStates & IetcStates   > {
   public getMultipleDayElement() {
     const {
       datasets,
-      calWorkTimeStr, overTimeStr, totalWorkTimeStr,
-      totalEmergencyTimeStr, totalRestTimeStr, totalLawRestTimeStr,
+      calWorkTimeStr,
+      overTimeStr,
+      totalWorkTimeStr,
+      totalEmergencyTimeStr,
+      totalRestTimeStr,
+      totalLawRestTimeStr,
       totalRemoteTimeStr
     } = this.getWorkTime();
     log(datasets.datasets[0].data);
@@ -341,12 +380,24 @@ IRecordContainerStates & IetcStates   > {
   }
 
   private getWorkTime() {
-    const holidayDuration = luxon.Duration.fromISO(`PT${this.store.Holidays.length * 8}H`);
+    const holidayDuration = luxon.Duration.fromISO(
+      `PT${this.store.Holidays.length * 8}H`
+    );
     const {
       updateDatas,
-      calWorkTimeStr, overTimeStr, totalWorkTimeStr,
-      totalEmergencyTimeStr, totalRestTimeStr, totalLawRestTimeStr, totalRemoteTimeStr }
-      = TimeRecord.convertWorkTime(this.store.Records, this.state.startDate, this.state.endDate, holidayDuration);
+      calWorkTimeStr,
+      overTimeStr,
+      totalWorkTimeStr,
+      totalEmergencyTimeStr,
+      totalRestTimeStr,
+      totalLawRestTimeStr,
+      totalRemoteTimeStr
+    } = TimeRecord.convertWorkTime(
+      this.store.Records,
+      this.state.startDate,
+      this.state.endDate,
+      holidayDuration
+    );
     const datasets: IChartBarStacked2Props = updateDatas.reduce(
       (acc, cur) => {
         const { name, data } = cur;
@@ -360,19 +411,47 @@ IRecordContainerStates & IetcStates   > {
         return acc;
       },
       {
-        labels: new Array<string>(), datasets: [
-          { label: 'WORK', data: new Array<number>(), backgroundColor: bgColor[1].color },
-          { label: 'REST', data: new Array<number>(), backgroundColor: bgColor[0].color },
-          { label: 'EMERGENCY', data: new Array<number>(), backgroundColor: bgColor[2].color },
-          { label: 'REMOTE', data: new Array<number>(), backgroundColor: bgColor[3].color },
-          { label: 'VACATION', data: new Array<number>(), backgroundColor: bgColor[4].color },
-          { label: 'FUSE', data: new Array<number>() },
+        labels: new Array<string>(),
+        datasets: [
+          {
+            label: 'WORK',
+            data: new Array<number>(),
+            backgroundColor: bgColor[1].color
+          },
+          {
+            label: 'REST',
+            data: new Array<number>(),
+            backgroundColor: bgColor[0].color
+          },
+          {
+            label: 'EMERGENCY',
+            data: new Array<number>(),
+            backgroundColor: bgColor[2].color
+          },
+          {
+            label: 'REMOTE',
+            data: new Array<number>(),
+            backgroundColor: bgColor[3].color
+          },
+          {
+            label: 'VACATION',
+            data: new Array<number>(),
+            backgroundColor: bgColor[4].color
+          },
+          { label: 'FUSE', data: new Array<number>() }
         ]
-      });
+      }
+    );
     return {
       datasets,
-      calWorkTimeStr, overTimeStr, totalWorkTimeStr, totalEmergencyTimeStr,
-      totalRestTimeStr, totalLawRestTimeStr, totalRemoteTimeStr };
+      calWorkTimeStr,
+      overTimeStr,
+      totalWorkTimeStr,
+      totalEmergencyTimeStr,
+      totalRestTimeStr,
+      totalLawRestTimeStr,
+      totalRemoteTimeStr
+    };
   }
 
   private async gobackList() {
@@ -386,7 +465,7 @@ IRecordContainerStates & IetcStates   > {
       await this.store.findTimeRecord(
         this.props.userId,
         moment(this.state.backupDate.start).format('YYYY-MM-DD'),
-        moment(this.state.backupDate.end).format('YYYY-MM-DD'),
+        moment(this.state.backupDate.end).format('YYYY-MM-DD')
       );
     }
   }
@@ -398,43 +477,63 @@ IRecordContainerStates & IetcStates   > {
     if (!!userInfo && !!loginUserInfo) {
       if (!!loginUserInfo.auth && data.type !== EN_WORK_TYPE.FUSEOVERLOAD) {
         // 관리자는 하고 싶은거 다해~ 대신 차감만 못건드려. 이건 민감하거든 :)
-        this.setState({...this.state,
-          isModalOpen: true, isFuseModalOpen: false,
-          fuseHours: luxon.Duration.fromObject({hours: 0}), updateData: { key, data }});
-      } else if (this.props.userId === userInfo.id && data.type !== EN_WORK_TYPE.FUSEOVERLOAD) {
+        this.setState({
+          ...this.state,
+          isModalOpen: true,
+          isFuseModalOpen: false,
+          fuseHours: luxon.Duration.fromObject({ hours: 0 }),
+          updateData: { key, data }
+        });
+      } else if (
+        this.props.userId === userInfo.id &&
+        data.type !== EN_WORK_TYPE.FUSEOVERLOAD
+      ) {
         // 자신의 데이터는 금주의 데이터 && 자신의 데이터 && 차감이 아닐 때
-        this.setState({...this.state,
-          isModalOpen: true, isFuseModalOpen: false,
-          fuseHours: luxon.Duration.fromObject({hours: 0}), updateData: { key, data }});
+        this.setState({
+          ...this.state,
+          isModalOpen: true,
+          isFuseModalOpen: false,
+          fuseHours: luxon.Duration.fromObject({ hours: 0 }),
+          updateData: { key, data }
+        });
       }
     }
   }
 
   public getSingleDayElement() {
     const covertData = this.getWorkTime();
-    const labels = covertData.datasets.datasets.map((mv) => mv.label);
+    const labels = covertData.datasets.datasets.map(mv => mv.label);
     const datasets = covertData.datasets.datasets.reduce(
-      (acc: {data: number[], backgroundColor: string[]}, cur) => {
+      (acc: { data: number[]; backgroundColor: string[] }, cur) => {
         acc.data = [...acc.data, ...cur.data];
         return acc;
       },
       {
         data: [],
-        backgroundColor: [bgColor[1].color, bgColor[0].color, bgColor[2].color, bgColor[3].color, bgColor[4].color]
-      });
+        backgroundColor: [
+          bgColor[1].color,
+          bgColor[0].color,
+          bgColor[2].color,
+          bgColor[3].color,
+          bgColor[4].color
+        ]
+      }
+    );
     const haveRecord = !!this.store.Records && this.store.Records.length > 0;
     let records: JSX.Element[] | null = null;
     if (haveRecord === true) {
       const firstData = this.store.Records[0];
       const firstKey = Object.keys(firstData)[0];
       const data = firstData[firstKey];
-      records = Object.keys(data).map((mv) => {
+      records = Object.keys(data).map(mv => {
         const tData = data[mv];
         return (
           <tr
             key={mv}
             className="clickable"
-            onClick={() => { this.handleOnClickSingleDayTableRow(mv, tData); }}
+            onClick={() => {
+              this.handleOnClickSingleDayTableRow(mv, tData);
+            }}
           >
             <td>{EN_WORK_TITLE_KR[tData.type]}</td>
             <td>{Util.toDateTimeShort(tData.time)}</td>
@@ -443,9 +542,10 @@ IRecordContainerStates & IetcStates   > {
         );
       });
     }
-    const goBackList = !!this.state.backupDate && !!this.state.backupDate.start ?
-      <Button onClick={this.gobackList}>리스트로 돌아가기</Button> :
-      null;
+    const goBackList =
+      !!this.state.backupDate && !!this.state.backupDate.start ? (
+        <Button onClick={this.gobackList}>리스트로 돌아가기</Button>
+      ) : null;
     return (
       <>
         <Card>
@@ -454,10 +554,7 @@ IRecordContainerStates & IetcStates   > {
               <Col>
                 {goBackList}
                 <div className="chart-wrapper">
-                  <ChartPieDonut
-                    labels={labels}
-                    datasets={[datasets]}
-                  />
+                  <ChartPieDonut labels={labels} datasets={[datasets]} />
                 </div>
               </Col>
               <Col>
@@ -469,9 +566,7 @@ IRecordContainerStates & IetcStates   > {
                       <th>end</th>
                     </tr>
                   </thead>
-                  <tbody>
-                    {records}
-                  </tbody>
+                  <tbody>{records}</tbody>
                 </Table>
               </Col>
             </Row>
@@ -496,10 +591,12 @@ IRecordContainerStates & IetcStates   > {
     // 하루를 선택했고,
     // 로고인 되어있으며,
     // 관리자 권한이 있을때!
-    if (this.isOneDay === true &&
+    if (
+      this.isOneDay === true &&
       !!Auth.loginUserTokenKey &&
       !!this.loginUserStore.LoginUserInfo &&
-      !!this.loginUserStore.LoginUserInfo.auth) {
+      !!this.loginUserStore.LoginUserInfo.auth
+    ) {
       const allButtonOn = {
         WORK: true,
         BYEBYE: true,
@@ -510,20 +607,30 @@ IRecordContainerStates & IetcStates   > {
         DONE: true,
         VACATION: true,
         HALFVACATION: true,
-        FUSEOVERLOAD: true,
+        FUSEOVERLOAD: true
       };
       return (
         <RecordButtons
           menuOnOff={allButtonOn}
           handleClickMenu={this.handleRecordButtonClick}
-        />);
+        />
+      );
     }
     // 로그인 했고!
     // 날짜 길이가 1일 정도를 선택했을 때!
     // 자신의 정보일 때!
-    if (this.isLogined() === true && !!this.loginUserStore.UserInfo && this.isOneDay === true
-      && this.loginUserStore.UserInfo.id === this.props.userId) {
-      return <RecordButtons menuOnOff={this.getAvailableRecordBtns()} handleClickMenu={this.handleRecordButtonClick} />;
+    if (
+      this.isLogined() === true &&
+      !!this.loginUserStore.UserInfo &&
+      this.isOneDay === true &&
+      this.loginUserStore.UserInfo.id === this.props.userId
+    ) {
+      return (
+        <RecordButtons
+          menuOnOff={this.getAvailableRecordBtns()}
+          handleClickMenu={this.handleRecordButtonClick}
+        />
+      );
     }
     return null;
   }
@@ -538,7 +645,7 @@ IRecordContainerStates & IetcStates   > {
   get isOneDay() {
     const start = moment(this.state.startDate);
     const end = moment(this.state.endDate);
-    return (start.diff(end, 'days') === 0);
+    return start.diff(end, 'days') === 0;
   }
 
   public getAvailableRecordBtns() {
@@ -552,13 +659,13 @@ IRecordContainerStates & IetcStates   > {
       DONE: false,
       VACATION: true,
       HALFVACATION: true,
-      FUSEOVERLOAD: true,
+      FUSEOVERLOAD: true
     };
     if (this.isOneDay === false) {
       return returnValue;
     }
     const firstData = this.store.Records[0];
-    if (firstData  === undefined) {
+    if (firstData === undefined) {
       returnValue.WORK = true;
       returnValue.REMOTE = true;
       returnValue.EMERGENCY = true;
@@ -566,7 +673,7 @@ IRecordContainerStates & IetcStates   > {
     }
     const firstKey = Object.keys(firstData)[0];
     const data = firstData[firstKey];
-    const logs = Object.keys(data).map((key) => data[key]);
+    const logs = Object.keys(data).map(key => data[key]);
     // 아무런 데이터가 없는가?
     if (logs.length === 0) {
       // 출근, 재택근무, 긴급대응만 open
@@ -581,9 +688,13 @@ IRecordContainerStates & IetcStates   > {
     returnValue.REMOTEDONE = TimeRecord.possibleAddRemoteDone(logs);
     returnValue.REST = TimeRecord.possibleAddRest(logs);
     returnValue.EMERGENCY = TimeRecord.possibleAddEmergency(logs);
-    returnValue.DONE = logs.filter(
-      (fv) => (fv.type === EN_WORK_TYPE.REST || fv.type === EN_WORK_TYPE.EMERGENCY) &&
-      (fv.done === null || fv.done === undefined)).length > 0;
+    returnValue.DONE =
+      logs.filter(
+        fv =>
+          (fv.type === EN_WORK_TYPE.REST ||
+            fv.type === EN_WORK_TYPE.EMERGENCY) &&
+          (fv.done === null || fv.done === undefined)
+      ).length > 0;
     return returnValue;
   }
 
@@ -598,7 +709,7 @@ IRecordContainerStates & IetcStates   > {
           isModalOpen: false,
           isFuseModalOpen: true,
           updateData: undefined,
-          fuseHours: luxon.Duration.fromObject({hours: 0}),
+          fuseHours: luxon.Duration.fromObject({ hours: 0 })
         });
       } else {
         // 차감 메뉴 외에는 아래에서 처리한다.
@@ -611,7 +722,8 @@ IRecordContainerStates & IetcStates   > {
         await this.store.findTimeRecord(
           this.props.userId,
           moment(this.state.startDate).format('YYYY-MM-DD'),
-          moment(this.state.endDate).format('YYYY-MM-DD'));
+          moment(this.state.endDate).format('YYYY-MM-DD')
+        );
       }
     }
   }
@@ -619,7 +731,11 @@ IRecordContainerStates & IetcStates   > {
   public async saveWorklog() {
     const updateData = this.state.updateData;
     if (!!updateData === false) {
-      return this.setState({...this.state, isModalOpen: false, updateData: undefined});
+      return this.setState({
+        ...this.state,
+        isModalOpen: false,
+        updateData: undefined
+      });
     }
 
     // REST, EMERGENCY는 완료 시간이 있으니 완료 시간 체크가 필요하다.
@@ -628,12 +744,19 @@ IRecordContainerStates & IetcStates   > {
     const startTimeStr = this.modalStartTimeRef.current!.value;
     const start = luxon.DateTime.fromFormat(
       originalStart.toFormat('yyyy-LL-dd').concat(` ${startTimeStr}`),
-      'yyyy-LL-dd HH:mm');
-    if (data.type === EN_WORK_TYPE.REST || data.type === EN_WORK_TYPE.EMERGENCY) {
+      'yyyy-LL-dd HH:mm'
+    );
+    if (
+      data.type === EN_WORK_TYPE.REST ||
+      data.type === EN_WORK_TYPE.EMERGENCY
+    ) {
       // end time 계산 필요.
       const endDateStr = this.modalEndDateRef.current!.value;
       const endTimeStr = this.modalEndTimeRef.current!.value;
-      const end = luxon.DateTime.fromFormat(`${endDateStr} ${endTimeStr}`, 'yyyy-LL-dd HH:mm');
+      const end = luxon.DateTime.fromFormat(
+        `${endDateStr} ${endTimeStr}`,
+        'yyyy-LL-dd HH:mm'
+      );
       // 시작 시간보다 뒤인가?
       if (end.diff(start).milliseconds < 0) {
         return alert('종료 시간은 시작 시간을 앞 설 수 없어요.');
@@ -642,30 +765,45 @@ IRecordContainerStates & IetcStates   > {
 
     // 실제 업데이트를 진행하자!
     // time 부분 수정
-    if (originalStart.toFormat('yyyy-LL-dd HH:mm') !== start.toFormat('yyyy-LL-dd HH:mm')) {
+    if (
+      originalStart.toFormat('yyyy-LL-dd HH:mm') !==
+      start.toFormat('yyyy-LL-dd HH:mm')
+    ) {
       await this.store.updateTimeRecord(
         Auth.loginUserTokenKey!,
         this.props.userId,
         start.toFormat('yyyyLLdd'),
         updateData!.key,
         'time',
-        start.toUTC().toISO(),
+        start.toUTC().toISO()
       );
     }
     // done 업데이트 여부 결정
-    if (data.type === EN_WORK_TYPE.REST || data.type === EN_WORK_TYPE.EMERGENCY) {
+    if (
+      data.type === EN_WORK_TYPE.REST ||
+      data.type === EN_WORK_TYPE.EMERGENCY
+    ) {
       const haveDone = !!data.done;
       const endDateStr = this.modalEndDateRef.current!.value;
       const endTimeStr = this.modalEndTimeRef.current!.value;
-      const end = luxon.DateTime.fromFormat(`${endDateStr} ${endTimeStr}`, 'yyyy-LL-dd HH:mm');
+      const end = luxon.DateTime.fromFormat(
+        `${endDateStr} ${endTimeStr}`,
+        'yyyy-LL-dd HH:mm'
+      );
       let updateDone = false;
       // 기존 완료 시간이 있는가?
       if (haveDone === true) {
         const originalEnd = luxon.DateTime.fromISO(data!.done!);
-        if (originalEnd.toFormat('yyyy-LL-dd HH:mm') !== end.toFormat('yyyy-LL-dd HH:mm')) {
+        if (
+          originalEnd.toFormat('yyyy-LL-dd HH:mm') !==
+          end.toFormat('yyyy-LL-dd HH:mm')
+        ) {
           updateDone = true;
         }
-      } else if (start.toFormat('yyyy-LL-dd HH:mm') !== end.toFormat('yyyy-LL-dd HH:mm')) { // 시작 시간과 다른가?
+      } else if (
+        start.toFormat('yyyy-LL-dd HH:mm') !== end.toFormat('yyyy-LL-dd HH:mm')
+      ) {
+        // 시작 시간과 다른가?
         updateDone = true;
       }
       if (updateDone === true) {
@@ -675,21 +813,26 @@ IRecordContainerStates & IetcStates   > {
           start.toFormat('yyyyLLdd'),
           updateData!.key,
           'done',
-          end.toUTC().toISO(),
+          end.toUTC().toISO()
         );
       }
     }
-    this.setState({...this.state, isModalOpen: false, updateData: undefined});
+    this.setState({ ...this.state, isModalOpen: false, updateData: undefined });
     await this.store.findTimeRecord(
       this.props.userId,
       moment(this.state.startDate).format('YYYY-MM-DD'),
-      moment(this.state.endDate).format('YYYY-MM-DD'));
+      moment(this.state.endDate).format('YYYY-MM-DD')
+    );
   }
 
   public async deleteWorklog() {
     const deleteData = this.state.updateData;
     if (Util.isEmpty(deleteData)) {
-      return this.setState({...this.state, isModalOpen: false, updateData: undefined});
+      return this.setState({
+        ...this.state,
+        isModalOpen: false,
+        updateData: undefined
+      });
     }
 
     // 삭제 진행!
@@ -700,14 +843,15 @@ IRecordContainerStates & IetcStates   > {
         Auth.loginUserTokenKey!,
         this.loginUserStore.UserInfo!.id,
         luxon.DateTime.fromJSDate(this.state.startDate),
-        deleteData.key,
+        deleteData.key
       );
     }
-    this.setState({...this.state, isModalOpen: false, updateData: undefined});
+    this.setState({ ...this.state, isModalOpen: false, updateData: undefined });
     await this.store.findTimeRecord(
       this.props.userId,
       moment(this.state.startDate).format('YYYY-MM-DD'),
-      moment(this.state.endDate).format('YYYY-MM-DD'));
+      moment(this.state.endDate).format('YYYY-MM-DD')
+    );
   }
 
   public getModalBody() {
@@ -721,7 +865,10 @@ IRecordContainerStates & IetcStates   > {
     const startTime = start.toFormat('HH:mm');
 
     let doneElement: JSX.Element | null = null;
-    if (data.type === EN_WORK_TYPE.REST || data.type === EN_WORK_TYPE.EMERGENCY) {
+    if (
+      data.type === EN_WORK_TYPE.REST ||
+      data.type === EN_WORK_TYPE.EMERGENCY
+    ) {
       if (!!data.done) {
         const end = luxon.DateTime.fromISO(data.done);
         const endDate = end.toFormat('yyyy-LL-dd');
@@ -776,50 +923,51 @@ IRecordContainerStates & IetcStates   > {
 
     return (
       <>
-      <ModalHeader>
-        {`${updateData!.key} ${EN_WORK_TITLE_KR[updateData!.data.type]} 수정`}
-      </ModalHeader>
-      <ModalBody>
-        <FormGroup>
-          <Label>시작</Label>
-          <Input
-            type="date"
-            id="date-input"
-            name="date-input"
-            placeholder="date"
-            defaultValue={startDate}
-            disabled={true}
-          />
-          <Input
-            type="time"
-            id="time-input"
-            name="time-input"
-            placeholder="time"
-            defaultValue={startTime}
-            innerRef={this.modalStartTimeRef}
-          />
-        </FormGroup>
-        {doneElement}
-      </ModalBody>
-      <ModalFooter>
-        <Button
-          color="danger"
-          onClick={this.deleteWorklog}
-        >
-          삭제
-        </Button>
-        <Button
-          color="success"
-          onClick={this.saveWorklog}
-        >
-          저장
-        </Button>
-        <Button
-          onClick={() => { this.setState({...this.state, isModalOpen: false, updateData: undefined}); }}
-        >
-          닫기
-        </Button>
-      </ModalFooter>
+        <ModalHeader>
+          {`${updateData!.key} ${EN_WORK_TITLE_KR[updateData!.data.type]} 수정`}
+        </ModalHeader>
+        <ModalBody>
+          <FormGroup>
+            <Label>시작</Label>
+            <Input
+              type="date"
+              id="date-input"
+              name="date-input"
+              placeholder="date"
+              defaultValue={startDate}
+              disabled={true}
+            />
+            <Input
+              type="time"
+              id="time-input"
+              name="time-input"
+              placeholder="time"
+              defaultValue={startTime}
+              innerRef={this.modalStartTimeRef}
+            />
+          </FormGroup>
+          {doneElement}
+        </ModalBody>
+        <ModalFooter>
+          <Button color="danger" onClick={this.deleteWorklog}>
+            삭제
+          </Button>
+          <Button color="success" onClick={this.saveWorklog}>
+            저장
+          </Button>
+          <Button
+            className="btn btn-primary"
+            onClick={() => {
+              this.setState({
+                ...this.state,
+                isModalOpen: false,
+                updateData: undefined
+              });
+            }}
+          >
+            닫기
+          </Button>
+        </ModalFooter>
       </>
     );
   }
@@ -835,13 +983,18 @@ IRecordContainerStates & IetcStates   > {
       Auth.loginUserTokenKey,
       userId,
       targetDate,
-      fuseDuration,
+      fuseDuration
     );
-    this.setState({...this.state, isFuseModalOpen: false, fuseHours: luxon.Duration.fromObject({hours: 0})});
+    this.setState({
+      ...this.state,
+      isFuseModalOpen: false,
+      fuseHours: luxon.Duration.fromObject({ hours: 0 })
+    });
     await this.store.findTimeRecord(
       this.props.userId,
       moment(this.state.startDate).format('YYYY-MM-DD'),
-      moment(this.state.endDate).format('YYYY-MM-DD'));
+      moment(this.state.endDate).format('YYYY-MM-DD')
+    );
     await this.overloadStore.findAllFuseOverload(userId);
   }
 
@@ -855,13 +1008,32 @@ IRecordContainerStates & IetcStates   > {
       message = (
         <>
           <ul className="list-group list-group-flush">
-            <li className="list-group-item">사용가능한 시간 {totalRemainTime}</li>
             <li className="list-group-item">
-              <Button onClick={() => { this.addFuseTime(luxon.Duration.fromObject({minutes: 30})); }}>+00:30 추가</Button>
-              <Button onClick={() => { this.addFuseTime(luxon.Duration.fromObject({hours: 1})); }}>+01:00 추가</Button>
+              사용가능한 시간 {totalRemainTime}
+            </li>
+            <li className="list-group-item">
+              <Button
+                onClick={() => {
+                  this.addFuseTime(luxon.Duration.fromObject({ minutes: 30 }));
+                }}
+              >
+                +00:30 추가
+              </Button>
+              <Button
+                onClick={() => {
+                  this.addFuseTime(luxon.Duration.fromObject({ hours: 1 }));
+                }}
+              >
+                +01:00 추가
+              </Button>
               <Button
                 className="btn-danger"
-                onClick={() => this.setState({...this.state, fuseHours: luxon.Duration.fromObject({hours: 0})})}
+                onClick={() =>
+                  this.setState({
+                    ...this.state,
+                    fuseHours: luxon.Duration.fromObject({ hours: 0 })
+                  })
+                }
               >
                 초기화
               </Button>
@@ -873,26 +1045,32 @@ IRecordContainerStates & IetcStates   > {
     }
     return (
       <>
-      <ModalHeader>
-        추가 근무 차감
-      </ModalHeader>
-      <ModalBody>
-        {message}
-      </ModalBody>
-      <ModalFooter>
-        {haveFuseData === false ? null : <Button onClick={this.addFuseLog} color="success">저장</Button>}
-        <Button
-          onClick={() => { this.closeFuseModal(); }}
-        >
-          닫기
-        </Button>
-      </ModalFooter>
+        <ModalHeader>추가 근무 차감</ModalHeader>
+        <ModalBody>{message}</ModalBody>
+        <ModalFooter>
+          {haveFuseData === false ? null : (
+            <Button onClick={this.addFuseLog} color="success">
+              저장
+            </Button>
+          )}
+          <Button
+            onClick={() => {
+              this.closeFuseModal();
+            }}
+          >
+            닫기
+          </Button>
+        </ModalFooter>
       </>
     );
   }
 
   private closeFuseModal() {
-    this.setState({ ...this.state, isFuseModalOpen: false, fuseHours: luxon.Duration.fromObject({ hours: 0 }) });
+    this.setState({
+      ...this.state,
+      isFuseModalOpen: false,
+      fuseHours: luxon.Duration.fromObject({ hours: 0 })
+    });
   }
 
   private addFuseTime(addTime: luxon.Duration) {
@@ -903,7 +1081,9 @@ IRecordContainerStates & IetcStates   > {
     const update = this.state.fuseHours.plus(addTime);
     // 총 시간보다 더 큰지 확인해야한다.
     const duration = update.normalize();
-    const totalRemainDuration = luxon.Duration.fromObject(totalRemain).normalize();
+    const totalRemainDuration = luxon.Duration.fromObject(
+      totalRemain
+    ).normalize();
     if (duration <= totalRemainDuration) {
       this.setState({ ...this.state, fuseHours: update });
     } else {
@@ -914,9 +1094,13 @@ IRecordContainerStates & IetcStates   > {
   public async componentDidMount() {
     this.setState({
       ...this.state,
-      isServer: false,
+      isServer: false
     });
-    if (Auth.isLogined === true && !!Auth.loginUserKey && !!Auth.loginUserTokenKey) {
+    if (
+      Auth.isLogined === true &&
+      !!Auth.loginUserKey &&
+      !!Auth.loginUserTokenKey
+    ) {
       await this.loginUserStore.findUserInfo(Auth.loginUserKey);
       await this.loginUserStore.findLoginUserInfo(Auth.loginUserTokenKey);
       await this.overloadStore.findAllOverload(this.props.userId);
@@ -925,9 +1109,11 @@ IRecordContainerStates & IetcStates   > {
   }
 
   public render() {
-    const diffDay = Math.abs(moment(this.state.startDate).diff(moment(this.state.endDate), 'days'));
-    const renderElement = diffDay > 0 ?
-      this.getMultipleDayElement() : this.getSingleDayElement();
+    const diffDay = Math.abs(
+      moment(this.state.startDate).diff(moment(this.state.endDate), 'days')
+    );
+    const renderElement =
+      diffDay > 0 ? this.getMultipleDayElement() : this.getSingleDayElement();
     const avatar = this.getAvatar();
     const recordButtons = this.recordButtons();
     const modalBody = this.getModalBody();
@@ -940,15 +1126,17 @@ IRecordContainerStates & IetcStates   > {
         <DefaultHeader
           isLogin={this.isLogined()}
           userInfo={this.loginUserStore.UserInfo}
-          onClickLogin={() => { window.location.href = '/login'; }}
-          onClickLogout={() => { this.loginUserStore.logout(this.state.isServer); }}
+          onClickLogin={() => {
+            window.location.href = '/login';
+          }}
+          onClickLogout={() => {
+            this.loginUserStore.logout(this.state.isServer);
+          }}
         />
         <div className="app-body">
           <Container>
             <Card>
-              <CardBody>
-                {avatar}
-              </CardBody>
+              <CardBody>{avatar}</CardBody>
             </Card>
             <Card>
               <CardBody>
@@ -960,9 +1148,11 @@ IRecordContainerStates & IetcStates   > {
                   orientation="vertical"
                   focusedInput={this.state.focusedInput}
                   onDatesChange={this.onDatesChangeForDRP}
-                  onFocusChange={(focusedInput) => this.setState({...this.state, focusedInput})}
+                  onFocusChange={focusedInput =>
+                    this.setState({ ...this.state, focusedInput })
+                  }
                   minimumNights={0}
-                  isOutsideRange={(day) => false}
+                  isOutsideRange={day => false}
                   onClose={this.handleClosePopover}
                   noBorder={true}
                   block={true}
@@ -970,20 +1160,10 @@ IRecordContainerStates & IetcStates   > {
               </CardBody>
             </Card>
             {renderElement}
-            <div className={`${floatButton}`}>
-              {recordButtons}
-            </div>
+            <div className={`${floatButton}`}>{recordButtons}</div>
           </Container>
-          <Modal
-            isOpen={this.state.isModalOpen}
-          >
-            {modalBody}
-          </Modal>
-          <Modal
-            isOpen={this.state.isFuseModalOpen}
-          >
-            {fuseModalBody}
-          </Modal>
+          <Modal isOpen={this.state.isModalOpen}>{modalBody}</Modal>
+          <Modal isOpen={this.state.isFuseModalOpen}>{fuseModalBody}</Modal>
         </div>
       </div>
     );
