@@ -7,6 +7,7 @@ import GroupUserAvatar from '../../group/user/avatar';
 
 interface Props {
   isOwned?: boolean;
+  handleOnClick?(): void;
 }
 
 type TProps = Props & ISlackUserInfo;
@@ -20,6 +21,9 @@ class QueueFindItem extends React.PureComponent<TProps> {
 
   private handleOnClick() {
     if (Util.isNotEmpty(window)) {
+      if (!!this.props.handleOnClick) {
+        return this.props.handleOnClick();
+      }
       window.location.href = `/queue/add/${this.props.id}`;
     }
   }
