@@ -15,7 +15,6 @@ import {
   ListGroupItem
 } from 'reactstrap';
 
-import coffee from '../../assets/img/coffee.svg';
 import { Event } from '../../models/event/Event';
 import { EventRequestBuilder } from '../../models/event/EventRequestBuilder';
 import { IEvent } from '../../models/event/interface/IEvent';
@@ -104,11 +103,12 @@ export default class CoffeeContainer extends React.Component<IProp, IState> {
       ? this.props.eventList
       : [];
     const result = targetEvents.map(mv => {
+      const targetPath = `/coffeebreak/${mv.id}`;
       return (
         <ListGroupItem key={mv.id}>
           <span>{mv.title}</span>
           <span className="list-group-button">
-            <Button>살펴보기</Button>
+            <Button href={targetPath}>살펴보기</Button>
           </span>
         </ListGroupItem>
       );

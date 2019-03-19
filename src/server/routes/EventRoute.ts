@@ -12,9 +12,34 @@ export class EventRoute extends CommonRoute {
       trRoute.controller.findAllEvent.bind(trRoute.controller)
     );
 
+    trRoute.route(EN_REQUEST_METHODS.GET)(
+      '/events/:event_id',
+      trRoute.controller.findEvent.bind(trRoute.controller)
+    );
+
+    trRoute.route(EN_REQUEST_METHODS.GET)(
+      '/events/:event_id/guests',
+      trRoute.controller.findEvent.bind(trRoute.controller)
+    );
+
     trRoute.route(EN_REQUEST_METHODS.POST)(
       '/events',
       trRoute.controller.addEvent.bind(trRoute.controller)
+    );
+
+    trRoute.route(EN_REQUEST_METHODS.POST)(
+      '/events/:eventId/orders',
+      trRoute.controller.addOrder.bind(trRoute.controller)
+    );
+
+    trRoute.route(EN_REQUEST_METHODS.GET)(
+      '/events/:event_id/orders',
+      trRoute.controller.orders.bind(trRoute.controller)
+    );
+
+    trRoute.route(EN_REQUEST_METHODS.POST)(
+      '/events/:eventId/guests/msg',
+      trRoute.controller.sendMsgToGuests.bind(trRoute.controller)
     );
 
     return trRoute;

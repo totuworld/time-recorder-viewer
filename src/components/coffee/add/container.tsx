@@ -225,12 +225,15 @@ export default class CoffeeAddContainer extends React.Component<IProp, IState> {
       ) : (
         <>
           <Button
-            onClick={() => {
+            onClick={async () => {
               if (!!this.loginUserStore.UserInfo) {
-                this.eventAddStore.createEvent({
+                const result = await this.eventAddStore.createEvent({
                   ...this.state.firstData,
                   owner: this.loginUserStore.UserInfo
                 });
+                if (result !== null) {
+                  window.location.href = `/coffeebreak/${result}`;
+                }
               }
             }}
           >
@@ -238,6 +241,8 @@ export default class CoffeeAddContainer extends React.Component<IProp, IState> {
           </Button>
           <Search
             title={this.state.firstData.title}
+            showTitle={true}
+            placeHolder="검색어 입력 ex) 야놀자"
             onChangeInput={this.onChangeInput}
             handleSubmit={() => {
               console.log(this.state.searchText);

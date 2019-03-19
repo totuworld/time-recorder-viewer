@@ -1,5 +1,6 @@
 import CoffeeAddContainer from './components/coffee/add/container';
 import CoffeeContainer from './components/coffee/container';
+import CoffeeDetailContainer from './components/coffee/detail/container';
 import GroupContainer from './components/group/container';
 import GroupInfoContainer from './components/group/info/container';
 import HomeContainer from './components/home/container';
@@ -64,5 +65,10 @@ export default [
     path: '/coffeebreak/add',
     exact: true,
     component: CoffeeAddContainer
+  },
+  {
+    path: '/coffeebreak/:event_id',
+    exact: true,
+    component: CoffeeDetailContainer
   }
 ];

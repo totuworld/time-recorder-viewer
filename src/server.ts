@@ -6,6 +6,7 @@ import { render } from '@jaredpalmer/after';
 
 import { Config } from './config/Config';
 import routes from './routes';
+import { BeverageRoute } from './server/routes/BeverageRoute';
 import { EventRoute } from './server/routes/EventRoute';
 import { GroupRoute } from './server/routes/GroupRoute';
 import { OverloadRoute } from './server/routes/OverloadRoute';
@@ -24,6 +25,7 @@ function routeList() {
   router.use(OverloadRoute.bootstrap().router);
   router.use(SlackRoute.bootstrap().router);
   router.use(EventRoute.bootstrap().router);
+  router.use(BeverageRoute.bootstrap().router);
   return router;
 }
 
