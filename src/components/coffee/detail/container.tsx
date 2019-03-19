@@ -6,6 +6,7 @@ import { observer } from 'mobx-react';
 import React from 'react';
 import { Helmet } from 'react-helmet';
 import {
+  Badge,
   Button,
   Card,
   CardBody,
@@ -17,8 +18,7 @@ import {
   ModalBody,
   ModalFooter,
   ModalHeader,
-  Spinner,
-  Badge
+  Spinner
 } from 'reactstrap';
 
 import { Beverage } from '../../../models/beverage/Beverage';
