@@ -4,9 +4,6 @@ import { Request } from 'express';
 import { WebClient } from '@slack/client';
 
 import { ISlackResponse } from '../../models/slack/interface/ISlackResponse';
-import {
-    SendQueueMessageToUserJSONSchema
-} from '../../models/slack/JSONSchema/SendQueueMessageToUserJSONSchema';
 import { Util } from '../../services/util';
 import { TControllerResp } from './ICommonController';
 
@@ -18,10 +15,7 @@ export class SlackController {
   ): Promise<TControllerResp<ISlackResponse>> {
     const { channel, text } = req.query;
 
-    if (
-      Util.isEmpty(channel) ||
-      Util.isEmpty(text)
-    ) {
+    if (Util.isEmpty(channel) || Util.isEmpty(text)) {
       return {
         status: 400,
         payload: {
@@ -53,7 +47,7 @@ export class SlackController {
       text,
       token,
       icon_url: 'https://media.alienwarearena.com/media/NQWR3vA.jpg',
-      username: '저기요',
+      username: '저기요'
     });
 
     log(resp);
