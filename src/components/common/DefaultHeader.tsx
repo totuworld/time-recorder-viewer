@@ -1,7 +1,14 @@
 import * as luxon from 'luxon';
 import React from 'react';
 import {
-    Container, Dropdown, DropdownItem, DropdownMenu, DropdownToggle, Nav, NavItem, NavLink
+  Container,
+  Dropdown,
+  DropdownItem,
+  DropdownMenu,
+  DropdownToggle,
+  Nav,
+  NavItem,
+  NavLink
 } from 'reactstrap';
 
 import avatar from '../../assets/img/avatar.svg';
@@ -20,13 +27,16 @@ interface IDefaultHeaderStates {
   isLoginPopover: boolean;
 }
 
-class DefaultHeader extends React.Component<IDefaultHeaderProps, IDefaultHeaderStates> {
+class DefaultHeader extends React.Component<
+  IDefaultHeaderProps,
+  IDefaultHeaderStates
+> {
   constructor(props: IDefaultHeaderProps) {
     super(props);
 
     this.state = {
       isOpen: false,
-      isLoginPopover: false,
+      isLoginPopover: false
     };
     this.toggleDropdown = this.toggleDropdown.bind(this);
     this.onClickLogin = this.onClickLogin.bind(this);
@@ -52,18 +62,32 @@ class DefaultHeader extends React.Component<IDefaultHeaderProps, IDefaultHeaderS
     const userInfo = this.props.userInfo;
     if (this.props.isLogin === true && !!userInfo === true) {
       const today = luxon.DateTime.local().toFormat('yyyy-LL-dd');
-      const url = `/records/${userInfo!.id}?startDate=${today}&endDate=${today}`;
+      const url = `/records/${
+        userInfo!.id
+      }?startDate=${today}&endDate=${today}`;
       return (
         <>
-        <DropdownItem onClick={() => { window.location.href = url; }}>
-          오늘 기록
-        </DropdownItem>
-        <DropdownItem onClick={() => { window.location.href = '/my/overload'; }}>
-          초과 근무 내역
-        </DropdownItem>
-        <DropdownItem onClick={() => { window.location.href = `/queue/add/${userInfo!.id}`; }}>
-          저기요 목록
-        </DropdownItem>
+          <DropdownItem
+            onClick={() => {
+              window.location.href = url;
+            }}
+          >
+            오늘 기록
+          </DropdownItem>
+          <DropdownItem
+            onClick={() => {
+              window.location.href = '/my/overload';
+            }}
+          >
+            초과 근무 내역
+          </DropdownItem>
+          <DropdownItem
+            onClick={() => {
+              window.location.href = `/queue/add/${userInfo!.id}`;
+            }}
+          >
+            저기요 목록
+          </DropdownItem>
         </>
       );
     }
@@ -71,14 +95,31 @@ class DefaultHeader extends React.Component<IDefaultHeaderProps, IDefaultHeaderS
   }
 
   public render() {
-    const imgUrl = this.props.isLogin === true && !!this.props.userInfo ?
-      this.props.userInfo.profile_url :
-      avatar;
+    const imgUrl =
+      this.props.isLogin === true && !!this.props.userInfo
+        ? this.props.userInfo.profile_url
+        : avatar;
     const isLogin = this.props.isLogin === true && !!this.props.userInfo;
-    const userName = this.props.isLogin === true && !!this.props.userInfo ? this.props.userInfo.real_name : '';
+    const userName =
+      this.props.isLogin === true && !!this.props.userInfo
+        ? this.props.userInfo.real_name
+        : '';
     const todayMenu = this.todayMenu();
-    const groupList = this.props.isLogin === true ? <NavLink href="/groups">그룹 목록</NavLink> : null;
-    const queue = this.props.isLogin === true ? <NavLink href="/queue">저기요</NavLink> : null;
+    const groupList =
+      this.props.isLogin === true ? (
+        <NavLink href="/groups">그룹 목록</NavLink>
+      ) : null;
+    const queue =
+      this.props.isLogin === true ? (
+        <NavLink href="/queue" alt="저기요">
+          🛎저기요
+        </NavLink>
+      ) : null;
+    const coffee = (
+      <NavLink href="/coffeebreak" alt="커피투게더">
+        ☕️타임
+      </NavLink>
+    );
     return (
       <header className="app-header navbar">
         <Container>
@@ -87,15 +128,14 @@ class DefaultHeader extends React.Component<IDefaultHeaderProps, IDefaultHeaderS
             width="30"
             alt="Work Logger"
             className="navbar-brand-minimized clickable"
-            onClick={() => { window.location.href = '/'; }}
+            onClick={() => {
+              window.location.href = '/';
+            }}
           />
           <Nav className="ml-auto" navbar={true}>
-            <NavItem className="px-3">
-              {queue}
-            </NavItem>
-            <NavItem className="px-3">
-              {groupList}
-            </NavItem>
+            <NavItem className="px-3">{coffee}</NavItem>
+            <NavItem className="px-3">{queue}</NavItem>
+            <NavItem className="px-3">{groupList}</NavItem>
             <Dropdown
               nav={true}
               isOpen={this.state.isOpen}
@@ -103,13 +143,13 @@ class DefaultHeader extends React.Component<IDefaultHeaderProps, IDefaultHeaderS
             >
               <DropdownToggle nav={true}>
                 <span className="circle-border">
-                  <img
-                    src={imgUrl}
-                    className="img-avatar"
-                    alt={userName}
-                  />
+                  <img src={imgUrl} className="img-avatar" alt={userName} />
                 </span>
-                {isLogin && <span className="header-username d-none d-sm-inline-block">{userName}</span>}
+                {isLogin && (
+                  <span className="header-username d-none d-sm-inline-block">
+                    {userName}
+                  </span>
+                )}
               </DropdownToggle>
               <DropdownMenu right={true} style={{ right: 'auto' }}>
                 {todayMenu}
