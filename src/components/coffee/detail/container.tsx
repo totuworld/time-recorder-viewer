@@ -17,7 +17,8 @@ import {
   ModalBody,
   ModalFooter,
   ModalHeader,
-  Spinner
+  Spinner,
+  Badge
 } from 'reactstrap';
 
 import { Beverage } from '../../../models/beverage/Beverage';
@@ -563,6 +564,7 @@ export default class CoffeeDetailContainer extends React.Component<
           음료 추가
         </Button>
       ) : null;
+    const totalOrderCount = this.props.orders.length;
     return (
       <div className="app">
         <Helmet>
@@ -602,7 +604,9 @@ export default class CoffeeDetailContainer extends React.Component<
               </Search>
             </Card>
             <Card>
-              <CardHeader>주문 목록</CardHeader>
+              <CardHeader>
+                주문 목록 <Badge>합계 {totalOrderCount} 잔</Badge>
+              </CardHeader>
               <CardBody>{orders}</CardBody>
             </Card>
             <Card>
