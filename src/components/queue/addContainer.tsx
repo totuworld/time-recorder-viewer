@@ -6,8 +6,22 @@ import { observer } from 'mobx-react';
 import React from 'react';
 import { Helmet } from 'react-helmet';
 import {
-    Button, Card, CardBody, CardFooter, Col, Container, FormGroup, Input, Label, ListGroup, Modal,
-    ModalBody, ModalFooter, ModalHeader, Row, Table
+  Button,
+  Card,
+  CardBody,
+  CardFooter,
+  Col,
+  Container,
+  FormGroup,
+  Input,
+  Label,
+  ListGroup,
+  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
+  Row,
+  Table
 } from 'reactstrap';
 
 import cow from '../../assets/img/cow.svg';
@@ -65,17 +79,19 @@ class QueueAddContainer extends React.Component<Props, States> {
       slackUserResp.type === EN_REQUEST_RESULT.ERROR ? [] : slackUserResp.data;
     const userInfo: ISlackUserInfo | undefined = Util.isEmpty(slackUserInfos)
       ? undefined
-      : slackUserInfos.find((fv) => fv.id === match.params.user_id);
+      : slackUserInfos.find(fv => fv.id === match.params.user_id);
 
-    const ret: Props =  {
+    const ret: Props = {
       userId: match.params.user_id,
       userInfo,
       slackUserInfos: Util.isNotEmpty(slackUserInfos) ? slackUserInfos : [],
-      queue: [],
+      queue: []
     };
-
+    log(userInfo);
     if (Util.isNotEmpty(userInfo)) {
-      const findQueue = await userAction.findQueue({authId: userInfo.auth_id!});
+      const findQueue = await userAction.findQueue({
+        authId: userInfo.auth_id!
+      });
       if (findQueue.type === EN_REQUEST_RESULT.SUCCESS) {
         ret.queue = Util.isNotEmpty(findQueue.data) ? findQueue.data : [];
       }
@@ -88,7 +104,7 @@ class QueueAddContainer extends React.Component<Props, States> {
     super(props);
 
     this.state = {
-      isServer: true,
+      isServer: true
     };
 
     this.isLogined = this.isLogined.bind(this);
@@ -128,14 +144,18 @@ class QueueAddContainer extends React.Component<Props, States> {
               </div>
             </div>
           </Col>
-        </Row>);
+        </Row>
+      );
     }
     return <Card>none</Card>;
   }
 
   public userQueue() {
     if (Util.isEmpty(this.queueStore.Queue)) {
-      const msg = this.queueStore.IsOwned === true ? '거기 누구 없소?' : '1등을 원한다면!! 지금이에요!!';
+      const msg =
+        this.queueStore.IsOwned === true
+          ? '거기 누구 없소?'
+          : '1등을 원한다면!! 지금이에요!!';
       return (
         <div>
           <p className="text-center">{msg}</p>
@@ -144,18 +164,27 @@ class QueueAddContainer extends React.Component<Props, States> {
       );
     }
     const items = this.queueStore.Queue.map((mv, index) => {
-      const props = {...mv, isOwned: this.queueStore.IsOwned, orderNo: index + 1};
-      return <QueueItem key={mv.id} {...props} onClickDeleteBtn={this.onClickDeleteQueueBtn} />;
+      const props = {
+        ...mv,
+        isOwned: this.queueStore.IsOwned,
+        orderNo: index + 1
+      };
+      return (
+        <QueueItem
+          key={mv.id}
+          {...props}
+          onClickDeleteBtn={this.onClickDeleteQueueBtn}
+        />
+      );
     });
-    return (
-      <ListGroup>
-        {items}
-      </ListGroup>
-    );
+    return <ListGroup>{items}</ListGroup>;
   }
 
   private async onClickDeleteQueueBtn(id: string) {
-    if (Util.isNotEmpty(this.props.userInfo) && Util.isNotEmpty(this.props.userInfo.auth_id)) {
+    if (
+      Util.isNotEmpty(this.props.userInfo) &&
+      Util.isNotEmpty(this.props.userInfo.auth_id)
+    ) {
       await this.queueStore.deleteQueue(id, this.props.userInfo.auth_id);
     }
   }
@@ -164,7 +193,7 @@ class QueueAddContainer extends React.Component<Props, States> {
     const targetQueue = this.queueStore.Queue[0];
     await this.queueStore.sendSlackMsg(
       targetQueue.slack_id,
-      `저기요, <@${this.props.userId}>님이 부릅니다.`,
+      `저기요, <@${this.props.userId}>님이 부릅니다.`
     );
     await this.onClickDeleteQueueBtn(targetQueue.id);
   }
@@ -172,9 +201,12 @@ class QueueAddContainer extends React.Component<Props, States> {
   private async addQueue() {
     await this.queueStore.sendSlackMsg(
       this.props.userId,
-      `저기요, <@${this.loginUserStore.UserInfo!.id}>님이 기다려요.`,
+      `저기요, <@${this.loginUserStore.UserInfo!.id}>님이 기다려요.`
     );
-    await this.queueStore.addQueue(this.props.userId, this.loginUserStore.UserInfo!.id);
+    await this.queueStore.addQueue(
+      this.props.userId,
+      this.loginUserStore.UserInfo!.id
+    );
   }
 
   private getButton() {
@@ -183,26 +215,26 @@ class QueueAddContainer extends React.Component<Props, States> {
       return null;
     }
     // 자신의 큐인가?
-    if (this.queueStore.IsOwned === true && Util.isNotEmpty(this.queueStore.Queue)) {
+    if (
+      this.queueStore.IsOwned === true &&
+      Util.isNotEmpty(this.queueStore.Queue)
+    ) {
       return <Button onClick={this.callNext}>띵동(다음 사람 호출)</Button>;
     }
     const haveUserInfo = Util.isNotEmpty(this.loginUserStore.UserInfo);
     // 타인의 큐인가?
-    if (this.queueStore.IsOwned === false &&
-      haveUserInfo === true) {
+    if (this.queueStore.IsOwned === false && haveUserInfo === true) {
       return (
-      <Button
-        className="btn-primary"
-        onClick={this.addQueue}
-      >
-        줄서기
-      </Button>);
+        <Button className="btn-primary" onClick={this.addQueue}>
+          줄서기
+        </Button>
+      );
     }
     return null;
   }
 
   public async componentDidMount() {
-    const updateState = produce(this.state, (draft) => {
+    const updateState = produce(this.state, draft => {
       draft.isServer = false;
     });
     this.setState(updateState);
@@ -215,7 +247,8 @@ class QueueAddContainer extends React.Component<Props, States> {
       await this.loginUserStore.findLoginUserInfo(Auth.loginUserTokenKey);
 
       this.queueStore.IsOwned =
-        Util.isNotEmpty(this.loginUserStore.UserInfo) && this.loginUserStore.UserInfo.id === this.props.userId;
+        Util.isNotEmpty(this.loginUserStore.UserInfo) &&
+        this.loginUserStore.UserInfo.id === this.props.userId;
     }
   }
 
@@ -231,21 +264,21 @@ class QueueAddContainer extends React.Component<Props, States> {
         <DefaultHeader
           isLogin={this.isLogined()}
           userInfo={this.loginUserStore.UserInfo}
-          onClickLogin={() => { window.location.href = '/login'; }}
-          onClickLogout={() => { this.loginUserStore.logout(this.state.isServer); }}
+          onClickLogin={() => {
+            window.location.href = '/login';
+          }}
+          onClickLogout={() => {
+            this.loginUserStore.logout(this.state.isServer);
+          }}
         />
         <div className="app-body">
           <Container>
             <Card>
-              <CardBody>
-                {avatar}
-              </CardBody>
+              <CardBody>{avatar}</CardBody>
             </Card>
             <Card>
               {button}
-              <CardBody>
-                {queue}
-              </CardBody>
+              <CardBody>{queue}</CardBody>
             </Card>
           </Container>
         </div>

@@ -15,7 +15,7 @@ import {
   Input,
   InputGroup,
   InputGroupAddon,
-  ListGroup,
+  ListGroup
 } from 'reactstrap';
 
 import cow from '../../../assets/img/cow.svg';
@@ -66,9 +66,13 @@ class QueueFindContainer extends React.Component<Props, States> {
 
     const slackUserInfos =
       slackUserResp.type === EN_REQUEST_RESULT.ERROR ? [] : slackUserResp.data;
+    let returnUserInfos: ISlackUserInfo[] = [];
+    if (Util.isNotEmpty(slackUserInfos)) {
+      returnUserInfos = slackUserInfos.filter(fv => !!fv.auth_id);
+    }
 
     const ret: Props = {
-      slackUserInfos: Util.isNotEmpty(slackUserInfos) ? slackUserInfos : []
+      slackUserInfos: returnUserInfos
     };
 
     return ret;
@@ -106,13 +110,13 @@ class QueueFindContainer extends React.Component<Props, States> {
         </div>
       );
     }
-    return this.state.matchUsers.map((mv) => {
+    return this.state.matchUsers.map(mv => {
       return <QueueFindItem key={mv.id} {...mv} />;
     });
   }
 
   private onChangeInput(e: React.ChangeEvent<HTMLInputElement>) {
-    const updateState = produce(this.state, (draft) => {
+    const updateState = produce(this.state, draft => {
       const searchValue = e.currentTarget.value;
       draft.inputTxt = searchValue;
       if (
@@ -120,7 +124,7 @@ class QueueFindContainer extends React.Component<Props, States> {
         searchValue.length > 0
       ) {
         draft.matchUsers = this.props.slackUserInfos.filter(
-          (fv) =>
+          fv =>
             fv.real_name.includes(searchValue) || fv.name.includes(searchValue)
         );
       }
@@ -132,7 +136,7 @@ class QueueFindContainer extends React.Component<Props, States> {
   }
 
   public async componentDidMount() {
-    const updateState = produce(this.state, (draft) => {
+    const updateState = produce(this.state, draft => {
       draft.isServer = false;
     });
     this.setState(updateState);
@@ -156,18 +160,22 @@ class QueueFindContainer extends React.Component<Props, States> {
         <DefaultHeader
           isLogin={this.isLogined()}
           userInfo={this.loginUserStore.UserInfo}
-          onClickLogin={() => { window.location.href = '/login'; }}
-          onClickLogout={() => { this.loginUserStore.logout(this.state.isServer); }}
+          onClickLogin={() => {
+            window.location.href = '/login';
+          }}
+          onClickLogout={() => {
+            this.loginUserStore.logout(this.state.isServer);
+          }}
         />
         <div className="app-body">
           <Container>
             <Card>
               <CardHeader>
-                <CardTitle>
-                  저기요
-                </CardTitle>
+                <CardTitle>저기요</CardTitle>
                 <InputGroup>
-                  <InputGroupAddon addonType="prepend">사람 찾기</InputGroupAddon>
+                  <InputGroupAddon addonType="prepend">
+                    사람 찾기
+                  </InputGroupAddon>
                   <Input
                     type="text"
                     id="time-input"
