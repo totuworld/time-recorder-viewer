@@ -303,6 +303,7 @@ export default class CoffeeDetailContainer extends React.Component<
     updateState.isOpenAddBeverage = false;
     updateState.matchBeverages = [];
     updateState.matchOrders = [];
+    updateState.option = '';
     this.setState(updateState);
   }
 
