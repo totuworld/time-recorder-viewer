@@ -17,9 +17,14 @@ export class EventRoute extends CommonRoute {
       trRoute.controller.findEvent.bind(trRoute.controller)
     );
 
+    trRoute.route(EN_REQUEST_METHODS.PUT)(
+      '/events/:event_id',
+      trRoute.controller.closeEvent.bind(trRoute.controller)
+    );
+
     trRoute.route(EN_REQUEST_METHODS.GET)(
       '/events/:event_id/guests',
-      trRoute.controller.findEvent.bind(trRoute.controller)
+      trRoute.controller.findEventGuests.bind(trRoute.controller)
     );
 
     trRoute.route(EN_REQUEST_METHODS.POST)(
