@@ -12,6 +12,7 @@ import { FindAllEventsReqParam } from './interface/FindAllEventsReqParam';
 import { FindEventReqParam } from './interface/FindEventReqParam';
 import { IEvent } from './interface/IEvent';
 import { IEventOrder } from './interface/IEventOrder';
+import { RemoveOrderReqParam } from './interface/RemoveOrderReqParam';
 import { SendMsgToGuestsReqParam } from './interface/SendMsgToGuestsReqParam';
 
 const log = debug('trv:model:Event');
@@ -214,6 +215,35 @@ export class Event {
     }
     log(result.payload);
     return { type: EN_REQUEST_RESULT.SUCCESS, data: result.payload };
+  }
+
+  public async deleteOrder(
+    params: RemoveOrderReqParam,
+    schema: IJSONSchemaType
+  ) {
+    const validParam = Requester.validateParamWithData<RemoveOrderReqParam>(
+      params,
+      schema
+    );
+    log('deleteOrder validParam: ', validParam.result);
+    if (validParam.result === false) {
+      return { type: EN_REQUEST_RESULT.ERROR };
+    }
+
+    const query = this.rb.removeEventOrderQuery({
+      method: 'DELETE',
+      headers: {},
+      resources: validParam.data.params
+    });
+    const requester = RequestService.create(query.url);
+    const response = await requester.call<{}>(query);
+
+    const result = await response;
+    if (result.type === EN_REQUEST_RESULT.ERROR) {
+      return { type: EN_REQUEST_RESULT.ERROR };
+    }
+    log(result.payload);
+    return { type: EN_REQUEST_RESULT.SUCCESS };
   }
 
   public async sendMsgToGuests(

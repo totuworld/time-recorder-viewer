@@ -37,6 +37,11 @@ export class EventRoute extends CommonRoute {
       trRoute.controller.addOrder.bind(trRoute.controller)
     );
 
+    trRoute.route(EN_REQUEST_METHODS.DELETE)(
+      '/events/:eventId/orders/:guestId',
+      trRoute.controller.deleteOrder.bind(trRoute.controller)
+    );
+
     trRoute.route(EN_REQUEST_METHODS.GET)(
       '/events/:event_id/orders',
       trRoute.controller.orders.bind(trRoute.controller)

@@ -13,6 +13,7 @@ import {
 } from '../models/event/interface/IEventOrder';
 import { JSCAddOrder } from '../models/event/JSONSchema/JSCAddOrder';
 import { JSCFindEvent } from '../models/event/JSONSchema/JSCFindEvent';
+import { JSCRemoveOrder } from '../models/event/JSONSchema/JSCRemoveOrder';
 import { JSCSendMsgToGuests } from '../models/event/JSONSchema/JSCSendMsgToGuests';
 import { ISlackUserInfo, IUserInfo } from '../models/user/interface/IUserInfo';
 import { EN_REQUEST_RESULT } from '../services/requestService/requesters/AxiosRequester';
@@ -101,6 +102,17 @@ export default class EventDetailStore {
     return this.isLoading;
   }
 
+  public totalOrders() {
+    if (this.orders.size <= 0) {
+      return 0;
+    }
+    let count = 0;
+    this.orders.forEach(v => {
+      count += v.length;
+    });
+    return count;
+  }
+
   private reduceOrder(orders: IEventOrder[]) {
     return orders.reduce((acc, cur) => {
       const key = `${cur.beverage_id},${cur.option}`;
@@ -154,6 +166,45 @@ export default class EventDetailStore {
           }
         },
         JSCAddOrder
+      );
+      // orders 재로딩
+      const orders = await eventAction.orders(
+        { params: { event_id: this.eventInfo.id } },
+        JSCFindEvent
+      );
+      return runInAction(() => {
+        if (orders.type === EN_REQUEST_RESULT.SUCCESS && !!orders.data) {
+          const reduceOrders = this.reduceOrder(orders.data);
+          this.orders = reduceOrders;
+        }
+        this.isLoading = false;
+        return null;
+      });
+    } catch (error) {
+      this.isLoading = false;
+      throw error;
+    }
+  }
+
+  @action
+  public async deleteOrder(userId: string) {
+    if (this.isLoading === true) {
+      return null;
+    }
+    try {
+      this.isLoading = true;
+
+      const eventRb = new EventRequestBuilder({ isProxy: true });
+      const eventAction = new Event(eventRb);
+
+      await eventAction.deleteOrder(
+        {
+          params: {
+            eventId: this.eventInfo.id,
+            guestId: userId
+          }
+        },
+        JSCRemoveOrder
       );
       // orders 재로딩
       const orders = await eventAction.orders(

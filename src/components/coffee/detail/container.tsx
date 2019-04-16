@@ -181,6 +181,7 @@ export default class CoffeeDetailContainer extends React.Component<
     this.handleClickSearchedOrder = this.handleClickSearchedOrder.bind(this);
     this.closeAddBeverageModal = this.closeAddBeverageModal.bind(this);
     this.addBeverageModal = this.addBeverageModal.bind(this);
+    this.handleClickMyItem = this.handleClickMyItem.bind(this);
     this.orderItems = this.orderItems.bind(this);
     this.isClosed = this.isClosed.bind(this);
     this.getOwnerMenu = this.getOwnerMenu.bind(this);
@@ -390,6 +391,16 @@ export default class CoffeeDetailContainer extends React.Component<
     );
   }
 
+  private async handleClickMyItem() {
+    if (
+      !!this.detailStore &&
+      this.isLogined() === true &&
+      !!this.loginUserStore.UserInfo
+    ) {
+      await this.detailStore.deleteOrder(this.loginUserStore.UserInfo.id);
+    }
+  }
+
   private orderItems() {
     if (
       !!this.detailStore &&
@@ -424,6 +435,13 @@ export default class CoffeeDetailContainer extends React.Component<
               beverage_id={orders[0].beverage_id}
               users={filterUsers}
               isMine={isMine}
+              handleOnClick={
+                isMine === true
+                  ? this.handleClickMyItem
+                  : () => {
+                      console.log('');
+                    }
+              }
             />
           );
         }
@@ -565,7 +583,10 @@ export default class CoffeeDetailContainer extends React.Component<
           음료 추가
         </Button>
       ) : null;
-    const totalOrderCount = this.props.orders.length;
+    const totalOrderCount =
+      !!this.detailStore && !!this.detailStore.Orders
+        ? this.detailStore.totalOrders()
+        : this.props.orders.length;
     return (
       <div className="app">
         <Helmet>

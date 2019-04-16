@@ -9,11 +9,13 @@ import { FindAllEventsReqParam } from '../../models/event/interface/FindAllEvent
 import { FindEventReqParam } from '../../models/event/interface/FindEventReqParam';
 import { IEvent } from '../../models/event/interface/IEvent';
 import { IEventOrder } from '../../models/event/interface/IEventOrder';
+import { RemoveOrderReqParam } from '../../models/event/interface/RemoveOrderReqParam';
 import { SendMsgToGuestsReqParam } from '../../models/event/interface/SendMsgToGuestsReqParam';
 import { JSCAddEvent } from '../../models/event/JSONSchema/JSCAddEvent';
 import { JSCAddOrder } from '../../models/event/JSONSchema/JSCAddOrder';
 import { JSCFindAllEvent } from '../../models/event/JSONSchema/JSCFindAllEvent';
 import { JSCFindEvent } from '../../models/event/JSONSchema/JSCFindEvent';
+import { JSCRemoveOrder } from '../../models/event/JSONSchema/JSCRemoveOrder';
 import { JSCSendMsgToGuests } from '../../models/event/JSONSchema/JSCSendMsgToGuests';
 import { RequestBuilderParams } from '../../services/requestService/RequestBuilder';
 import { Requester } from '../../services/requestService/Requester';
@@ -219,6 +221,34 @@ export class EventController {
     };
   }
 
+  public async deleteOrder(req: Request): Promise<TControllerResp<{}>> {
+    const validateReq = Requester.validateParamWithData<RemoveOrderReqParam>(
+      {
+        params: req.params
+      },
+      JSCRemoveOrder
+    );
+    if (validateReq.result === false) {
+      return {
+        status: 400,
+        payload: validateReq.errorMessage
+      };
+    }
+    const rbParam: RequestBuilderParams = { baseURI: Config.getApiURI() };
+
+    const rb = new EventRequestBuilder(rbParam);
+    const findAction = new Event(rb);
+
+    const actionResp = await findAction.deleteOrder(
+      { ...validateReq.data },
+      JSCRemoveOrder
+    );
+
+    return {
+      status: actionResp.type === EN_REQUEST_RESULT.ERROR ? 400 : 200
+    };
+  }
+
   public async sendMsgToGuests(req: Request): Promise<TControllerResp<{}>> {
     const validateReq = Requester.validateParamWithData<
       SendMsgToGuestsReqParam
@@ -247,7 +277,12 @@ export class EventController {
       },
       JSCSendMsgToGuests
     );
-
+    console.log(
+      JSON.stringify({
+        source: 'sendMsgToGuests',
+        req: { originalUrl: req.originalUrl, query: req.query }
+      })
+    );
     return {
       status: actionResp.type === EN_REQUEST_RESULT.ERROR ? 400 : 200,
       payload: actionResp.data

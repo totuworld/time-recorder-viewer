@@ -147,6 +147,26 @@ export class EventRequestBuilder extends RequestBuilder {
     };
   }
 
+  public removeEventOrderQuery({
+    method,
+    resources
+  }: RequestParams<{ eventId: string; guestId: string }>) {
+    const { eventId, guestId } = resources!;
+    const apiPath = this.getAPIPath(`/events/${eventId}/orders/${guestId}`);
+    const endPoint = apiPath.href();
+
+    log('removeEventOrderQuery: ', resources);
+
+    return {
+      method,
+      headers: {
+        ...this.AccessTokenObject
+      },
+      timeout: 10000,
+      url: endPoint
+    };
+  }
+
   public findEventOrdersQuery({
     method,
     resources
