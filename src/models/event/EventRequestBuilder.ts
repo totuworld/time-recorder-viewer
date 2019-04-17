@@ -116,7 +116,7 @@ export class EventRequestBuilder extends RequestBuilder {
 
     return {
       method,
-      body,
+      data: body,
       headers: {
         ...this.AccessTokenObject
       },
