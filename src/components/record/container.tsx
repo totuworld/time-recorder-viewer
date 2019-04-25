@@ -53,7 +53,7 @@ import ChartBarStacked from '../chart/bar/Stacked';
 import ChartBarStacked2, {
   IChartBarStacked2Props
 } from '../chart/bar/Stacked2';
-import ChartPieDonut from '../chart/pie/donut';
+import ChartPieDonut from '../chart/pie/Donut';
 import DefaultHeader from '../common/DefaultHeader';
 import GroupUserAvatar from '../group/user/avatar';
 import { IAfterRequestContext } from '../interface/IAfterRequestContext';

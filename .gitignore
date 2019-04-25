@@ -9,3 +9,4 @@ build
 dist
 public/static
 .env.*.local
+.env
