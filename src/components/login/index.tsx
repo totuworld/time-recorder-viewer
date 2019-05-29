@@ -2,9 +2,22 @@ import '@coreui/icons/css/coreui-icons.min.css';
 import '../../styles/style.css';
 
 import React, { Component } from 'react';
-import { Button, Card, CardBody, CardGroup, CardHeader, Col, Container, Row } from 'reactstrap';
+import {
+  Button,
+  Card,
+  CardBody,
+  CardGroup,
+  CardHeader,
+  Col,
+  Container,
+  Row
+} from 'reactstrap';
 
-import { appTokenKey, firebaseAuthKey, loginUserKey } from '../../constants/constants';
+import {
+  appTokenKey,
+  firebaseAuthKey,
+  loginUserKey
+} from '../../constants/constants';
 import { PostLoginUserJSONSchema } from '../../models/user/JSONSchema/PostLoginUserJSONSchema';
 import { User } from '../../models/user/User';
 import { UserRequestBuilder } from '../../models/user/UserRequestBuilder';
@@ -15,29 +28,44 @@ import { EN_REQUEST_RESULT } from '../../services/requestService/requesters/Axio
 const DEFAULT_PAGE = '/';
 
 class Login extends Component {
-
   constructor(props: any) {
     super(props);
 
     this.clickLogin = this.clickLogin.bind(this);
+    this.getReturnUrl = this.getReturnUrl.bind(this);
   }
 
   public clickLogin() {
-    Auth.firebaseAuth().signInWithPopup(Auth.googleProvider).catch((_) => {
-      localStorage.removeItem(firebaseAuthKey);
-    });
+    Auth.firebaseAuth()
+      .signInWithPopup(Auth.googleProvider)
+      .catch(_ => {
+        localStorage.removeItem(firebaseAuthKey);
+      });
     localStorage.setItem(firebaseAuthKey, '1');
   }
 
-  public componentDidMount() {
-    if (localStorage.getItem(appTokenKey) && localStorage.getItem(loginUserKey)) {
-      const userKey = localStorage.getItem(loginUserKey);
-      window.location.href = !!userKey ? `/records/${userKey}` : DEFAULT_PAGE;
-      return;
+  private getReturnUrl() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const redirectUri = urlParams.get('redirect_uri');
+    if (urlParams.has('redirect_uri') && !!redirectUri) {
+      return redirectUri;
+    }
+    return DEFAULT_PAGE;
   }
 
-    Auth.firebaseAuth()
-    .onAuthStateChanged((user) => {
+  public componentDidMount() {
+    if (
+      localStorage.getItem(appTokenKey) &&
+      localStorage.getItem(loginUserKey)
+    ) {
+      const userKey = localStorage.getItem(loginUserKey);
+      window.location.href = !!userKey
+        ? `/records/${userKey}`
+        : this.getReturnUrl();
+      return;
+    }
+
+    Auth.firebaseAuth().onAuthStateChanged(user => {
       if (!!user) {
         // console.log('User signed in: ', JSON.stringify(user));
 
@@ -52,19 +80,27 @@ class Login extends Component {
         const checkParams = {
           body: {
             userUid: user.uid,
-            email: user.email,
+            email: user.email
           }
         };
-        action.addLoginUser(checkParams, PostLoginUserJSONSchema)
-        .then((result) => {
-          let returnUrl = DEFAULT_PAGE;
-          localStorage.setItem(appTokenKey, user.uid);
-          if (result.type === EN_REQUEST_RESULT.SUCCESS && !!result.data && !!result.data.userKey) {
-            localStorage.setItem(loginUserKey, result.data.userKey);
-            returnUrl = `/records/${result.data.userKey}`;
-          }
-          window.location.href = returnUrl;
-        });
+        action
+          .addLoginUser(checkParams, PostLoginUserJSONSchema)
+          .then(result => {
+            let returnUrl = this.getReturnUrl();
+            localStorage.setItem(appTokenKey, user.uid);
+            if (
+              result.type === EN_REQUEST_RESULT.SUCCESS &&
+              !!result.data &&
+              !!result.data.userKey
+            ) {
+              localStorage.setItem(loginUserKey, result.data.userKey);
+              // 기본 url인 경우 바꾸도록 한다.
+              if (returnUrl === DEFAULT_PAGE) {
+                returnUrl = `/records/${result.data.userKey}`;
+              }
+            }
+            window.location.href = returnUrl;
+          });
       }
     });
   }
@@ -84,8 +120,13 @@ class Login extends Component {
                 <Card>
                   <CardBody className="text-center">
                     <div>
-                      <Button className="btn-google-plus btn-brand" active={true} onClick={this.clickLogin}>
-                        <i className="fa fa-google-plus" /><span>Log in with Google</span>
+                      <Button
+                        className="btn-google-plus btn-brand"
+                        active={true}
+                        onClick={this.clickLogin}
+                      >
+                        <i className="fa fa-google-plus" />
+                        <span>Log in with Google</span>
                       </Button>
                     </div>
                   </CardBody>

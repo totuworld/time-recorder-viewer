@@ -119,6 +119,13 @@ export default class CoffeeContainer extends React.Component<IProp, IState> {
 
   public render() {
     const rows = this.getRows();
+    const addMenu = this.isLogined() ? (
+      <Card>
+        <NavLink to="/coffeebreak/add">
+          <h3>새로운 ☕️⏱ 추가</h3>
+        </NavLink>
+      </Card>
+    ) : null;
     return (
       <div className="app">
         <Helmet>
@@ -136,11 +143,7 @@ export default class CoffeeContainer extends React.Component<IProp, IState> {
         />
         <div className="app-body">
           <Container>
-            <Card>
-              <NavLink to="/coffeebreak/add">
-                <h3>새로운 ☕️⏱ 추가</h3>
-              </NavLink>
-            </Card>
+            {addMenu}
             <Card>
               <CardBody>
                 <ListGroup>{rows}</ListGroup>
