@@ -587,6 +587,11 @@ export default class CoffeeDetailContainer extends React.Component<
       !!this.detailStore && !!this.detailStore.Orders
         ? this.detailStore.totalOrders()
         : this.props.orders.length;
+    const loginBtn = this.isLogined() ? null : (
+      <Button href={`/login?redirect_uri=/coffeebreak/${this.props.info!.id}`}>
+        로그인
+      </Button>
+    );
     return (
       <div className="app">
         <Helmet>
@@ -610,16 +615,20 @@ export default class CoffeeDetailContainer extends React.Component<
                 <p>{disDesc}</p>
                 {ownerMenu}
               </CardHeader>
-
+              {loginBtn}
               <Search
                 title=""
                 showTitle={false}
-                placeHolder="음료 검색 ex) ㅇㅇ"
+                placeHolder={
+                  !this.isLogined()
+                    ? '음료 주문은 로그인한 사용자만 가능합니다'
+                    : '음료 검색 ex) ㅇㅇ'
+                }
                 onChangeInput={this.onChangeInput}
                 handleSubmit={() => {
                   console.log(this.state.searchText);
                 }}
-                disabled={this.isClosed()}
+                disabled={this.isClosed() || !this.isLogined()}
               >
                 {addBeverage}
                 <ListGroup>{searchedBeverages}</ListGroup>
