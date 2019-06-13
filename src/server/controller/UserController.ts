@@ -3,10 +3,11 @@ import { Request } from 'express';
 import { Config } from '../../config/Config';
 import { IAddLoginUser } from '../../models/user/interface/IAddLoginUser';
 import { ILoginUser } from '../../models/user/interface/ILoginUser';
-import { ISlackUserInfo, IUserInfo } from '../../models/user/interface/IUserInfo';
 import {
-    GetGroupUserInfosJSONSchema
-} from '../../models/user/JSONSchema/GetGroupUserInfosJSONSchema';
+  ISlackUserInfo,
+  IUserInfo
+} from '../../models/user/interface/IUserInfo';
+import { GetGroupUserInfosJSONSchema } from '../../models/user/JSONSchema/GetGroupUserInfosJSONSchema';
 import { GetUserInfoJSONSchema } from '../../models/user/JSONSchema/GetUserInfoJSONSchema';
 import { PostLoginUserJSONSchema } from '../../models/user/JSONSchema/PostLoginUserJSONSchema';
 import { User } from '../../models/user/User';
@@ -16,14 +17,15 @@ import { EN_REQUEST_RESULT } from '../../services/requestService/requesters/Axio
 import { TControllerResp } from './ICommonController';
 
 export class UserController {
-
-  public async getGroupUserList(req: Request): Promise<TControllerResp<IUserInfo[]>> {
+  public async getGroupUserList(
+    req: Request
+  ): Promise<TControllerResp<IUserInfo[]>> {
     const rbParam: RequestBuilderParams = { baseURI: Config.getApiURI() };
     const { groupId } = req.query;
 
     const checkParams = {
       query: {
-        groupId,
+        groupId
       }
     };
 
@@ -32,12 +34,12 @@ export class UserController {
 
     const actionResp = await findAction.findGroups(
       checkParams,
-      GetGroupUserInfosJSONSchema,
+      GetGroupUserInfosJSONSchema
     );
 
     return {
       status: actionResp.type === EN_REQUEST_RESULT.ERROR ? 400 : 200,
-      payload: actionResp.data,
+      payload: actionResp.data
     };
   }
 
@@ -47,7 +49,7 @@ export class UserController {
 
     const checkParams = {
       query: {
-        userId,
+        userId
       }
     };
 
@@ -56,16 +58,20 @@ export class UserController {
 
     const actionResp = await findAction.find(
       checkParams,
-      GetUserInfoJSONSchema,
+      GetUserInfoJSONSchema
     );
 
-    return {
+    const returnData = {
       status: actionResp.type === EN_REQUEST_RESULT.ERROR ? 400 : 200,
-      payload: actionResp.data,
+      payload: actionResp.data
     };
+
+    return returnData;
   }
 
-  public async addLoginUser(req: Request): Promise<TControllerResp<IAddLoginUser>> {
+  public async addLoginUser(
+    req: Request
+  ): Promise<TControllerResp<IAddLoginUser>> {
     const rbParam: RequestBuilderParams = { baseURI: Config.getApiURI() };
     const { userUid, email } = req.body;
 
@@ -81,16 +87,18 @@ export class UserController {
 
     const actionResp = await findAction.addLoginUser(
       checkParams,
-      PostLoginUserJSONSchema,
+      PostLoginUserJSONSchema
     );
 
     return {
       status: actionResp.type === EN_REQUEST_RESULT.ERROR ? 400 : 200,
-      payload: actionResp.data,
+      payload: actionResp.data
     };
   }
 
-  public async getLoginUserInfo(req: Request): Promise<TControllerResp<ILoginUser>> {
+  public async getLoginUserInfo(
+    req: Request
+  ): Promise<TControllerResp<ILoginUser>> {
     const rbParam: RequestBuilderParams = { baseURI: Config.getApiURI() };
     const { user_uid } = req.params;
 
@@ -99,17 +107,17 @@ export class UserController {
     const rb = new UserRequestBuilder(rbParam);
     const findAction = new User(rb);
 
-    const actionResp = await findAction.findLoginUser(
-      checkParams,
-    );
+    const actionResp = await findAction.findLoginUser(checkParams);
 
     return {
       status: actionResp.type === EN_REQUEST_RESULT.ERROR ? 400 : 200,
-      payload: actionResp.data,
+      payload: actionResp.data
     };
   }
 
-  public async getAllSlackUserInfo(_: Request): Promise<TControllerResp<ISlackUserInfo[]>> {
+  public async getAllSlackUserInfo(
+    _: Request
+  ): Promise<TControllerResp<ISlackUserInfo[]>> {
     const rbParam: RequestBuilderParams = { baseURI: Config.getApiURI() };
 
     const rb = new UserRequestBuilder(rbParam);
@@ -119,11 +127,13 @@ export class UserController {
 
     return {
       status: actionResp.type === EN_REQUEST_RESULT.ERROR ? 400 : 200,
-      payload: actionResp.data,
+      payload: actionResp.data
     };
   }
 
-  public async findQueue(req: Request): Promise<TControllerResp<ISlackUserInfo[]>> {
+  public async findQueue(
+    req: Request
+  ): Promise<TControllerResp<ISlackUserInfo[]>> {
     const rbParam: RequestBuilderParams = { baseURI: Config.getApiURI() };
 
     const { authId } = req.params;
@@ -135,13 +145,17 @@ export class UserController {
       authId
     });
 
-    return {
+    const returnData = {
       status: actionResp.type === EN_REQUEST_RESULT.ERROR ? 400 : 200,
-      payload: actionResp.data,
+      payload: actionResp.data
     };
+
+    return returnData;
   }
 
-  public async addQueue(req: Request): Promise<TControllerResp<ISlackUserInfo[]>> {
+  public async addQueue(
+    req: Request
+  ): Promise<TControllerResp<ISlackUserInfo[]>> {
     const rbParam: RequestBuilderParams = { baseURI: Config.getApiURI() };
 
     const { userId } = req.params;
@@ -157,13 +171,17 @@ export class UserController {
       }
     });
 
-    return {
+    const returnData = {
       status: actionResp.type === EN_REQUEST_RESULT.ERROR ? 400 : 200,
-      payload: actionResp.data,
+      payload: actionResp.data
     };
+
+    return returnData;
   }
 
-  public async deleteQueue(req: Request): Promise<TControllerResp<ISlackUserInfo[]>> {
+  public async deleteQueue(
+    req: Request
+  ): Promise<TControllerResp<ISlackUserInfo[]>> {
     const rbParam: RequestBuilderParams = { baseURI: Config.getApiURI() };
 
     const { authId, key } = req.params;
@@ -173,13 +191,14 @@ export class UserController {
 
     const actionResp = await findAction.deleteQueue({
       authId,
-      key,
+      key
     });
 
-    return {
+    const returnData = {
       status: actionResp.type === EN_REQUEST_RESULT.ERROR ? 400 : 200,
-      payload: actionResp.data,
+      payload: actionResp.data
     };
-  }
 
+    return returnData;
+  }
 }
