@@ -234,9 +234,11 @@ class RecordOverloadContainer extends React.Component<
         // 그리고 toFormat('hh:mm:ss')로 표시
         // 위와 같은 작업을 remain에도 진행한다.
         let overTimeStr = '-';
+        const haveOverTime = !!mv.over;
+        let isMinus = false;
         if (!!mv.over) {
           let overTimeDuration = luxon.Duration.fromObject(mv.over);
-          const isMinus = overTimeDuration.as('milliseconds') < 0;
+          isMinus = overTimeDuration.as('milliseconds') < 0;
           if (isMinus) {
             overTimeDuration = luxon.Duration.fromMillis(
               -overTimeDuration.as('milliseconds')
@@ -259,7 +261,9 @@ class RecordOverloadContainer extends React.Component<
               <div>{period}</div>
             </td>
             <td>{overTimeStr}</td>
-            <td>{mv.remainTime.toFormat('hh:mm:ss')}</td>
+            <td>{`${haveOverTime && isMinus ? '-' : ''}${mv.remainTime.toFormat(
+              'hh:mm:ss'
+            )}`}</td>
           </tr>
         );
       });
