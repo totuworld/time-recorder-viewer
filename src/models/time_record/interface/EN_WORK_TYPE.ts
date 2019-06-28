@@ -9,6 +9,7 @@ export enum EN_WORK_TYPE {
   VACATION = 'VACATION',
   HALFVACATION = 'HALFVACATION',
   FUSEOVERLOAD = 'FUSEOVERLOAD',
+  FUSEOVERLOAD_VACATION = 'FUSEOVERLOAD_VACATION'
 }
 
 export enum EN_WORK_TITLE_KR {
@@ -21,7 +22,8 @@ export enum EN_WORK_TITLE_KR {
   REMOTEDONE = '재택근무 끝',
   VACATION = '휴가',
   HALFVACATION = '반차',
-  FUSEOVERLOAD = '추가근무시간사용'
+  FUSEOVERLOAD = '추가근무시간사용',
+  FUSEOVERLOAD_VACATION = '추가근무(10H)->휴가'
 }
 
 export enum EN_WORK_TYPE_COMMAND_TITLE {
@@ -34,5 +36,6 @@ export enum EN_WORK_TYPE_COMMAND_TITLE {
   REMOTEDONE = '재택근무 끝',
   VACATION = '휴가',
   HALFVACATION = '반차',
-  FUSEOVERLOAD = '추가근무시간 사용'
+  FUSEOVERLOAD = '추가근무시간 사용',
+  FUSEOVERLOAD_VACATION = '추가근무(10H) -> 휴가'
 }

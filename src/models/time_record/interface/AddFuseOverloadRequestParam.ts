@@ -4,5 +4,7 @@ export interface AddFuseOverloadRequestParam {
     user_id: string;
     target_date: string;
     duration: string;
+    isVacation?: boolean;
+    note?: string;
   };
 }

@@ -24,6 +24,7 @@ export interface IFuseOverWork {
   date: string;
   /** ISO 8601 duration(PT4H2M) */
   use: string;
+  note?: string;
 }
 
 export interface IFuseOverWorks {

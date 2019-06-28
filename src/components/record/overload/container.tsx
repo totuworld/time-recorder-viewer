@@ -277,15 +277,17 @@ class RecordOverloadContainer extends React.Component<
     return this.overloadStore.FuseRecords.sort((a, b) =>
       a.date > b.date ? -1 : 1
     ).map(mv => {
-      const { date, use } = mv;
+      const { date, use, note } = mv;
       const useDate = luxon.DateTime.fromFormat(date, 'yyyyLLdd');
       const useDateStr = useDate.toFormat('yyyy-LL-dd');
       const duration = luxon.Duration.fromISO(use);
       const durationStr = duration.toFormat('hh:mm:ss');
+      const noteStr = Util.isNotEmpty(note) ? note : '-';
       return (
         <tr key={mv.date}>
           <td>{useDateStr}</td>
           <td>{durationStr}</td>
+          <td>{noteStr}</td>
         </tr>
       );
     });
@@ -406,6 +408,7 @@ class RecordOverloadContainer extends React.Component<
                     <tr>
                       <th>사용일자</th>
                       <th>사용시간</th>
+                      <th>노트</th>
                     </tr>
                   </thead>
                   <tbody>{fuseRows}</tbody>
