@@ -8,6 +8,7 @@
     "build": "razzle build",
     "test": "razzle test --env=jsdom",
     "start": "NODE_ENV=production node build/server.js",
+    "start:onlinux": "NODE_ENV=production pm2 start build/server.js -i --name YAWORK_API",
     "dist": "node dist.js",
     "lint": "tslint -c tslint.json \"src/**/*.ts*\""
   },

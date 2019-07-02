@@ -15,6 +15,9 @@ export class ConfigType {
       log(envpath);
       require('dotenv').config({ path: envpath });
     }
+    if (env === 'production' && process.env.API_SERVER_HOST === undefined) {
+      require('dotenv').config();
+    }
     log(process.env.API_SERVER_HOST);
   }
 
