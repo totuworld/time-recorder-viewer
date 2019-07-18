@@ -5,12 +5,21 @@ import * as luxon from 'luxon';
 import { observer } from 'mobx-react';
 import React from 'react';
 import { Helmet } from 'react-helmet';
-import { Card, CardBody, CardHeader, Col, Container, Row, Table } from 'reactstrap';
-
-import { IFuseOverWork, IOverWork } from '../../../models/time_record/interface/IOverWork';
 import {
-    GetOverloadsByUserIDJSONSchema
-} from '../../../models/time_record/JSONSchema/GetOverloadsJSONSchema';
+  Card,
+  CardBody,
+  CardHeader,
+  Col,
+  Container,
+  Row,
+  Table
+} from 'reactstrap';
+
+import {
+  IFuseOverWork,
+  IOverWork
+} from '../../../models/time_record/interface/IOverWork';
+import { GetOverloadsByUserIDJSONSchema } from '../../../models/time_record/JSONSchema/GetOverloadsJSONSchema';
 import { Overload } from '../../../models/time_record/Overload';
 import { OverloadRequestBuilder } from '../../../models/time_record/OverloadRequestBuilder';
 import { IUserInfo } from '../../../models/user/interface/IUserInfo';
@@ -42,7 +51,10 @@ interface IRecordOverloadContainerStates {
 }
 
 @observer
-class RecordOverloadContainer extends React.Component<IRecordOverloadContainerProps, IRecordOverloadContainerStates> {
+class RecordOverloadContainer extends React.Component<
+  IRecordOverloadContainerProps,
+  IRecordOverloadContainerStates
+> {
   private overloadStore: OverloadStore;
   private loginUserStore: LoginStore;
 
@@ -50,8 +62,9 @@ class RecordOverloadContainer extends React.Component<IRecordOverloadContainerPr
     req,
     res,
     match
-  }: IAfterRequestContext<{ user_id: string }>): Promise<IRecordOverloadContainerProps> {
-
+  }: IAfterRequestContext<{ user_id: string }>): Promise<
+    IRecordOverloadContainerProps
+  > {
     const user_id = match.params.user_id;
     if (!!user_id === false || user_id.length <= 0) {
       return {
@@ -59,7 +72,7 @@ class RecordOverloadContainer extends React.Component<IRecordOverloadContainerPr
         userId: null,
         userInfo: null,
         records: [],
-        fuseRecords: [],
+        fuseRecords: []
       };
     }
 
@@ -70,28 +83,38 @@ class RecordOverloadContainer extends React.Component<IRecordOverloadContainerPr
 
     const checkParams = {
       query: {
-        user_id,
+        user_id
       }
     };
 
     const userRb = new UserRequestBuilder(rbParam);
     const userAction = new User(userRb);
-    
+
     const rb = new OverloadRequestBuilder(rbParam);
     const action = new Overload(rb);
 
     const [recordsResp, fuseRecordsResp, userInfoResp] = await Promise.all([
       action.findAllByUserID(checkParams, GetOverloadsByUserIDJSONSchema),
       action.findAllFuseUserID(checkParams, GetOverloadsByUserIDJSONSchema),
-      userAction.find({query: { userId: match.params.user_id }}, GetUserInfoJSONSchema)
+      userAction.find(
+        { query: { userId: match.params.user_id } },
+        GetUserInfoJSONSchema
+      )
     ]);
 
     return {
       isOtherUser: true,
       userId: user_id,
-      userInfo: userInfoResp.type === EN_REQUEST_RESULT.SUCCESS ? userInfoResp.data : null,
-      records: recordsResp.type === EN_REQUEST_RESULT.SUCCESS ? recordsResp.data : [],
-      fuseRecords: fuseRecordsResp.type === EN_REQUEST_RESULT.SUCCESS ? fuseRecordsResp.data : [],
+      userInfo:
+        userInfoResp.type === EN_REQUEST_RESULT.SUCCESS
+          ? userInfoResp.data
+          : null,
+      records:
+        recordsResp.type === EN_REQUEST_RESULT.SUCCESS ? recordsResp.data : [],
+      fuseRecords:
+        fuseRecordsResp.type === EN_REQUEST_RESULT.SUCCESS
+          ? fuseRecordsResp.data
+          : []
     };
   }
 
@@ -99,11 +122,12 @@ class RecordOverloadContainer extends React.Component<IRecordOverloadContainerPr
     super(props);
 
     this.state = {
-      isServer: true,
+      isServer: true
     };
 
     this.isLogined = this.isLogined.bind(this);
     this.getAvatar = this.getAvatar.bind(this);
+    this.getTotalFuseOverTime = this.getTotalFuseOverTime.bind(this);
     this.getOverTimeRows = this.getOverTimeRows.bind(this);
     this.getFuseOverTimeRows = this.getFuseOverTimeRows.bind(this);
     this.getRemainTimes = this.getRemainTimes.bind(this);
@@ -111,8 +135,8 @@ class RecordOverloadContainer extends React.Component<IRecordOverloadContainerPr
 
     this.overloadStore = new OverloadStore(
       this.props.records.length > 0 ? this.props.records : [],
-      this.props.fuseRecords.length > 0 ? this.props.fuseRecords : [],
-      );
+      this.props.fuseRecords.length > 0 ? this.props.fuseRecords : []
+    );
     this.loginUserStore = new LoginStore(null);
   }
 
@@ -124,7 +148,9 @@ class RecordOverloadContainer extends React.Component<IRecordOverloadContainerPr
   }
 
   public getAvatar(totalRemainTime: string) {
-    const usedUserInfo = !!this.props.userInfo ? this.props.userInfo : this.loginUserStore.UserInfo;
+    const usedUserInfo = !!this.props.userInfo
+      ? this.props.userInfo
+      : this.loginUserStore.UserInfo;
     if (!!usedUserInfo) {
       const userInfo = usedUserInfo;
       return (
@@ -146,9 +172,23 @@ class RecordOverloadContainer extends React.Component<IRecordOverloadContainerPr
             <strong>차감 가능한 시간</strong>
             <span>{totalRemainTime}</span>
           </Col>
-        </Row>);
+        </Row>
+      );
     }
     return <Card>none</Card>;
+  }
+
+  private getTotalFuseOverTime() {
+    if (this.overloadStore === null) {
+      return luxon.Duration.fromMillis(0);
+    }
+
+    return this.overloadStore.FuseRecords.sort((a, b) =>
+      a.date > b.date ? -1 : 1
+    ).reduce((acc, cur) => {
+      const duration = luxon.Duration.fromISO(cur.use);
+      return acc.plus(duration);
+    }, luxon.Duration.fromMillis(0));
   }
 
   public getOverTimeRows() {
@@ -156,43 +196,77 @@ class RecordOverloadContainer extends React.Component<IRecordOverloadContainerPr
       return null;
     }
 
-    return this.overloadStore.Records
-    .sort((a, b) => a.week > b.week ? -1 : 1)
-    .map((mv) => {
-      const { week } = mv;
-      const startDate = luxon.DateTime.fromISO(`${week}-1`).minus({ days: 1 });
-      const endDate = luxon.DateTime.fromISO(`${week}-6`);
-      const period = `${startDate.toFormat('yyyy-LL-dd')} ~ ${endDate.toFormat('yyyy-LL-dd')}`;
-      // mv.over가 존재하면 luxon.Duration으로 뽑아낸다.
-      // 그리고 toFormat('hh:mm:ss')로 표시
-      // 위와 같은 작업을 remain에도 진행한다.
-      let overTimeStr = '-';
-      if (!!mv.over) {
-        let overTimeDuration = luxon.Duration.fromObject(mv.over);
-        const isMinus = overTimeDuration.as('milliseconds') < 0;
-        if (isMinus) {
-          overTimeDuration = luxon.Duration.fromMillis(-overTimeDuration.as('milliseconds'));
+    let totalFuseOverTime = this.getTotalFuseOverTime();
+    const zeroDuration = luxon.Duration.fromMillis(0);
+
+    return this.overloadStore.Records.sort((a, b) => (a.week < b.week ? -1 : 1))
+      .map(mv => {
+        const updateMv = { ...mv, remainTime: luxon.Duration.fromMillis(0) };
+        if (!!mv.over) {
+          let overTimeDuration = luxon.Duration.fromObject(mv.over);
+          const isMinus = overTimeDuration.as('milliseconds') < 0;
+          if (isMinus) {
+            overTimeDuration = luxon.Duration.fromMillis(
+              -overTimeDuration.as('milliseconds')
+            );
+          }
+          // 남은 초과근무 소진 시간이 없는가?
+          if (totalFuseOverTime <= zeroDuration) {
+            updateMv.remainTime = overTimeDuration;
+          } else if (totalFuseOverTime < overTimeDuration) {
+            updateMv.remainTime = overTimeDuration.minus(totalFuseOverTime);
+          }
+          totalFuseOverTime = totalFuseOverTime.minus(overTimeDuration);
         }
-        overTimeStr = `${isMinus ? '-' : ''}${overTimeDuration.toFormat('hh:mm:ss')}`;
-      }
-      return (
-        <tr
-          key={mv.week}
-          onClick={() => { this.handleClickRow(mv.week); }}
-          style={{cursor: 'pointer'}}
-        >
-          <td>
-            {mv.week}
-          </td>
-          <td className="d-none d-sm-table-cell">
-            <div>{period}</div>
-          </td>
-          <td>
-            {overTimeStr}
-          </td>
-        </tr>
-      );
-    });
+        return updateMv;
+      })
+      .sort((a, b) => (a.week > b.week ? -1 : 1))
+      .map(mv => {
+        const { week } = mv;
+        const startDate = luxon.DateTime.fromISO(`${week}-1`).minus({
+          days: 1
+        });
+        const endDate = luxon.DateTime.fromISO(`${week}-6`);
+        const period = `${startDate.toFormat(
+          'yyyy-LL-dd'
+        )} ~ ${endDate.toFormat('yyyy-LL-dd')}`;
+        // mv.over가 존재하면 luxon.Duration으로 뽑아낸다.
+        // 그리고 toFormat('hh:mm:ss')로 표시
+        // 위와 같은 작업을 remain에도 진행한다.
+        let overTimeStr = '-';
+        const haveOverTime = !!mv.over;
+        let isMinus = false;
+        if (!!mv.over) {
+          let overTimeDuration = luxon.Duration.fromObject(mv.over);
+          isMinus = overTimeDuration.as('milliseconds') < 0;
+          if (isMinus) {
+            overTimeDuration = luxon.Duration.fromMillis(
+              -overTimeDuration.as('milliseconds')
+            );
+          }
+          overTimeStr = `${isMinus ? '-' : ''}${overTimeDuration.toFormat(
+            'hh:mm:ss'
+          )}`;
+        }
+        return (
+          <tr
+            key={mv.week}
+            onClick={() => {
+              this.handleClickRow(mv.week);
+            }}
+            style={{ cursor: 'pointer' }}
+          >
+            <td>{mv.week}</td>
+            <td className="d-none d-sm-table-cell">
+              <div>{period}</div>
+            </td>
+            <td>{overTimeStr}</td>
+            <td>{`${haveOverTime && isMinus ? '-' : ''}${mv.remainTime.toFormat(
+              'hh:mm:ss'
+            )}`}</td>
+          </tr>
+        );
+      });
   }
 
   public getFuseOverTimeRows() {
@@ -200,24 +274,20 @@ class RecordOverloadContainer extends React.Component<IRecordOverloadContainerPr
       return null;
     }
 
-    return this.overloadStore.FuseRecords
-    .sort((a, b) => a.date > b.date ? -1 : 1)
-    .map((mv) => {
-      const { date, use } = mv;
+    return this.overloadStore.FuseRecords.sort((a, b) =>
+      a.date > b.date ? -1 : 1
+    ).map(mv => {
+      const { date, use, note } = mv;
       const useDate = luxon.DateTime.fromFormat(date, 'yyyyLLdd');
       const useDateStr = useDate.toFormat('yyyy-LL-dd');
       const duration = luxon.Duration.fromISO(use);
       const durationStr = duration.toFormat('hh:mm:ss');
+      const noteStr = Util.isNotEmpty(note) ? note : '-';
       return (
-        <tr
-          key={mv.date}
-        >
-          <td>
-            {useDateStr}
-          </td>
-          <td>
-            {durationStr}
-          </td>
+        <tr key={mv.date}>
+          <td>{useDateStr}</td>
+          <td>{durationStr}</td>
+          <td>{noteStr}</td>
         </tr>
       );
     });
@@ -239,14 +309,23 @@ class RecordOverloadContainer extends React.Component<IRecordOverloadContainerPr
     if (milliseconds < 0) {
       duration = luxon.Duration.fromMillis(Math.abs(milliseconds));
     }
-    return milliseconds < 0 ? `-${duration.toFormat('hh:mm:ss')}` : duration.toFormat('hh:mm:ss');
+    return milliseconds < 0
+      ? `-${duration.toFormat('hh:mm:ss')}`
+      : duration.toFormat('hh:mm:ss');
   }
 
   public handleClickRow(week: string) {
     const startDate = luxon.DateTime.fromISO(`${week}-1`).minus({ days: 1 });
     const endDate = luxon.DateTime.fromISO(`${week}-6`);
-    if (this.state.isServer === false && !!this.loginUserStore && !!this.loginUserStore.UserInfo) {
-      const id = this.props.isOtherUser === true ? this.props.userId : this.loginUserStore.UserInfo.id;
+    if (
+      this.state.isServer === false &&
+      !!this.loginUserStore &&
+      !!this.loginUserStore.UserInfo
+    ) {
+      const id =
+        this.props.isOtherUser === true
+          ? this.props.userId
+          : this.loginUserStore.UserInfo.id;
       const startDateStr = startDate.toFormat('yyyy-LL-dd');
       const endDateStr = endDate.toFormat('yyyy-LL-dd');
       window.location.href = `/records/${id}?startDate=${startDateStr}&endDate=${endDateStr}`;
@@ -256,7 +335,7 @@ class RecordOverloadContainer extends React.Component<IRecordOverloadContainerPr
   public async componentDidMount() {
     this.setState({
       ...this.state,
-      isServer: false,
+      isServer: false
     });
     if (Auth.isLogined === true && !!Auth.loginUserKey) {
       await this.loginUserStore.findUserInfo(Auth.loginUserKey);
@@ -286,8 +365,12 @@ class RecordOverloadContainer extends React.Component<IRecordOverloadContainerPr
         <DefaultHeader
           isLogin={this.isLogined()}
           userInfo={this.loginUserStore.UserInfo}
-          onClickLogin={() => { window.location.href = '/login'; }}
-          onClickLogout={() => { this.loginUserStore.logout(this.state.isServer); }}
+          onClickLogin={() => {
+            window.location.href = '/login';
+          }}
+          onClickLogout={() => {
+            this.loginUserStore.logout(this.state.isServer);
+          }}
         />
         <div className="app-body">
           <Container>
@@ -308,6 +391,7 @@ class RecordOverloadContainer extends React.Component<IRecordOverloadContainerPr
                       <th>기록</th>
                       <th className="d-none d-sm-table-cell">기록기간</th>
                       <th>초과시간</th>
+                      <th>남은시간</th>
                     </tr>
                   </thead>
                   <tbody>{rows}</tbody>
@@ -324,6 +408,7 @@ class RecordOverloadContainer extends React.Component<IRecordOverloadContainerPr
                     <tr>
                       <th>사용일자</th>
                       <th>사용시간</th>
+                      <th>노트</th>
                     </tr>
                   </thead>
                   <tbody>{fuseRows}</tbody>

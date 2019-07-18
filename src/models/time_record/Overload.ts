@@ -180,9 +180,10 @@ export class Overload {
     schema: IJSONSchemaType
   ): Promise<IAddTimeRecord> {
     log(params);
-    const validParam = Requester.validateParam(params, schema);
-    log('validParam: ', validParam);
-    if (validParam === false) {
+    const validParam = Requester.validateParamWithData(params, schema);
+    log('addFuseLog validParam: ', validParam);
+
+    if (validParam.result === false) {
       return { type: EN_REQUEST_RESULT.ERROR, data: { text: null } };
     }
     const query = this.rb.createPostUserFuseOverloadQuery({

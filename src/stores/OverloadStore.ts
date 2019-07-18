@@ -1,13 +1,12 @@
 import * as luxon from 'luxon';
 import { action, observable, runInAction } from 'mobx';
 
-import { IFuseOverWork, IOverWork } from '../models/time_record/interface/IOverWork';
 import {
-    GetOverloadsByUserIDJSONSchema
-} from '../models/time_record/JSONSchema/GetOverloadsJSONSchema';
-import {
-    PostAddOverloadJSONSchema
-} from '../models/time_record/JSONSchema/PostAddOverloadJSONSchema';
+  IFuseOverWork,
+  IOverWork
+} from '../models/time_record/interface/IOverWork';
+import { GetOverloadsByUserIDJSONSchema } from '../models/time_record/JSONSchema/GetOverloadsJSONSchema';
+import { PostAddOverloadJSONSchema } from '../models/time_record/JSONSchema/PostAddOverloadJSONSchema';
 import { Overload } from '../models/time_record/Overload';
 import { OverloadRequestBuilder } from '../models/time_record/OverloadRequestBuilder';
 import { RequestBuilderParams } from '../services/requestService/RequestBuilder';
@@ -19,10 +18,7 @@ export default class OverloadStore {
   @observable private fuseRecords: IFuseOverWork[] = [];
   @observable private isLoading: boolean = false;
 
-  constructor(
-    records: IOverWork[],
-    fuseRecords: IFuseOverWork[],
-  ) {
+  constructor(records: IOverWork[], fuseRecords: IFuseOverWork[]) {
     this.records = records;
     this.fuseRecords = fuseRecords;
   }
@@ -72,7 +68,7 @@ export default class OverloadStore {
 
       const checkParams = {
         query: {
-          user_id: userId,
+          user_id: userId
         }
       };
 
@@ -81,7 +77,7 @@ export default class OverloadStore {
 
       const actionResp = await findAction.findAllByUserID(
         checkParams,
-        GetOverloadsByUserIDJSONSchema,
+        GetOverloadsByUserIDJSONSchema
       );
       return runInAction(() => {
         this.isLoading = false;
@@ -109,7 +105,7 @@ export default class OverloadStore {
 
       const checkParams = {
         query: {
-          user_id: userId,
+          user_id: userId
         }
       };
 
@@ -118,7 +114,7 @@ export default class OverloadStore {
 
       const actionResp = await findAction.findAllFuseUserID(
         checkParams,
-        GetOverloadsByUserIDJSONSchema,
+        GetOverloadsByUserIDJSONSchema
       );
       return runInAction(() => {
         this.isLoading = false;
@@ -140,6 +136,8 @@ export default class OverloadStore {
     userId: string,
     targetDate: luxon.DateTime,
     duration: luxon.Duration,
+    isVacation?: boolean,
+    note?: string
   ): Promise<{ text: string | null }> {
     if (this.isLoading === true) {
       return { text: null };
@@ -155,16 +153,19 @@ export default class OverloadStore {
           auth_user_id: authUserId,
           user_id: userId,
           target_date: targetDate.toFormat('yyyyLLdd'),
+          isVacation,
+          note
         }
       };
 
       const rb = new OverloadRequestBuilder(rbParam);
       const findAction = new Overload(rb);
-
+      console.log('addFuseOverload action');
       const actionResp = await findAction.addFuseLog(
         checkParams,
-        PostAddOverloadJSONSchema,
+        PostAddOverloadJSONSchema
       );
+      console.log(actionResp);
       return runInAction(() => {
         this.isLoading = false;
         if (actionResp.type === EN_REQUEST_RESULT.SUCCESS) {

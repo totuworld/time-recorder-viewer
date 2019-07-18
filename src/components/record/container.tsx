@@ -61,13 +61,6 @@ import RecordButtons from './buttons';
 import { floatButton } from './containerStyle';
 
 const log = debug('trv:recordContainer');
-interface WorkStackedBarChart {
-  new (): ChartBarStacked<{
-    name: string;
-    data: { REST: number; WORK: number; EMERGENCY: number };
-  }>;
-}
-const WorkStackedBarChart = ChartBarStacked as WorkStackedBarChart;
 
 const bgColor = [
   { targetKey: 'REST', color: '#ffc107' },
@@ -98,8 +91,11 @@ interface IetcStates {
   isModalOpen: boolean;
   /** 차감 모달 on/off */
   isFuseModalOpen: boolean;
+  /** 차감하여 휴가 변환 모달 on/off */
+  isFuseToVacationModalOpen: boolean;
   updateData?: { key: string; data: ITimeRecordLogData };
   fuseHours: luxon.Duration;
+  note: string;
 }
 
 @observer
@@ -115,6 +111,7 @@ class RecordContainer extends React.Component<
   private modalStartTimeRef = React.createRef<HTMLInputElement>();
   private modalEndDateRef = React.createRef<HTMLInputElement>();
   private modalEndTimeRef = React.createRef<HTMLInputElement>();
+  private modalNoteRef = React.createRef<HTMLInputElement>();
 
   public static async getInitialProps({
     req,
@@ -201,7 +198,9 @@ class RecordContainer extends React.Component<
       isServer: true,
       isModalOpen: false,
       isFuseModalOpen: false,
-      fuseHours: luxon.Duration.fromObject({ hours: 0 })
+      isFuseToVacationModalOpen: false,
+      fuseHours: luxon.Duration.fromObject({ hours: 0 }),
+      note: ''
     };
 
     this.onDatesChangeForDRP = this.onDatesChangeForDRP.bind(this);
@@ -224,6 +223,10 @@ class RecordContainer extends React.Component<
     this.getModalBody = this.getModalBody.bind(this);
     this.addFuseLog = this.addFuseLog.bind(this);
     this.getFuseModalBody = this.getFuseModalBody.bind(this);
+    this.getFuseToVacationModalBody = this.getFuseToVacationModalBody.bind(
+      this
+    );
+    this.closeFuseToVacationModal = this.closeFuseToVacationModal.bind(this);
     this.addFuseTime = this.addFuseTime.bind(this);
     this.closeFuseModal = this.closeFuseModal.bind(this);
     this.store = new TimeRecordStore(props.records, props.holidays);
@@ -481,6 +484,7 @@ class RecordContainer extends React.Component<
           ...this.state,
           isModalOpen: true,
           isFuseModalOpen: false,
+          isFuseToVacationModalOpen: false,
           fuseHours: luxon.Duration.fromObject({ hours: 0 }),
           updateData: { key, data }
         });
@@ -493,6 +497,7 @@ class RecordContainer extends React.Component<
           ...this.state,
           isModalOpen: true,
           isFuseModalOpen: false,
+          isFuseToVacationModalOpen: false,
           fuseHours: luxon.Duration.fromObject({ hours: 0 }),
           updateData: { key, data }
         });
@@ -607,7 +612,8 @@ class RecordContainer extends React.Component<
         DONE: true,
         VACATION: true,
         HALFVACATION: true,
-        FUSEOVERLOAD: true
+        FUSEOVERLOAD: true,
+        FUSEOVERLOAD_VACATION: true
       };
       return (
         <RecordButtons
@@ -659,7 +665,8 @@ class RecordContainer extends React.Component<
       DONE: false,
       VACATION: true,
       HALFVACATION: true,
-      FUSEOVERLOAD: true
+      FUSEOVERLOAD: true,
+      FUSEOVERLOAD_VACATION: true
     };
     if (this.isOneDay === false) {
       return returnValue;
@@ -708,23 +715,36 @@ class RecordContainer extends React.Component<
           ...this.state,
           isModalOpen: false,
           isFuseModalOpen: true,
+          isFuseToVacationModalOpen: false,
           updateData: undefined,
           fuseHours: luxon.Duration.fromObject({ hours: 0 })
         });
-      } else {
-        // 차감 메뉴 외에는 아래에서 처리한다.
-        await this.store.addTimeRecord(
-          Auth.loginUserTokenKey,
-          this.props.userId,
-          type,
-          luxon.DateTime.fromJSDate(this.state.startDate)
-        );
-        await this.store.findTimeRecord(
-          this.props.userId,
-          moment(this.state.startDate).format('YYYY-MM-DD'),
-          moment(this.state.endDate).format('YYYY-MM-DD')
-        );
+        return;
       }
+      if (type === EN_WORK_TYPE.FUSEOVERLOAD_VACATION) {
+        // 차감해서 휴가쓰는 메뉴 연다.
+        this.setState({
+          ...this.state,
+          isModalOpen: false,
+          isFuseModalOpen: false,
+          isFuseToVacationModalOpen: true,
+          updateData: undefined,
+          fuseHours: luxon.Duration.fromObject({ hours: 0 })
+        });
+        return;
+      }
+      // 차감 메뉴 외에는 아래에서 처리한다.
+      await this.store.addTimeRecord(
+        Auth.loginUserTokenKey,
+        this.props.userId,
+        type,
+        luxon.DateTime.fromJSDate(this.state.startDate)
+      );
+      await this.store.findTimeRecord(
+        this.props.userId,
+        moment(this.state.startDate).format('YYYY-MM-DD'),
+        moment(this.state.endDate).format('YYYY-MM-DD')
+      );
     }
   }
 
@@ -972,22 +992,48 @@ class RecordContainer extends React.Component<
     );
   }
 
-  public async addFuseLog() {
+  public async addFuseLog(isVacation: boolean = false, note?: string) {
     if (this.state.isServer === true || Auth.loginUserTokenKey === null) {
       return;
     }
-    const fuseDuration = this.state.fuseHours;
+    const haveRecord = !!this.store.Records && this.store.Records.length > 0;
+    if (!isVacation && haveRecord) {
+      const firstData = this.store.Records[0];
+      const firstKey = Object.keys(firstData)[0];
+      const data = firstData[firstKey];
+      const usedFuseDuration = Object.keys(data)
+        .map(mv => data[mv])
+        .filter(fv => fv.type === EN_WORK_TYPE.FUSEOVERLOAD)
+        .reduce((acc, cur) => {
+          const start = luxon.DateTime.fromISO(cur.time);
+          const end = luxon.DateTime.fromISO(cur.done!);
+          const diffMs = end.diff(start).as('milliseconds');
+          const duration = luxon.Duration.fromObject({ milliseconds: diffMs });
+          return acc.plus(duration);
+        }, luxon.Duration.fromISO('PT0S'));
+      const totalFuseDuration = usedFuseDuration.plus(this.state.fuseHours);
+      if (totalFuseDuration > luxon.Duration.fromISO('PT6H')) {
+        alert('하루 최대 6시간만 차감 가능합니다.');
+        return;
+      }
+    }
+    const fuseDuration = isVacation
+      ? luxon.Duration.fromISO('PT8H')
+      : this.state.fuseHours;
     const targetDate = luxon.DateTime.fromJSDate(this.state.startDate);
     const userId = this.props.userId;
     await this.overloadStore.addFuseOverload(
       Auth.loginUserTokenKey,
       userId,
       targetDate,
-      fuseDuration
+      fuseDuration,
+      isVacation,
+      note
     );
     this.setState({
       ...this.state,
       isFuseModalOpen: false,
+      isFuseToVacationModalOpen: false,
       fuseHours: luxon.Duration.fromObject({ hours: 0 })
     });
     await this.store.findTimeRecord(
@@ -1049,7 +1095,12 @@ class RecordContainer extends React.Component<
         <ModalBody>{message}</ModalBody>
         <ModalFooter>
           {haveFuseData === false ? null : (
-            <Button onClick={this.addFuseLog} color="success">
+            <Button
+              onClick={() => {
+                this.addFuseLog();
+              }}
+              color="success"
+            >
               저장
             </Button>
           )}
@@ -1081,14 +1132,88 @@ class RecordContainer extends React.Component<
     const update = this.state.fuseHours.plus(addTime);
     // 총 시간보다 더 큰지 확인해야한다.
     const duration = update.normalize();
+    const addMaxDuration = luxon.Duration.fromISO('PT6H');
     const totalRemainDuration = luxon.Duration.fromObject(
       totalRemain
     ).normalize();
-    if (duration <= totalRemainDuration) {
-      this.setState({ ...this.state, fuseHours: update });
-    } else {
+    if (duration > totalRemainDuration) {
       alert('차감 가능한 시간을 초과한 입력입니다.');
+      return;
     }
+    if (duration > addMaxDuration) {
+      alert('최대 차감 가능 시간인 6시간을 초과한 입력입니다.');
+      return;
+    }
+    this.setState({ ...this.state, fuseHours: update });
+  }
+
+  public getFuseToVacationModalBody() {
+    const totalRemain = this.overloadStore.totalRemain();
+    const haveFuseData =
+      !!this.overloadStore.Records &&
+      !!totalRemain &&
+      luxon.Duration.fromObject(totalRemain) > luxon.Duration.fromISO('PT10H');
+    const totalRemainTime = this.overloadStore.totalRemainTime();
+    let message = (
+      <Label>{`추가 근무 기록이 없거나 10시간보다 부족합니다. ${totalRemainTime}`}</Label>
+    );
+    if (haveFuseData === true) {
+      message = (
+        <>
+          <ul className="list-group list-group-flush">
+            <li className="list-group-item">
+              사용가능한 시간 {totalRemainTime}
+            </li>
+            <li className="list-group-item">
+              10시간의 초과근무시간을 사용해서 휴가를 사용하시겠습니까?
+              <br />이 기록은 추가 후 변경이 불가능합니다.
+            </li>
+            <li className="list-group-item">
+              <Input
+                type="text"
+                id="note-input"
+                name="note-input"
+                placeholder="사유를 간단히 작성해주세요"
+                innerRef={this.modalNoteRef}
+              />
+            </li>
+          </ul>
+        </>
+      );
+    }
+    return (
+      <>
+        <ModalHeader>추가 근무(10시간)으로 휴가 사용하기</ModalHeader>
+        <ModalBody>{message}</ModalBody>
+        <ModalFooter>
+          {haveFuseData === false ? null : (
+            <Button
+              onClick={() => {
+                this.addFuseLog(true, this.modalNoteRef.current!.value);
+              }}
+              color="success"
+            >
+              사용하기
+            </Button>
+          )}
+          <Button
+            onClick={() => {
+              this.closeFuseToVacationModal();
+            }}
+          >
+            닫기
+          </Button>
+        </ModalFooter>
+      </>
+    );
+  }
+
+  private closeFuseToVacationModal() {
+    this.setState({
+      ...this.state,
+      isFuseToVacationModalOpen: false,
+      fuseHours: luxon.Duration.fromObject({ hours: 0 })
+    });
   }
 
   public async componentDidMount() {
@@ -1118,6 +1243,7 @@ class RecordContainer extends React.Component<
     const recordButtons = this.recordButtons();
     const modalBody = this.getModalBody();
     const fuseModalBody = this.getFuseModalBody();
+    const fuseToVacationModalBody = this.getFuseToVacationModalBody();
     return (
       <div className="app">
         <Helmet>
@@ -1164,6 +1290,9 @@ class RecordContainer extends React.Component<
           </Container>
           <Modal isOpen={this.state.isModalOpen}>{modalBody}</Modal>
           <Modal isOpen={this.state.isFuseModalOpen}>{fuseModalBody}</Modal>
+          <Modal isOpen={this.state.isFuseToVacationModalOpen}>
+            {fuseToVacationModalBody}
+          </Modal>
         </div>
       </div>
     );

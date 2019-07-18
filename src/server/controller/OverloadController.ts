@@ -3,15 +3,17 @@ import { Request } from 'express';
 
 import { Config } from '../../config/Config';
 import {
-    IFuseOverWorks, IOverWorks, IOverWorkWithType
+  IFuseOverWorks,
+  IOverWorks,
+  IOverWorkWithType
 } from '../../models/time_record/interface/IOverWork';
 import { IAddTimeRecord } from '../../models/time_record/interface/ITimeRecords';
 import {
-    GetOverloadByUserIDWithDateJSONSchema, GetOverloadsByUserIDJSONSchema, GetOverloadsJSONSchema
+  GetOverloadByUserIDWithDateJSONSchema,
+  GetOverloadsByUserIDJSONSchema,
+  GetOverloadsJSONSchema
 } from '../../models/time_record/JSONSchema/GetOverloadsJSONSchema';
-import {
-    PostAddOverloadJSONSchema
-} from '../../models/time_record/JSONSchema/PostAddOverloadJSONSchema';
+import { PostAddOverloadJSONSchema } from '../../models/time_record/JSONSchema/PostAddOverloadJSONSchema';
 import { Overload } from '../../models/time_record/Overload';
 import { OverloadRequestBuilder } from '../../models/time_record/OverloadRequestBuilder';
 import { RequestBuilderParams } from '../../services/requestService/RequestBuilder';
@@ -21,7 +23,9 @@ import { TControllerResp } from './ICommonController';
 const log = debug('trv:OverloadController');
 
 export class OverloadController {
-  public async findAll(req: Request): Promise<TControllerResp<IOverWorks['data']>> {
+  public async findAll(
+    req: Request
+  ): Promise<TControllerResp<IOverWorks['data']>> {
     const rbParam: RequestBuilderParams = { baseURI: Config.getApiURI() };
     const { auth_user_id } = req.query;
 
@@ -38,16 +42,18 @@ export class OverloadController {
 
     const actionResp = await findAction.findAll(
       checkParams,
-      GetOverloadsJSONSchema,
+      GetOverloadsJSONSchema
     );
 
     return {
       status: actionResp.type === EN_REQUEST_RESULT.ERROR ? 400 : 200,
-      payload: actionResp.data,
+      payload: actionResp.data
     };
   }
 
-  public async findAllFuse(req: Request): Promise<TControllerResp<IFuseOverWorks['data']>> {
+  public async findAllFuse(
+    req: Request
+  ): Promise<TControllerResp<IFuseOverWorks['data']>> {
     const rbParam: RequestBuilderParams = { baseURI: Config.getApiURI() };
     const { auth_user_id } = req.query;
 
@@ -64,16 +70,18 @@ export class OverloadController {
 
     const actionResp = await findAction.findAllFuse(
       checkParams,
-      GetOverloadsJSONSchema,
+      GetOverloadsJSONSchema
     );
 
     return {
       status: actionResp.type === EN_REQUEST_RESULT.ERROR ? 400 : 200,
-      payload: actionResp.data,
+      payload: actionResp.data
     };
   }
 
-  public async findAllByUserID(req: Request): Promise<TControllerResp<IOverWorks['data']>> {
+  public async findAllByUserID(
+    req: Request
+  ): Promise<TControllerResp<IOverWorks['data']>> {
     const rbParam: RequestBuilderParams = { baseURI: Config.getApiURI() };
     const { user_id } = req.query;
 
@@ -90,16 +98,18 @@ export class OverloadController {
 
     const actionResp = await findAction.findAllByUserID(
       checkParams,
-      GetOverloadsByUserIDJSONSchema,
+      GetOverloadsByUserIDJSONSchema
     );
 
     return {
       status: actionResp.type === EN_REQUEST_RESULT.ERROR ? 400 : 200,
-      payload: actionResp.data,
+      payload: actionResp.data
     };
   }
 
-  public async findByUserIDWithDate(req: Request): Promise<TControllerResp<IOverWorkWithType['data']>> {
+  public async findByUserIDWithDate(
+    req: Request
+  ): Promise<TControllerResp<IOverWorkWithType['data']>> {
     const rbParam: RequestBuilderParams = { baseURI: Config.getApiURI() };
     const { target_date } = req.params;
     const { user_id } = req.query;
@@ -118,16 +128,18 @@ export class OverloadController {
 
     const actionResp = await findAction.findByUserIdWithDate(
       checkParams,
-      GetOverloadByUserIDWithDateJSONSchema,
+      GetOverloadByUserIDWithDateJSONSchema
     );
 
     return {
       status: actionResp.type === EN_REQUEST_RESULT.ERROR ? 400 : 200,
-      payload: actionResp.data,
+      payload: actionResp.data
     };
   }
 
-  public async findAllFuseByUserID(req: Request): Promise<TControllerResp<IFuseOverWorks['data']>> {
+  public async findAllFuseByUserID(
+    req: Request
+  ): Promise<TControllerResp<IFuseOverWorks['data']>> {
     const rbParam: RequestBuilderParams = { baseURI: Config.getApiURI() };
     const { user_id } = req.query;
 
@@ -144,19 +156,28 @@ export class OverloadController {
 
     const actionResp = await findAction.findAllFuseUserID(
       checkParams,
-      GetOverloadsByUserIDJSONSchema,
+      GetOverloadsByUserIDJSONSchema
     );
 
     return {
       status: actionResp.type === EN_REQUEST_RESULT.ERROR ? 400 : 200,
-      payload: actionResp.data,
+      payload: actionResp.data
     };
   }
 
   /** 초과근무 시간 차감 요청 */
-  public async addFuseOverload(req: Request): Promise<TControllerResp<IAddTimeRecord['data']>> {
+  public async addFuseOverload(
+    req: Request
+  ): Promise<TControllerResp<IAddTimeRecord['data']>> {
     const rbParam: RequestBuilderParams = { baseURI: Config.getApiURI() };
-    const { user_id, auth_user_id, target_date, duration } = req.body;
+    const {
+      user_id,
+      auth_user_id,
+      target_date,
+      duration,
+      isVacation,
+      note
+    } = req.body;
 
     const checkParams = {
       body: {
@@ -164,20 +185,23 @@ export class OverloadController {
         user_id,
         target_date,
         duration,
+        isVacation,
+        note
       }
     };
+    log('addFuseOverload body', checkParams, req.body);
 
     const rb = new OverloadRequestBuilder(rbParam);
     const findAction = new Overload(rb);
 
     const actionResp = await findAction.addFuseLog(
       checkParams,
-      PostAddOverloadJSONSchema,
+      PostAddOverloadJSONSchema
     );
 
     return {
       status: actionResp.type === EN_REQUEST_RESULT.ERROR ? 400 : 200,
-      payload: actionResp.data,
+      payload: actionResp.data
     };
   }
 }
