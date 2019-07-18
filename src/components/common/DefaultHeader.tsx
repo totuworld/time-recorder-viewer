@@ -86,7 +86,14 @@ class DefaultHeader extends React.Component<
               window.location.href = `/queue/add/${userInfo!.id}`;
             }}
           >
-            저기요 목록
+            받은 저기요 목록
+          </DropdownItem>
+          <DropdownItem
+            onClick={() => {
+              window.location.href = '/queue';
+            }}
+          >
+            🛎저기요
           </DropdownItem>
         </>
       );
@@ -109,12 +116,6 @@ class DefaultHeader extends React.Component<
       this.props.isLogin === true ? (
         <NavLink href="/groups">그룹 목록</NavLink>
       ) : null;
-    const queue =
-      this.props.isLogin === true ? (
-        <NavLink href="/queue" alt="저기요">
-          🛎저기요
-        </NavLink>
-      ) : null;
     const coffee = (
       <NavLink href="/coffeebreak" alt="커피투게더">
         ☕️타임
@@ -134,7 +135,6 @@ class DefaultHeader extends React.Component<
           />
           <Nav className="ml-auto" navbar={true}>
             <NavItem className="px-3">{coffee}</NavItem>
-            <NavItem className="px-3">{queue}</NavItem>
             <NavItem className="px-3">{groupList}</NavItem>
             <Dropdown
               nav={true}
