@@ -13,7 +13,7 @@ import {
   GetOverloadsByUserIDJSONSchema,
   GetOverloadsJSONSchema
 } from '../../models/time_record/JSONSchema/GetOverloadsJSONSchema';
-import { PostAddOverloadJSONSchema } from '../../models/time_record/JSONSchema/PostAddOverloadJSONSchema';
+import { PostAddFuseJSONSchema } from '../../models/time_record/JSONSchema/PostAddFuseJSONSchema';
 import { Overload } from '../../models/time_record/Overload';
 import { OverloadRequestBuilder } from '../../models/time_record/OverloadRequestBuilder';
 import { RequestBuilderParams } from '../../services/requestService/RequestBuilder';
@@ -196,7 +196,7 @@ export class OverloadController {
 
     const actionResp = await findAction.addFuseLog(
       checkParams,
-      PostAddOverloadJSONSchema
+      PostAddFuseJSONSchema
     );
 
     return {

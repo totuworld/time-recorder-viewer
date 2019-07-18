@@ -146,6 +146,7 @@ export class Overload {
     return { type: EN_REQUEST_RESULT.SUCCESS, data: result.payload };
   }
 
+  /** 특정 사용자의 초과근무 내역 조회 */
   public async findAllFuseUserID(
     params: OverloadsByUserIDRequestParam,
     schema: IJSONSchemaType

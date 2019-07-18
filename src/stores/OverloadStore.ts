@@ -6,7 +6,7 @@ import {
   IOverWork
 } from '../models/time_record/interface/IOverWork';
 import { GetOverloadsByUserIDJSONSchema } from '../models/time_record/JSONSchema/GetOverloadsJSONSchema';
-import { PostAddOverloadJSONSchema } from '../models/time_record/JSONSchema/PostAddOverloadJSONSchema';
+import { PostAddFuseJSONSchema } from '../models/time_record/JSONSchema/PostAddFuseJSONSchema';
 import { Overload } from '../models/time_record/Overload';
 import { OverloadRequestBuilder } from '../models/time_record/OverloadRequestBuilder';
 import { RequestBuilderParams } from '../services/requestService/RequestBuilder';
@@ -163,7 +163,7 @@ export default class OverloadStore {
       console.log('addFuseOverload action');
       const actionResp = await findAction.addFuseLog(
         checkParams,
-        PostAddOverloadJSONSchema
+        PostAddFuseJSONSchema
       );
       console.log(actionResp);
       return runInAction(() => {

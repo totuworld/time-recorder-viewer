@@ -222,4 +222,36 @@ export class RandomCoffee {
     log(result.payload);
     return { type: EN_REQUEST_RESULT.SUCCESS, data: result.payload };
   }
+
+  public async checkGuestRegister(
+    params: DelRCEventGuestReq,
+    schema: IJSONSchemaType
+  ) {
+    const validParam = Requester.validateParamWithData<DelRCEventGuestReq>(
+      params,
+      schema
+    );
+    log('validParam: ', validParam.result);
+    if (validParam.result === false) {
+      return { type: EN_REQUEST_RESULT.ERROR, data: null };
+    }
+
+    const query = this.rb.checkGuestRegisterQuery({
+      method: 'GET',
+      headers: {},
+      resources: {
+        eventId: params.params.eventId,
+        docId: params.params.docId
+      }
+    });
+    const requester = RequestService.create(query.url);
+    const response = await requester.call<{ result: boolean }>(query);
+
+    const result = await response;
+    if (result.type === EN_REQUEST_RESULT.ERROR) {
+      return { type: EN_REQUEST_RESULT.ERROR, data: { result: false } };
+    }
+    log(result.payload);
+    return { type: EN_REQUEST_RESULT.SUCCESS, data: result.payload };
+  }
 }

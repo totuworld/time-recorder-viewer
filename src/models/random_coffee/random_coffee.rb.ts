@@ -6,10 +6,9 @@ import {
   RequestBuilderParams
 } from '../../services/requestService/RequestBuilder';
 import { FindAllEventsReqParam } from '../event/interface/FindAllEventsReqParam';
-import { FindEventReqParam } from '../event/interface/FindEventReqParam';
+import { AddRCEventGuestsReqParam } from './interface/AddRCEventGuestsReqParam';
 import { AddRCEventReqParam } from './interface/AddRCEventReqParam';
 import { UpdateRCEventReqParam } from './interface/UpdateRCEventReqParam';
-import { AddRCEventGuestsReqParam } from './interface/AddRCEventGuestsReqParam';
 
 const log = debug('trv:RandomCoffeeRequestBuilder');
 
@@ -158,6 +157,27 @@ export class RandomCoffeeRequestBuilder extends RequestBuilder {
   }: RequestParams<{ eventId: string; userId: string }>) {
     const apiPath = this.getAPIPath(
       `/random_coffee/${resources!.eventId}/guests/${resources!.userId}`
+    );
+    const endPoint = apiPath.href();
+
+    return {
+      method,
+      headers: {
+        ...this.AccessTokenObject
+      },
+      timeout: 10000,
+      url: endPoint
+    };
+  }
+
+  public checkGuestRegisterQuery({
+    resources,
+    method
+  }: RequestParams<{ eventId: string; docId: string }>) {
+    const apiPath = this.getAPIPath(
+      `/random_coffee/${resources!.eventId}/guests/${
+        resources!.docId
+      }/check_register`
     );
     const endPoint = apiPath.href();
 

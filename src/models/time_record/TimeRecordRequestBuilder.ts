@@ -1,9 +1,17 @@
-import * as URI from 'urijs';
-
 import { RequestParams } from '../../services/requestService/interface/IRequestParams';
-import { RequestBuilder, RequestBuilderParams } from '../../services/requestService/RequestBuilder';
+import {
+  RequestBuilder,
+  RequestBuilderParams
+} from '../../services/requestService/RequestBuilder';
 import { IAxiosRequesterConfig } from '../../services/requestService/requesters/AxiosRequester';
-import { AddTimeRecordRequestParam, RemoveTimeRecordRequestParam } from './interface/AddTimeRecordRequestParam';
+import {
+  AddOverloadRecordByGroupReqParam,
+  AddOverloadRecordReqParam
+} from './interface/AddOverloadRecordReqParam';
+import {
+  AddTimeRecordRequestParam,
+  RemoveTimeRecordRequestParam
+} from './interface/AddTimeRecordRequestParam';
 import { GetHolidaysParam } from './interface/GetHolidaysParam';
 import { TimeRecordRecordsRequestsParam } from './interface/TimeRecordRecordsRequestsParam';
 import { UpdateTimeRecordRequestParam } from './interface/UpdateTimeRecordRequestParam';
@@ -28,14 +36,14 @@ export class TimeRecordRequestBuilder extends RequestBuilder {
     const apiPath = this.getAPIPath('/get_all');
     let endPoint = apiPath.href();
     if (!!query) {
-      const reqQueryStr = Object.keys(query).reduce(
-        (acc: string[], cur) => {
+      const reqQueryStr = Object.keys(query)
+        .reduce((acc: string[], cur) => {
           if (!!query[cur]) {
             acc.push(`${cur}=${query[cur]}`);
           }
           return acc;
-        },
-        []).join('&');
+        }, [])
+        .join('&');
       endPoint = `${endPoint}?${reqQueryStr}`;
     }
 
@@ -45,7 +53,7 @@ export class TimeRecordRequestBuilder extends RequestBuilder {
         ...this.AccessTokenObject
       },
       timeout: 10000,
-      url: endPoint,
+      url: endPoint
     };
   }
 
@@ -63,7 +71,7 @@ export class TimeRecordRequestBuilder extends RequestBuilder {
         ...this.AccessTokenObject
       },
       timeout: 10000,
-      url: endPoint,
+      url: endPoint
     };
   }
 
@@ -81,7 +89,7 @@ export class TimeRecordRequestBuilder extends RequestBuilder {
         ...this.AccessTokenObject
       },
       timeout: 10000,
-      url: endPoint,
+      url: endPoint
     };
   }
 
@@ -91,13 +99,13 @@ export class TimeRecordRequestBuilder extends RequestBuilder {
   }: RequestParams<{}, UpdateTimeRecordRequestParam>): IAxiosRequesterConfig {
     const apiPath = this.getAPIPath('/update_record');
     const endPoint = apiPath.href();
-    const data = { 
+    const data = {
       auth_user_id: '',
       user_id: '',
       update_date: '',
       record_key: '',
       target_key: '',
-      time: '',
+      time: ''
     };
     if (!!body) {
       data.auth_user_id = body.auth_user_id;
@@ -115,25 +123,25 @@ export class TimeRecordRequestBuilder extends RequestBuilder {
         ...this.AccessTokenObject
       },
       timeout: 10000,
-      url: endPoint,
+      url: endPoint
     };
   }
 
   public getHolidaysQuery({
     method,
-    query,
+    query
   }: RequestParams<{}, GetHolidaysParam>): IAxiosRequesterConfig {
     const apiPath = this.getAPIPath('/holidays');
     let endPoint = apiPath.href();
     if (!!query) {
-      const reqQueryStr = Object.keys(query).reduce(
-        (acc: string[], cur) => {
+      const reqQueryStr = Object.keys(query)
+        .reduce((acc: string[], cur) => {
           if (!!query[cur]) {
             acc.push(`${cur}=${query[cur]}`);
           }
           return acc;
-        },
-        []).join('&');
+        }, [])
+        .join('&');
       endPoint = `${endPoint}?${reqQueryStr}`;
     }
 
@@ -143,7 +151,46 @@ export class TimeRecordRequestBuilder extends RequestBuilder {
         ...this.AccessTokenObject
       },
       timeout: 10000,
-      url: endPoint,
+      url: endPoint
+    };
+  }
+
+  public postOverWorkQuery({
+    method,
+    body
+  }: RequestParams<{}, AddOverloadRecordReqParam>): IAxiosRequesterConfig {
+    const apiPath = this.getAPIPath('/over_work/sync');
+    const endPoint = apiPath.href();
+
+    return {
+      method,
+      data: body,
+      headers: {
+        ...this.AccessTokenObject
+      },
+      timeout: 10000,
+      url: endPoint
+    };
+  }
+
+  public postOverWorkByGroupQuery({
+    method,
+    body
+  }: RequestParams<
+    {},
+    AddOverloadRecordByGroupReqParam
+  >): IAxiosRequesterConfig {
+    const apiPath = this.getAPIPath('/over_works/sync_for_workers');
+    const endPoint = apiPath.href();
+
+    return {
+      method,
+      data: body,
+      headers: {
+        ...this.AccessTokenObject
+      },
+      timeout: 10000,
+      url: endPoint
     };
   }
 }

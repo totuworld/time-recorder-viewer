@@ -6,7 +6,10 @@ import { Requester } from '../../services/requestService/Requester';
 import { EN_REQUEST_RESULT } from '../../services/requestService/requesters/AxiosRequester';
 import { IJSONSchemaType } from '../common/IJSONSchemaType';
 import { AddLoginUserRequestParam } from './interface/AddLoginUserRequestParam';
-import { AddQueueRequestBodyParam, AddQueueRequestParam } from './interface/AddQueueRequestParam';
+import {
+  AddQueueRequestBodyParam,
+  AddQueueRequestParam
+} from './interface/AddQueueRequestParam';
 import { DeleteQueueRequestParam } from './interface/DeleteQueueRequestParam';
 import { FindQueueRequestParam } from './interface/FindQueueRequestParam';
 import { GroupsFindRequestParam } from './interface/GroupsFindRequestParam';
@@ -23,10 +26,7 @@ const log = debug('trv:User');
 export class User {
   constructor(private rb: UserRequestBuilder) {}
 
-  public async find(
-    params: UserFindRequestParam,
-    schema: IJSONSchemaType,
-  ) {
+  public async find(params: UserFindRequestParam, schema: IJSONSchemaType) {
     const validParam = Requester.validateParam(params, schema);
     log('validParam: ', validParam);
     if (validParam === false) {
@@ -49,9 +49,10 @@ export class User {
     return { type: EN_REQUEST_RESULT.SUCCESS, data: result.payload };
   }
 
+  /** query의 groupId 로 특정되는 그룹의 멤버 정보를 로딩 */
   public async findGroups(
     params: GroupsFindRequestParam,
-    schema: IJSONSchemaType,
+    schema: IJSONSchemaType
   ) {
     const validParam = Requester.validateParam(params, schema);
     log('validParam: ', validParam);
@@ -77,7 +78,7 @@ export class User {
 
   public async addLoginUser(
     params: AddLoginUserRequestParam,
-    schema: IJSONSchemaType,
+    schema: IJSONSchemaType
   ) {
     const validParam = Requester.validateParam(params, schema);
     log('validParam: ', validParam);
@@ -89,29 +90,32 @@ export class User {
     const query = this.rb.createPostLoginUserQuery({
       method: 'POST',
       headers: {},
-      body: params.body,
+      body: params.body
     });
     const requester = RequestService.create(query.url);
     const response = await requester.call<IAddLoginUser>(query);
 
     const result = await response;
     if (result.type === EN_REQUEST_RESULT.ERROR) {
-      return { type: EN_REQUEST_RESULT.ERROR, data: { result: false, userKey: null } };
+      return {
+        type: EN_REQUEST_RESULT.ERROR,
+        data: { result: false, userKey: null }
+      };
     }
     log(result.payload);
     return { type: EN_REQUEST_RESULT.SUCCESS, data: result.payload };
   }
 
   public async findLoginUser(
-    params: LoginUserRequestParam,
-  ): Promise<{ type: EN_REQUEST_RESULT, data?: ILoginUser }> {
+    params: LoginUserRequestParam
+  ): Promise<{ type: EN_REQUEST_RESULT; data?: ILoginUser }> {
     const { user_uid } = params;
     const query = this.rb.createGetLoginUserInfoQuery({
       method: 'GET',
       headers: {},
       resources: {
         user_uid
-      },
+      }
     });
     const requester = RequestService.create(query.url);
     const response = await requester.call<ILoginUser>(query);
@@ -125,10 +129,13 @@ export class User {
   }
 
   /** 슬랙에 가압되어있고, work log에 auth까지 마친 사용자 그룹 조회 */
-  public async findAllSlackUsers(): Promise<{ type: EN_REQUEST_RESULT, data?: ISlackUserInfo[] }> {
+  public async findAllSlackUsers(): Promise<{
+    type: EN_REQUEST_RESULT;
+    data?: ISlackUserInfo[];
+  }> {
     const query = this.rb.getAllSlackUserInfosQuery({
       method: 'GET',
-      headers: {},
+      headers: {}
     });
     const requester = RequestService.create(query.url);
     const response = await requester.call<ISlackUserInfo[]>(query);
@@ -143,13 +150,13 @@ export class User {
 
   public async findQueue(
     params: FindQueueRequestParam
-  ): Promise<{ type: EN_REQUEST_RESULT, data?: IQueue[] }> {
+  ): Promise<{ type: EN_REQUEST_RESULT; data?: IQueue[] }> {
     const query = this.rb.readUserQueueQuery({
       method: 'GET',
       headers: {},
       resources: {
-        authId: params.authId,
-      },
+        authId: params.authId
+      }
     });
     const requester = RequestService.create(query.url);
     const response = await requester.call<IQueue[]>(query);
@@ -162,26 +169,29 @@ export class User {
     return this.sortReturnValue(result);
   }
 
-  private sortReturnValue(result: { type: EN_REQUEST_RESULT.SUCCESS; statusCode: number; payload: IQueue[]; }) {
-    const sortPayload = result.payload
-      .sort((a, b) => {
-        const aDate = luxon.DateTime.fromISO(a.created);
-        const bDate = luxon.DateTime.fromISO(b.created);
-        return aDate > bDate ? 1 : -1;
-      });
+  private sortReturnValue(result: {
+    type: EN_REQUEST_RESULT.SUCCESS;
+    statusCode: number;
+    payload: IQueue[];
+  }) {
+    const sortPayload = [...result.payload].sort((a, b) => {
+      const aDate = luxon.DateTime.fromISO(a.created);
+      const bDate = luxon.DateTime.fromISO(b.created);
+      return aDate > bDate ? 1 : -1;
+    });
     return { type: EN_REQUEST_RESULT.SUCCESS, data: sortPayload };
   }
 
   public async addQueue(
     params: AddQueueRequestParam & AddQueueRequestBodyParam
-  ): Promise<{ type: EN_REQUEST_RESULT, data?: IQueue[] }> {
+  ): Promise<{ type: EN_REQUEST_RESULT; data?: IQueue[] }> {
     const query = this.rb.addUserQueueQuery({
       method: 'POST',
       headers: {},
       resources: {
-        userId: params.userId,
+        userId: params.userId
       },
-      body: params.body,
+      body: params.body
     });
     const requester = RequestService.create(query.url);
     const response = await requester.call<IQueue[]>(query);
@@ -196,14 +206,14 @@ export class User {
 
   public async deleteQueue(
     params: DeleteQueueRequestParam
-  ): Promise<{type: EN_REQUEST_RESULT, data?: IQueue[]}> {
+  ): Promise<{ type: EN_REQUEST_RESULT; data?: IQueue[] }> {
     const query = this.rb.deleteUserQueueQuery({
       method: 'DELETE',
       headers: {},
       resources: {
         authId: params.authId,
-        key: params.key,
-      },
+        key: params.key
+      }
     });
     const requester = RequestService.create(query.url);
     const response = await requester.call<IQueue[]>(query);
