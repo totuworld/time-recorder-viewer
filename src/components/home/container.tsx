@@ -41,7 +41,7 @@ export default class HomeContainer extends Component {
             <Jumbotron className="bg-white">
               <img src={worklog} width="280" alt="Work log logo" />
               <p className="lead">
-                유연한 업무 환경 조성을 돕고, 주 40시간 초과 근무를 수호합니다
+                유연한 업무 환경 조성을 돕고, 주 40시간 근무를 수호합니다
               </p>
               <hr className="my-4" />
               <p>

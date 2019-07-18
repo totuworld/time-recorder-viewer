@@ -12,7 +12,7 @@ import {
 } from 'reactstrap';
 
 import avatar from '../../assets/img/avatar.svg';
-import logo from '../../assets/img/logo.svg';
+import worklog from '../../assets/img/worklog.svg';
 import { IUserInfo } from '../../models/user/interface/IUserInfo';
 
 export interface IDefaultHeaderProps {
@@ -124,8 +124,8 @@ class DefaultHeader extends React.Component<
       <header className="app-header navbar">
         <Container>
           <img
-            src={logo}
-            width="30"
+            src={worklog}
+            height="20"
             alt="Work Logger"
             className="navbar-brand-minimized clickable"
             onClick={() => {
