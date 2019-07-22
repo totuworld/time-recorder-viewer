@@ -383,7 +383,7 @@ export default class GroupContainer extends React.Component<
                     week: weekStr!,
                     manager_id: isManager.id!
                   });
-                  await this.handleClosePopover();
+                  await this.store.loadOverWorks({ user_id: mv.id });
                 }}
               >
                 정산
@@ -604,7 +604,7 @@ export default class GroupContainer extends React.Component<
                         week: weekStr!,
                         manager_id: isManager.id!
                       });
-                      await this.handleClosePopover();
+                      window.location.reload();
                     }}
                   >
                     {`그룹 전 인원(${weekStr}) 정산`}

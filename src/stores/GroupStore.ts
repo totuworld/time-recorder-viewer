@@ -7,9 +7,12 @@ import {
 } from '../models/time_record/interface/IOverWork';
 import { ITimeRecordLogData } from '../models/time_record/interface/ITimeRecordLogData';
 import { GetHolidaysJSONSchema } from '../models/time_record/JSONSchema/GetHolidaysJSONSchema';
+import { GetOverloadsByUserIDJSONSchema } from '../models/time_record/JSONSchema/GetOverloadsJSONSchema';
 import { GetTimeRecordsJSONSchema } from '../models/time_record/JSONSchema/GetTimeRecordsJSONSchema';
 import { JSCPostAddOverWork } from '../models/time_record/JSONSchema/JSCPostAddOverWork';
 import { JSCPostAddOverWorkByGroup } from '../models/time_record/JSONSchema/JSCPostAddOverWorkByGroup';
+import { Overload } from '../models/time_record/Overload';
+import { OverloadRequestBuilder } from '../models/time_record/OverloadRequestBuilder';
 import { TimeRecord } from '../models/time_record/TimeRecord';
 import { TimeRecordRequestBuilder } from '../models/time_record/TimeRecordRequestBuilder';
 import { IUserInfo } from '../models/user/interface/IUserInfo';
@@ -90,6 +93,33 @@ export default class GroupStore {
     const overWorks = this.overWorks[user_id];
     const filterData = overWorks.filter(fv => fv.week === week);
     return filterData.length > 0 ? filterData[0] : null;
+  }
+
+  @action
+  public async loadOverWorks({ user_id }: { user_id: string }) {
+    if (this.isLoading === true) {
+      return {};
+    }
+    const rbParam: RequestBuilderParams = { isProxy: true };
+    const olRb = new OverloadRequestBuilder(rbParam);
+    const olAction = new Overload(olRb);
+    const olQuery = { query: { user_id } };
+    try {
+      const resp = await olAction.findAllByUserID(
+        olQuery,
+        GetOverloadsByUserIDJSONSchema
+      );
+      return runInAction(() => {
+        this.isLoading = false;
+        if (resp.type === EN_REQUEST_RESULT.SUCCESS) {
+          this.overWorks[user_id] = resp.data;
+        }
+        return this.records;
+      });
+    } catch (error) {
+      this.isLoading = false;
+      throw error;
+    }
   }
 
   @action
