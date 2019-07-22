@@ -298,6 +298,10 @@ export default class GroupContainer extends React.Component<
     const lSd = luxon.DateTime.fromJSDate(startDate);
     const lEd = luxon.DateTime.fromJSDate(endDate);
     const duration = lEd.diff(lSd);
+    const today = luxon.DateTime.local();
+    if (lSd <= today && lEd >= today) {
+      return null;
+    }
     if (
       duration.milliseconds === 518400000 &&
       lSd.weekday === 7 &&
