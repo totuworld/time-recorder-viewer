@@ -7,7 +7,7 @@ import '../../styles/style.css';
 import debug from 'debug';
 import * as luxon from 'luxon';
 import { observer } from 'mobx-react';
-import moment, { isMoment } from 'moment';
+import moment from 'moment';
 import React from 'react';
 import { DateRangePicker } from 'react-dates';
 import { Helmet } from 'react-helmet';
@@ -17,9 +17,18 @@ import {
   CardBody,
   CardFooter,
   CardHeader,
-  CardTitle,
   Col,
   Container,
+  FormGroup,
+  FormText,
+  Input,
+  InputGroup,
+  InputGroupAddon,
+  Label,
+  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
   Row,
   Table
 } from 'reactstrap';
@@ -67,15 +76,20 @@ export interface IGroupContainerProps {
   holidays: IHoliday[];
 }
 
+type TStates = IRecordContainerStates & { isModalOpen: boolean };
+
 const log = debug('trv:GroupContainer');
 
 @observer
 export default class GroupContainer extends React.Component<
   IGroupContainerProps,
-  IRecordContainerStates
+  TStates
 > {
   private store: GroupStore;
   private loginUserStore: LoginStore;
+
+  private modalEmailRef = React.createRef<HTMLInputElement>();
+
   public static async getInitialProps({
     req,
     res,
@@ -195,7 +209,8 @@ export default class GroupContainer extends React.Component<
       endDate: moment(props.initialEndDate).toDate(),
       focusedInput: null,
       backupDate: { start: null, end: null },
-      isServer: true
+      isServer: true,
+      isModalOpen: false
     };
 
     this.onDatesChangeForDRP = this.onDatesChangeForDRP.bind(this);
@@ -208,6 +223,7 @@ export default class GroupContainer extends React.Component<
     this.calGroupWorkTime = this.calGroupWorkTime.bind(this);
     this.getDataElements = this.getDataElements.bind(this);
     this.isLogined = this.isLogined.bind(this);
+    this.modalBody = this.modalBody.bind(this);
     this.store = new GroupStore(
       props.records,
       props.group,
@@ -548,12 +564,73 @@ export default class GroupContainer extends React.Component<
     }
   }
 
+  public modalBody() {
+    const isManager = this.isManager();
+    return (
+      <>
+        <ModalHeader>{`${this.props.groupId} 멤버 추가`}</ModalHeader>
+        <ModalBody>
+          <FormGroup>
+            <Label htmlFor="user_id_input">멤버 id</Label>
+            <InputGroup>
+              <Input
+                type="email"
+                id="user_id_input"
+                name="user_id_input"
+                placeholder="멤버 id 입력"
+                innerRef={this.modalEmailRef}
+              />
+              <InputGroupAddon addonType="append">
+                <Button
+                  onClick={async () => {
+                    const result = await this.store.addMember({
+                      group_id: this.props.groupId,
+                      manager_id: isManager.id!,
+                      user_id: this.modalEmailRef.current!.value
+                    });
+                    if (result === false) {
+                      alert(
+                        `${
+                          this.modalEmailRef.current!.value
+                        } 을/를 찾을 수 없습니다.`
+                      );
+                    } else {
+                      alert('등록완료. 페이지를 리로드합니다.');
+                      window.location.reload();
+                    }
+                  }}
+                >
+                  Add
+                </Button>
+              </InputGroupAddon>
+            </InputGroup>
+            <FormText>slack 워크스페이스에서 사용자 id를 확인하세요.</FormText>
+          </FormGroup>
+        </ModalBody>
+        <ModalFooter>
+          <Button
+            className="btn btn-primary"
+            onClick={() => {
+              this.setState({
+                ...this.state,
+                isModalOpen: false
+              });
+            }}
+          >
+            닫기
+          </Button>
+        </ModalFooter>
+      </>
+    );
+  }
+
   public render() {
     const rows = this.getRows();
     const dataElements = this.getDataElements();
     const isManager = this.isManager();
     const weekStr = this.getWeek();
     const isOneWeek = weekStr !== null;
+    const modalBody = this.modalBody();
     return (
       <div className="app">
         <Helmet>
@@ -573,6 +650,22 @@ export default class GroupContainer extends React.Component<
           <Container>
             <Card>
               <CardBody>
+                <Button
+                  onClick={() => {
+                    const startDate = luxon.DateTime.fromJSDate(
+                      this.state.startDate
+                    );
+                    const newStartDate = startDate.minus({ weeks: 1 });
+                    this.setState({
+                      ...this.state,
+                      startDate: newStartDate.toJSDate(),
+                      endDate: newStartDate.plus({ days: 6 }).toJSDate()
+                    });
+                    this.handleClosePopover();
+                  }}
+                >
+                  -1 W
+                </Button>
                 <DateRangePicker
                   startDate={moment(this.state.startDate)}
                   endDate={moment(this.state.endDate)}
@@ -588,8 +681,24 @@ export default class GroupContainer extends React.Component<
                   isOutsideRange={day => false}
                   onClose={this.handleClosePopover}
                   noBorder={true}
-                  block={true}
+                  block={false}
                 />
+                <Button
+                  onClick={() => {
+                    const startDate = luxon.DateTime.fromJSDate(
+                      this.state.startDate
+                    );
+                    const newStartDate = startDate.plus({ weeks: 1 });
+                    this.setState({
+                      ...this.state,
+                      startDate: newStartDate.toJSDate(),
+                      endDate: newStartDate.plus({ days: 6 }).toJSDate()
+                    });
+                    this.handleClosePopover();
+                  }}
+                >
+                  +1 W
+                </Button>
               </CardBody>
             </Card>
             <Card>
@@ -608,6 +717,19 @@ export default class GroupContainer extends React.Component<
                     }}
                   >
                     {`그룹 전 인원(${weekStr}) 정산`}
+                  </Button>
+                ) : null}
+                {isManager.result ? (
+                  <Button
+                    onClick={async e => {
+                      e.stopPropagation();
+                      this.setState({
+                        ...this.setState,
+                        isModalOpen: true
+                      });
+                    }}
+                  >
+                    멤버 추가
                   </Button>
                 ) : null}
               </CardHeader>
@@ -633,6 +755,7 @@ export default class GroupContainer extends React.Component<
               <CardFooter>{dataElements}</CardFooter>
             </Card>
           </Container>
+          <Modal isOpen={this.state.isModalOpen}>{modalBody}</Modal>
         </div>
       </div>
     );
