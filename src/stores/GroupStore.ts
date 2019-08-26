@@ -93,6 +93,13 @@ export default class GroupStore {
     week: string;
   }) {
     const overWorks = this.overWorks[user_id];
+    if (
+      overWorks === null ||
+      overWorks === undefined ||
+      Array.isArray(overWorks) === false
+    ) {
+      return null;
+    }
     const filterData = overWorks.filter(fv => fv.week === week);
     return filterData.length > 0 ? filterData[0] : null;
   }
