@@ -1,4 +1,3 @@
-import ajv from 'ajv';
 import * as luxon from 'luxon';
 
 import {
@@ -53,6 +52,17 @@ export class Util {
       const durataion = luxon.Duration.fromObject(cur[target]);
       return updateData.plus(durataion).toObject();
     }, {});
+  }
+  public static getTimeComponents(hours: number): [number, number, number] {
+    const h = Math.floor(hours);
+    const minutes = (hours - h) * 60;
+
+    const m = Math.floor(minutes);
+    const seconds = (minutes - m) * 60;
+
+    const s = Math.floor(seconds);
+
+    return [h, m, s];
   }
 
   public static calTimeObj(a: object, b: object, operator: string = 'plus') {
