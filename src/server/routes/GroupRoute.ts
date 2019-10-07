@@ -17,6 +17,11 @@ export class GroupRoute extends CommonRoute {
       trRoute.controller.addMember.bind(trRoute.controller)
     );
 
+    trRoute.route(EN_REQUEST_METHODS.DELETE)(
+      '/groups/:group_id/:user_id',
+      trRoute.controller.deleteMember.bind(trRoute.controller)
+    );
+
     return trRoute;
   }
 

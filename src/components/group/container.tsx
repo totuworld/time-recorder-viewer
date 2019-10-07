@@ -433,6 +433,29 @@ export default class GroupContainer extends React.Component<
           <td className="d-none d-sm-table-cell">{convertData.overTimeStr}</td>
           <td>{totalRemainBtn}</td>
           {settlementBtn}
+          {isManager.result ? (
+            <td>
+              <Button
+                color="danger"
+                onClick={async e => {
+                  e.stopPropagation();
+                  const result = await this.store.deleteMember({
+                    group_id: this.props.groupId,
+                    user_id: mv.id,
+                    manager_id: isManager.id!
+                  });
+                  if (result === false) {
+                    alert('멤버 삭제 실패');
+                  } else {
+                    alert('멤버 삭제 완료. 페이지를 리로드합니다.');
+                    window.location.reload();
+                  }
+                }}
+              >
+                X
+              </Button>
+            </td>
+          ) : null}
         </tr>
       );
     });
@@ -747,6 +770,7 @@ export default class GroupContainer extends React.Component<
                       </th>
                       <th>누적 초과시간</th>
                       {isManager.result && isOneWeek ? <th>정산</th> : null}
+                      {isManager.result ? <th>X</th> : null}
                     </tr>
                   </thead>
                   <tbody>{rows}</tbody>

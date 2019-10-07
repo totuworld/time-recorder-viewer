@@ -49,4 +49,26 @@ export class GroupController {
       payload: actionResp.data
     };
   }
+
+  public async deleteMember(req: Request): Promise<TControllerResp<boolean>> {
+    const rbParam: RequestBuilderParams = { baseURI: Config.getApiURI() };
+    const { group_id, user_id } = req.params;
+    const { manager_id } = req.body;
+
+    log(group_id, user_id, manager_id);
+
+    const rb = new GroupRequestBuilder(rbParam);
+    const findAction = new Group(rb);
+
+    const actionResp = await findAction.deleteMember({
+      group_id,
+      manager_id,
+      user_id
+    });
+
+    return {
+      status: actionResp.type === EN_REQUEST_RESULT.ERROR ? 204 : 200,
+      payload: actionResp.data
+    };
+  }
 }

@@ -299,4 +299,40 @@ export default class GroupStore {
       throw error;
     }
   }
+
+  @action
+  public async deleteMember({
+    group_id,
+    user_id,
+    manager_id
+  }: {
+    group_id: string;
+    user_id: string;
+    manager_id: string;
+  }): Promise<boolean> {
+    if (this.isLoading === true) {
+      return false;
+    }
+    try {
+      this.isLoading = true;
+
+      const rbParam: RequestBuilderParams = { isProxy: true };
+      const trRb = new GroupRequestBuilder(rbParam);
+      const trAction = new Group(trRb);
+
+      const result = await trAction.deleteMember({
+        user_id,
+        manager_id,
+        group_id
+      });
+
+      return runInAction(() => {
+        this.isLoading = false;
+        return result.type === EN_REQUEST_RESULT.ERROR ? false : result.data;
+      });
+    } catch (error) {
+      this.isLoading = false;
+      throw error;
+    }
+  }
 }
