@@ -2,6 +2,7 @@ import debug from 'debug';
 import { Request } from 'express';
 
 import { Config } from '../../config/Config';
+import { IAddOverWork } from '../../models/time_record/interface/IAddOverWork';
 import {
   IFuseOverWorks,
   IOverWorks,
@@ -13,9 +14,13 @@ import {
   GetOverloadsByUserIDJSONSchema,
   GetOverloadsJSONSchema
 } from '../../models/time_record/JSONSchema/GetOverloadsJSONSchema';
-import { PostAddOverloadJSONSchema } from '../../models/time_record/JSONSchema/PostAddOverloadJSONSchema';
+import { JSCPostAddOverWork } from '../../models/time_record/JSONSchema/JSCPostAddOverWork';
+import { JSCPostAddOverWorkByGroup } from '../../models/time_record/JSONSchema/JSCPostAddOverWorkByGroup';
+import { PostAddFuseJSONSchema } from '../../models/time_record/JSONSchema/PostAddFuseJSONSchema';
 import { Overload } from '../../models/time_record/Overload';
 import { OverloadRequestBuilder } from '../../models/time_record/OverloadRequestBuilder';
+import { TimeRecord } from '../../models/time_record/TimeRecord';
+import { TimeRecordRequestBuilder } from '../../models/time_record/TimeRecordRequestBuilder';
 import { RequestBuilderParams } from '../../services/requestService/RequestBuilder';
 import { EN_REQUEST_RESULT } from '../../services/requestService/requesters/AxiosRequester';
 import { TControllerResp } from './ICommonController';
@@ -196,12 +201,81 @@ export class OverloadController {
 
     const actionResp = await findAction.addFuseLog(
       checkParams,
-      PostAddOverloadJSONSchema
+      PostAddFuseJSONSchema
     );
 
     return {
       status: actionResp.type === EN_REQUEST_RESULT.ERROR ? 400 : 200,
       payload: actionResp.data
+    };
+  }
+
+  public async addOverWorkByUser(
+    req: Request
+  ): Promise<TControllerResp<IAddOverWork['data']>> {
+    const rbParam: RequestBuilderParams = { baseURI: Config.getApiURI() };
+    const { user_id, week, manager_id } = req.body;
+
+    const checkParams = {
+      body: {
+        user_id,
+        week,
+        manager_id
+      }
+    };
+    log('addOverWorkByUser body', checkParams, req.body);
+
+    const trRb = new TimeRecordRequestBuilder(rbParam);
+    const trAction = new TimeRecord(trRb);
+
+    const actionResp = await trAction.addOverWorkByUser(
+      {
+        body: {
+          user_id,
+          week,
+          manager_id
+        }
+      },
+      JSCPostAddOverWork
+    );
+
+    return {
+      status: actionResp.type === EN_REQUEST_RESULT.ERROR ? 400 : 200,
+      payload: actionResp.data
+    };
+  }
+
+  public async addOverWorkByGroup(
+    req: Request
+  ): Promise<TControllerResp<IAddOverWork['data']>> {
+    const rbParam: RequestBuilderParams = { baseURI: Config.getApiURI() };
+    const { group_id, week, manager_id } = req.body;
+
+    const checkParams = {
+      body: {
+        group_id,
+        week,
+        manager_id
+      }
+    };
+    log('addOverWorkByUser body', checkParams, req.body);
+
+    const trRb = new TimeRecordRequestBuilder(rbParam);
+    const trAction = new TimeRecord(trRb);
+
+    const actionResp = await trAction.addOverWorkByGroup(
+      {
+        body: {
+          group_id,
+          week,
+          manager_id
+        }
+      },
+      JSCPostAddOverWorkByGroup
+    );
+
+    return {
+      status: actionResp.type === EN_REQUEST_RESULT.ERROR ? 400 : 200
     };
   }
 }

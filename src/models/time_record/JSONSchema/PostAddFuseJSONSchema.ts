@@ -1,6 +1,6 @@
 import { IJSONSchemaType } from '../../common/IJSONSchemaType';
 
-export const PostAddOverloadJSONSchema: IJSONSchemaType = {
+export const PostAddFuseJSONSchema: IJSONSchemaType = {
   description: '초과 근무를 사용한다.',
   properties: {
     body: {

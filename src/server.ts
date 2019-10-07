@@ -10,6 +10,7 @@ import { BeverageRoute } from './server/routes/BeverageRoute';
 import { EventRoute } from './server/routes/EventRoute';
 import { GroupRoute } from './server/routes/GroupRoute';
 import { OverloadRoute } from './server/routes/OverloadRoute';
+import { RandomCoffeeRoute } from './server/routes/RandomCoffeeRoute';
 import { SlackRoute } from './server/routes/SlackRoute';
 import { TimeRecordRoute } from './server/routes/TimeRecordRoute';
 import { UserRoute } from './server/routes/UserRoute';
@@ -26,6 +27,7 @@ function routeList() {
   router.use(SlackRoute.bootstrap().router);
   router.use(EventRoute.bootstrap().router);
   router.use(BeverageRoute.bootstrap().router);
+  router.use(RandomCoffeeRoute.bootstrap().router);
   return router;
 }
 

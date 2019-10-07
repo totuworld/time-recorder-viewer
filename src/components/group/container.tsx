@@ -7,32 +7,38 @@ import '../../styles/style.css';
 import debug from 'debug';
 import * as luxon from 'luxon';
 import { observer } from 'mobx-react';
-import moment from 'moment';
+import moment, { isMoment } from 'moment';
 import React from 'react';
 import { DateRangePicker } from 'react-dates';
 import { Helmet } from 'react-helmet';
 import {
-    Button, Card, CardBody, CardFooter, CardHeader, CardTitle, Col, Container, Row, Table
+  Button,
+  Card,
+  CardBody,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+  Col,
+  Container,
+  Row,
+  Table
 } from 'reactstrap';
 
 import { IHoliday } from '../../models/time_record/interface/IHoliday';
-import { IFuseOverWork, IOverWork } from '../../models/time_record/interface/IOverWork';
+import {
+  IFuseOverWork,
+  IOverWork
+} from '../../models/time_record/interface/IOverWork';
 import { ITimeRecordLogData } from '../../models/time_record/interface/ITimeRecordLogData';
 import { GetHolidaysJSONSchema } from '../../models/time_record/JSONSchema/GetHolidaysJSONSchema';
-import {
-    GetOverloadsByUserIDJSONSchema
-} from '../../models/time_record/JSONSchema/GetOverloadsJSONSchema';
-import {
-    GetTimeRecordsJSONSchema
-} from '../../models/time_record/JSONSchema/GetTimeRecordsJSONSchema';
+import { GetOverloadsByUserIDJSONSchema } from '../../models/time_record/JSONSchema/GetOverloadsJSONSchema';
+import { GetTimeRecordsJSONSchema } from '../../models/time_record/JSONSchema/GetTimeRecordsJSONSchema';
 import { Overload } from '../../models/time_record/Overload';
 import { OverloadRequestBuilder } from '../../models/time_record/OverloadRequestBuilder';
 import { TimeRecord } from '../../models/time_record/TimeRecord';
 import { TimeRecordRequestBuilder } from '../../models/time_record/TimeRecordRequestBuilder';
 import { IUserInfo } from '../../models/user/interface/IUserInfo';
-import {
-    GetGroupUserInfosJSONSchema
-} from '../../models/user/JSONSchema/GetGroupUserInfosJSONSchema';
+import { GetGroupUserInfosJSONSchema } from '../../models/user/JSONSchema/GetGroupUserInfosJSONSchema';
 import { User } from '../../models/user/User';
 import { UserRequestBuilder } from '../../models/user/UserRequestBuilder';
 import { Auth } from '../../services/auth';
@@ -49,9 +55,13 @@ import GroupUserAvatar from './user/avatar';
 export interface IGroupContainerProps {
   groupId: string;
   group: IUserInfo[];
-  records: {[key: string]: Array<{ [key: string]: { [key: string]: ITimeRecordLogData } }>};
-  overloads: {[key: string]: IOverWork[]};
-  fuseOverloads: {[key: string]: IFuseOverWork[]};
+  records: {
+    [key: string]: Array<{
+      [key: string]: { [key: string]: ITimeRecordLogData };
+    }>;
+  };
+  overloads: { [key: string]: IOverWork[] };
+  fuseOverloads: { [key: string]: IFuseOverWork[] };
   initialStartDate: string;
   initialEndDate: string;
   holidays: IHoliday[];
@@ -60,7 +70,10 @@ export interface IGroupContainerProps {
 const log = debug('trv:GroupContainer');
 
 @observer
-export default class GroupContainer extends React.Component<IGroupContainerProps, IRecordContainerStates> {
+export default class GroupContainer extends React.Component<
+  IGroupContainerProps,
+  IRecordContainerStates
+> {
   private store: GroupStore;
   private loginUserStore: LoginStore;
   public static async getInitialProps({
@@ -75,17 +88,24 @@ export default class GroupContainer extends React.Component<IGroupContainerProps
       rbParam = { baseURI: req.config.getApiURI(), isProxy: false };
     }
 
-    const weekStartDay = luxon.DateTime.local().set({weekday: 1}).minus({days: 1}).toFormat('yyyy-LL-dd');
-    const weekEndDay = luxon.DateTime.local().set({weekday: 6}).toFormat('yyyy-LL-dd');
+    const weekStartDay = luxon.DateTime.local()
+      .set({ weekday: 1 })
+      .minus({ days: 1 })
+      .toFormat('yyyy-LL-dd');
+    const weekEndDay = luxon.DateTime.local()
+      .set({ weekday: 6 })
+      .toFormat('yyyy-LL-dd');
     let startDate = weekStartDay;
     let endDate = weekEndDay;
     if (!!req && !!req.query) {
-      startDate = !!req.query['startDate'] ? req.query['startDate'] : weekStartDay;
+      startDate = !!req.query['startDate']
+        ? req.query['startDate']
+        : weekStartDay;
       endDate = !!req.query['endDate'] ? req.query['endDate'] : weekEndDay;
     }
     const checkParams = {
       query: {
-        groupId: match.params.group_id,
+        groupId: match.params.group_id
       }
     };
 
@@ -94,9 +114,9 @@ export default class GroupContainer extends React.Component<IGroupContainerProps
 
     const actionResp = await action.findGroups(
       checkParams,
-      GetGroupUserInfosJSONSchema,
+      GetGroupUserInfosJSONSchema
     );
-    
+
     const records = {};
     const overloads = {};
     const fuseOverloads = {};
@@ -110,10 +130,10 @@ export default class GroupContainer extends React.Component<IGroupContainerProps
         {
           query: {
             start_date: startDate,
-            end_date: endDate,
+            end_date: endDate
           }
         },
-        GetHolidaysJSONSchema,
+        GetHolidaysJSONSchema
       );
       if (holidaysResp.type === EN_REQUEST_RESULT.SUCCESS) {
         holidays = holidaysResp.data;
@@ -122,30 +142,48 @@ export default class GroupContainer extends React.Component<IGroupContainerProps
       const olAction = new Overload(olRb);
       // 각 사용자의 일한 시간도 뽑아내자.
       const promises = actionResp.data.map(async (mv, i) => {
-        const resp = await trAction.findAll({query: { userId: mv.id, startDate, endDate }}, GetTimeRecordsJSONSchema);
+        const resp = await trAction.findAll(
+          { query: { userId: mv.id, startDate, endDate } },
+          GetTimeRecordsJSONSchema
+        );
         log(resp.data);
-        records[mv.id] = !!resp && resp.type === EN_REQUEST_RESULT.SUCCESS ? resp.data : [];
-        const olQuery = { query: {user_id: mv.id} };
-        const olResp = await olAction.findAllByUserID(olQuery, GetOverloadsByUserIDJSONSchema);
-        overloads[mv.id] = !!olResp && olResp.type === EN_REQUEST_RESULT.SUCCESS ? olResp.data : [];
-        const olFuseResp = await olAction.findAllFuseUserID(olQuery, GetOverloadsByUserIDJSONSchema);
-        fuseOverloads[mv.id] = !!olFuseResp && olFuseResp.type === EN_REQUEST_RESULT.SUCCESS ? olFuseResp.data : [];
+        records[mv.id] =
+          !!resp && resp.type === EN_REQUEST_RESULT.SUCCESS ? resp.data : [];
+        const olQuery = { query: { user_id: mv.id } };
+        const olResp = await olAction.findAllByUserID(
+          olQuery,
+          GetOverloadsByUserIDJSONSchema
+        );
+        overloads[mv.id] =
+          !!olResp && olResp.type === EN_REQUEST_RESULT.SUCCESS
+            ? olResp.data
+            : [];
+        const olFuseResp = await olAction.findAllFuseUserID(
+          olQuery,
+          GetOverloadsByUserIDJSONSchema
+        );
+        fuseOverloads[mv.id] =
+          !!olFuseResp && olFuseResp.type === EN_REQUEST_RESULT.SUCCESS
+            ? olFuseResp.data
+            : [];
       });
       while (promises.length > 0) {
         await promises.pop();
       }
     }
-    
+
     return {
       groupId: match.params.group_id,
-      group: actionResp.type === EN_REQUEST_RESULT.SUCCESS ?
-        actionResp.data.sort((a, b) => a.real_name > b.real_name ? 1 : -1) : [],
+      group:
+        actionResp.type === EN_REQUEST_RESULT.SUCCESS
+          ? actionResp.data.sort((a, b) => (a.real_name > b.real_name ? 1 : -1))
+          : [],
       records,
       overloads,
       fuseOverloads,
       initialStartDate: startDate,
       initialEndDate: endDate,
-      holidays,
+      holidays
     };
   }
 
@@ -157,7 +195,7 @@ export default class GroupContainer extends React.Component<IGroupContainerProps
       endDate: moment(props.initialEndDate).toDate(),
       focusedInput: null,
       backupDate: { start: null, end: null },
-      isServer: true,
+      isServer: true
     };
 
     this.onDatesChangeForDRP = this.onDatesChangeForDRP.bind(this);
@@ -165,17 +203,30 @@ export default class GroupContainer extends React.Component<IGroupContainerProps
     this.handleClickRow = this.handleClickRow.bind(this);
     this.getTimeObjectToString = this.getTimeObjectToString.bind(this);
     this.getRows = this.getRows.bind(this);
+    this.isManager = this.isManager.bind(this);
+    this.getWeek = this.getWeek.bind(this);
     this.calGroupWorkTime = this.calGroupWorkTime.bind(this);
     this.getDataElements = this.getDataElements.bind(this);
     this.isLogined = this.isLogined.bind(this);
-    this.store = new GroupStore(props.records, props.group, props.overloads, props.fuseOverloads, props.holidays);
+    this.store = new GroupStore(
+      props.records,
+      props.group,
+      props.overloads,
+      props.fuseOverloads,
+      props.holidays
+    );
     this.loginUserStore = new LoginStore(null);
   }
 
-  public onDatesChangeForDRP({ startDate, endDate }: {
-    startDate: moment.Moment | null, endDate: moment.Moment | null}) {
+  public onDatesChangeForDRP({
+    startDate,
+    endDate
+  }: {
+    startDate: moment.Moment | null;
+    endDate: moment.Moment | null;
+  }) {
     const updateObj = {
-      ...this.state,
+      ...this.state
     };
     if (!!startDate) {
       updateObj['startDate'] = startDate.toDate();
@@ -191,16 +242,21 @@ export default class GroupContainer extends React.Component<IGroupContainerProps
     if (this.store.isIdle === true) {
       await this.store.findGroupRecords(
         moment(this.state.startDate).format('YYYY-MM-DD'),
-        moment(this.state.endDate).format('YYYY-MM-DD'),
+        moment(this.state.endDate).format('YYYY-MM-DD')
       );
     }
   }
 
   public handleClickRow(userId: string) {
-    const haveData = !!this.store.Records[userId] && this.store.Records[userId].length > 0;
+    const haveData =
+      !!this.store.Records[userId] && this.store.Records[userId].length > 0;
     if (haveData === true) {
-      const startDate = luxon.DateTime.fromJSDate(this.state.startDate).toFormat('yyyy-LL-dd');
-      const endDate = luxon.DateTime.fromJSDate(this.state.endDate).toFormat('yyyy-LL-dd');
+      const startDate = luxon.DateTime.fromJSDate(
+        this.state.startDate
+      ).toFormat('yyyy-LL-dd');
+      const endDate = luxon.DateTime.fromJSDate(this.state.endDate).toFormat(
+        'yyyy-LL-dd'
+      );
       window.location.href = `/records/${userId}?startDate=${startDate}&endDate=${endDate}`;
     }
   }
@@ -211,37 +267,139 @@ export default class GroupContainer extends React.Component<IGroupContainerProps
     if (milliseconds < 0) {
       duration = luxon.Duration.fromMillis(Math.abs(milliseconds));
     }
-    return milliseconds < 0 ? `-${duration.toFormat('hh:mm:ss')}` : duration.toFormat('hh:mm:ss');
+    return milliseconds < 0
+      ? `-${duration.toFormat('hh:mm:ss')}`
+      : duration.toFormat('hh:mm:ss');
+  }
+
+  public isManager(): { result: boolean; id?: string } {
+    // 그룹 내의 매니저 권한을 가지고 있는지 확인한다.
+    if (this.isLogined() === false) {
+      return { result: false };
+    }
+    const loginUserInfo = this.loginUserStore.UserInfo;
+    if (loginUserInfo === null) {
+      return { result: false };
+    }
+    const { id } = loginUserInfo;
+    const userInfo = this.store.GroupMembers.find(fv => fv.id === id);
+    if (userInfo === undefined) {
+      return { result: false };
+    }
+    if (userInfo.manager === true) {
+      return { id, result: true };
+    }
+    return { result: false };
+  }
+
+  /** start, end를 통해서 이번주가 1주일 안의 기록을 조회한 것이라면 week string을 획득한다 */
+  public getWeek() {
+    const { startDate, endDate } = this.state;
+    const lSd = luxon.DateTime.fromJSDate(startDate);
+    const lEd = luxon.DateTime.fromJSDate(endDate);
+    const duration = lEd.diff(lSd);
+    const today = luxon.DateTime.local();
+    if (lSd <= today && lEd >= today) {
+      return null;
+    }
+    if (
+      duration.milliseconds === 518400000 &&
+      lSd.weekday === 7 &&
+      lEd.weekday === 6
+    ) {
+      return `${lEd.weekYear}-W${lEd.weekNumber}`;
+    }
+    return null;
   }
 
   public getRows() {
-    const holidaysDuration = luxon.Duration.fromISO(`PT${this.store.Holidays.length * 8}H`);
-    return this.props.group
-    .map((mv) => {
-      const convertData = !!this.store.Records[mv.id] && this.store.Records[mv.id].length > 0 ?
-      TimeRecord.convertWorkTime(
-        this.store.Records[mv.id],
-        this.state.startDate,
-        this.state.endDate,
-        holidaysDuration
-      ) : { updateDatas: null, overTimeObj: null, calWorkTimeStr: 'none', overTimeStr: 'none' };
-      const lastActive = !!convertData.updateDatas && convertData.calWorkTimeStr !== 'none' ?
-        convertData.updateDatas[convertData.updateDatas.length - 1].name : 'none';
-      const badgeStatus = lastActive !== 'none' && !!convertData.overTimeObj ?
-        luxon.Duration.fromObject(convertData.overTimeObj).as('hours') >= 1 ? 'danger' : 'success' : null;
-      const totalRemain = Util.totalRemain(this.store.OverWorks[mv.id], this.store.FuseOverWorks[mv.id]);
-      const totalRemainStr = totalRemain === null ? '-' : this.getTimeObjectToString(totalRemain);
-      const totalRemainBtn = totalRemain === null ? '-' :
-        (<Button
-          onClick={(e) => { e.stopPropagation(); window.location.href = `/overload/${mv.id}`; }}
-        >
-          {totalRemainStr}
-        </Button>);
+    // 뷰하는 기록이 일요일-토요일로 7일간의 기록을 특정하고 있는지 확인한다.
+    const isManager = this.isManager();
+    const weekStr = this.getWeek();
+    const isOneWeek = weekStr !== null;
+    const holidaysDuration = luxon.Duration.fromISO(
+      `PT${this.store.Holidays.length * 8}H`
+    );
+    return this.props.group.map(mv => {
+      const convertData =
+        !!this.store.Records[mv.id] && this.store.Records[mv.id].length > 0
+          ? TimeRecord.convertWorkTime(
+              this.store.Records[mv.id],
+              this.state.startDate,
+              this.state.endDate,
+              holidaysDuration
+            )
+          : {
+              updateDatas: null,
+              overTimeObj: null,
+              calWorkTimeStr: 'none',
+              overTimeStr: 'none'
+            };
+      const lastActive =
+        !!convertData.updateDatas && convertData.calWorkTimeStr !== 'none'
+          ? convertData.updateDatas[convertData.updateDatas.length - 1].name
+          : 'none';
+      const badgeStatus =
+        lastActive !== 'none' && !!convertData.overTimeObj
+          ? luxon.Duration.fromObject(convertData.overTimeObj).as('hours') >= 1
+            ? 'danger'
+            : 'success'
+          : null;
+      const totalRemain = Util.totalRemain(
+        this.store.OverWorks[mv.id],
+        this.store.FuseOverWorks[mv.id]
+      );
+      const totalRemainStr =
+        totalRemain === null ? '-' : this.getTimeObjectToString(totalRemain);
+      const totalRemainBtn =
+        totalRemain === null ? (
+          '-'
+        ) : (
+          <Button
+            onClick={e => {
+              e.stopPropagation();
+              window.location.href = `/overload/${mv.id}`;
+            }}
+          >
+            {totalRemainStr}
+          </Button>
+        );
+      const settlementBtn = ((user: IUserInfo) => {
+        if (!isManager.result || !isOneWeek) {
+          return null;
+        }
+        const settlementRecord = this.store.getMemberOverWork({
+          user_id: user.id,
+          week: weekStr!
+        });
+        if (settlementRecord === null) {
+          return (
+            <td>
+              <Button
+                onClick={async e => {
+                  e.stopPropagation();
+                  await this.store.addOverWork({
+                    user_id: mv.id,
+                    week: weekStr!,
+                    manager_id: isManager.id!
+                  });
+                  await this.store.loadOverWorks({ user_id: mv.id });
+                }}
+              >
+                정산
+              </Button>
+            </td>
+          );
+        }
+        return <td />;
+      })(mv);
       return (
         <tr
           key={mv.id}
-          onClick={() => { this.handleClickRow(mv.id); }}
-          style={{cursor: 'pointer'}}
+          onClick={() => {
+            this.handleClickRow(mv.id);
+          }}
+          style={{ cursor: 'pointer' }}
         >
           <td className="text-center">
             <GroupUserAvatar
@@ -253,19 +411,12 @@ export default class GroupContainer extends React.Component<IGroupContainerProps
           </td>
           <td className="d-none d-sm-table-cell">
             <div>{mv.real_name}</div>
-            <div className="small text-muted">
-              slack id: {mv.name}
-            </div>
+            <div className="small text-muted">slack id: {mv.name}</div>
           </td>
-          <td>
-            {convertData.calWorkTimeStr}
-          </td>
-          <td className="d-none d-sm-table-cell">
-            {convertData.overTimeStr}
-          </td>
-          <td>
-            {totalRemainBtn}
-          </td>
+          <td>{convertData.calWorkTimeStr}</td>
+          <td className="d-none d-sm-table-cell">{convertData.overTimeStr}</td>
+          <td>{totalRemainBtn}</td>
+          {settlementBtn}
         </tr>
       );
     });
@@ -274,42 +425,67 @@ export default class GroupContainer extends React.Component<IGroupContainerProps
   public calGroupWorkTime() {
     function getMedian(numbers: number[]) {
       const numsLen = numbers.length;
-      const sortNumbers = numbers.sort();
+      const sortNumbers = [...numbers].sort((a, b) => a - b);
 
       if (numsLen % 2 === 0) {
         return (sortNumbers[numsLen / 2 - 1] + sortNumbers[numsLen / 2]) / 2;
       }
       return sortNumbers[(numsLen - 1) / 2];
     }
-    const holidaysDuration = luxon.Duration.fromISO(`PT${this.store.Holidays.length * 8}H`);
+    const holidaysDuration = luxon.Duration.fromISO(
+      `PT${this.store.Holidays.length * 8}H`
+    );
     const workTimeValues = {
       totalWorkTime: luxon.Duration.fromObject({}),
       totalOverWorkTime: luxon.Duration.fromObject({}),
       averageOverWorkTime: luxon.Duration.fromObject({}),
-      medianOverWorkTime: luxon.Duration.fromObject({}),
+      medianOverWorkTime: luxon.Duration.fromObject({})
     };
     // record 데이터가 비어있다면 기본 값을 바로 리턴한다.
     if (Util.isEmpty(this.store.Records)) {
       return workTimeValues;
     }
-    const filterOutEmptyWorklog = Object.values(this.store.Records)
-      .filter((fv) => Util.isNotEmpty(fv));
-    const workTimeObjs = filterOutEmptyWorklog
-      .map((mv) => TimeRecord.convertWorkTime(mv, this.state.startDate, this.state.endDate, holidaysDuration));
+    const filterOutEmptyWorklog = Object.values(this.store.Records).filter(fv =>
+      Util.isNotEmpty(fv)
+    );
+    const workTimeObjs = filterOutEmptyWorklog.map(mv =>
+      TimeRecord.convertWorkTime(
+        mv,
+        this.state.startDate,
+        this.state.endDate,
+        holidaysDuration
+      )
+    );
     const reduceTimes = workTimeObjs.reduce(
       (acc, cur) => {
-        const updateAcc = {...acc};
-        updateAcc.totalWorkTime += luxon.Duration.fromObject(cur.calWorkTimeObj).as('milliseconds');
-        const overtime = luxon.Duration.fromObject(cur.overTimeObj).as('milliseconds');
+        const updateAcc = { ...acc };
+        updateAcc.totalWorkTime += luxon.Duration.fromObject(
+          cur.calWorkTimeObj
+        ).as('milliseconds');
+        const overtime = luxon.Duration.fromObject(cur.overTimeObj).as(
+          'milliseconds'
+        );
         updateAcc.totalOverWorkTime += overtime;
         return updateAcc;
       },
-      { totalWorkTime: 0, totalOverWorkTime: 0 });
-    workTimeValues.totalWorkTime = luxon.Duration.fromMillis(reduceTimes.totalWorkTime);
-    workTimeValues.totalOverWorkTime = luxon.Duration.fromMillis(reduceTimes.totalOverWorkTime);
-    workTimeValues.averageOverWorkTime = luxon.Duration.fromMillis(reduceTimes.totalOverWorkTime / workTimeObjs.length);
+      { totalWorkTime: 0, totalOverWorkTime: 0 }
+    );
+    workTimeValues.totalWorkTime = luxon.Duration.fromMillis(
+      reduceTimes.totalWorkTime
+    );
+    workTimeValues.totalOverWorkTime = luxon.Duration.fromMillis(
+      reduceTimes.totalOverWorkTime
+    );
+    workTimeValues.averageOverWorkTime = luxon.Duration.fromMillis(
+      reduceTimes.totalOverWorkTime / workTimeObjs.length
+    );
     workTimeValues.medianOverWorkTime = luxon.Duration.fromMillis(
-      getMedian(workTimeObjs.map((mv) =>  luxon.Duration.fromObject(mv.overTimeObj).as('milliseconds'))));
+      getMedian(
+        workTimeObjs.map(mv =>
+          luxon.Duration.fromObject(mv.overTimeObj).as('milliseconds')
+        )
+      )
+    );
     return workTimeValues;
   }
 
@@ -319,25 +495,33 @@ export default class GroupContainer extends React.Component<IGroupContainerProps
       <Row>
         <Col md={true} className="mb-sm-2 mb-0">
           <div className="callout callout-primary">
-            <div className="text-muted">{workTimeValues.totalWorkTime.toFormat('hh:mm:ss')}</div>
+            <div className="text-muted">
+              {workTimeValues.totalWorkTime.toFormat('hh:mm:ss')}
+            </div>
             <div>총 근무 시간</div>
           </div>
         </Col>
         <Col md={true} className="mb-sm-2 mb-0">
           <div className="callout callout-danger">
-            <div className="text-muted">{workTimeValues.totalOverWorkTime.toFormat('hh:mm:ss')}</div>
+            <div className="text-muted">
+              {workTimeValues.totalOverWorkTime.toFormat('hh:mm:ss')}
+            </div>
             <div>총 초과근무</div>
           </div>
         </Col>
         <Col md={true} className="mb-sm-2 mb-0">
           <div className="callout callout-primary">
-            <div className="text-muted">{workTimeValues.averageOverWorkTime.toFormat('hh:mm:ss')}</div>
+            <div className="text-muted">
+              {workTimeValues.averageOverWorkTime.toFormat('hh:mm:ss')}
+            </div>
             <div>평균 초과근무</div>
           </div>
         </Col>
         <Col md={true} className="mb-sm-2 mb-0">
           <div className="callout callout-warning">
-            <div className="text-muted">{workTimeValues.medianOverWorkTime.toFormat('hh:mm:ss')}</div>
+            <div className="text-muted">
+              {workTimeValues.medianOverWorkTime.toFormat('hh:mm:ss')}
+            </div>
             <div>초과근무 중위값</div>
           </div>
         </Col>
@@ -355,7 +539,7 @@ export default class GroupContainer extends React.Component<IGroupContainerProps
   public async componentDidMount() {
     this.setState({
       ...this.state,
-      isServer: false,
+      isServer: false
     });
     console.log(Auth.isLogined);
     console.log(!!Auth.loginUserKey);
@@ -367,6 +551,9 @@ export default class GroupContainer extends React.Component<IGroupContainerProps
   public render() {
     const rows = this.getRows();
     const dataElements = this.getDataElements();
+    const isManager = this.isManager();
+    const weekStr = this.getWeek();
+    const isOneWeek = weekStr !== null;
     return (
       <div className="app">
         <Helmet>
@@ -375,8 +562,12 @@ export default class GroupContainer extends React.Component<IGroupContainerProps
         <DefaultHeader
           isLogin={this.isLogined()}
           userInfo={this.loginUserStore.UserInfo}
-          onClickLogin={() => { window.location.href = '/login'; }}
-          onClickLogout={() => { this.loginUserStore.logout(this.state.isServer); }}
+          onClickLogin={() => {
+            window.location.href = '/login';
+          }}
+          onClickLogout={() => {
+            this.loginUserStore.logout(this.state.isServer);
+          }}
         />
         <div className="app-body">
           <Container>
@@ -390,9 +581,11 @@ export default class GroupContainer extends React.Component<IGroupContainerProps
                   orientation="vertical"
                   focusedInput={this.state.focusedInput}
                   onDatesChange={this.onDatesChangeForDRP}
-                  onFocusChange={(focusedInput) => this.setState({...this.state, focusedInput})}
+                  onFocusChange={focusedInput =>
+                    this.setState({ ...this.state, focusedInput })
+                  }
                   minimumNights={0}
-                  isOutsideRange={(day) => false}
+                  isOutsideRange={day => false}
                   onClose={this.handleClosePopover}
                   noBorder={true}
                   block={true}
@@ -402,13 +595,24 @@ export default class GroupContainer extends React.Component<IGroupContainerProps
             <Card>
               <CardHeader>
                 <h2>{this.props.groupId}</h2>
+                {isManager.result && isOneWeek ? (
+                  <Button
+                    onClick={async e => {
+                      e.stopPropagation();
+                      await this.store.addOverWorkByGroup({
+                        group_id: this.props.groupId,
+                        week: weekStr!,
+                        manager_id: isManager.id!
+                      });
+                      window.location.reload();
+                    }}
+                  >
+                    {`그룹 전 인원(${weekStr}) 정산`}
+                  </Button>
+                ) : null}
               </CardHeader>
               <CardBody>
-                <Table
-                  responsive={true}
-                  className="d-sm-table"
-                  hover={true}
-                >
+                <Table responsive={true} className="d-sm-table" hover={true}>
                   <thead className="thead-light">
                     <tr>
                       <th className="text-center">
@@ -416,18 +620,17 @@ export default class GroupContainer extends React.Component<IGroupContainerProps
                       </th>
                       <th className="d-none d-sm-table-cell">사용자</th>
                       <th>근무시간</th>
-                      <th className="d-none d-sm-table-cell">기간 내 초과시간</th>
+                      <th className="d-none d-sm-table-cell">
+                        기간 내 초과시간
+                      </th>
                       <th>누적 초과시간</th>
+                      {isManager.result && isOneWeek ? <th>정산</th> : null}
                     </tr>
                   </thead>
-                  <tbody>
-                    {rows}
-                  </tbody>
+                  <tbody>{rows}</tbody>
                 </Table>
               </CardBody>
-              <CardFooter>
-                {dataElements}
-              </CardFooter>
+              <CardFooter>{dataElements}</CardFooter>
             </Card>
           </Container>
         </div>
