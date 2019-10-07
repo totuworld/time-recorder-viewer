@@ -600,7 +600,7 @@ export default class GroupContainer extends React.Component<
                 type="email"
                 id="user_id_input"
                 name="user_id_input"
-                placeholder="멤버 id 입력"
+                placeholder="slack 멤버 id 혹은 email id 입력"
                 innerRef={this.modalEmailRef}
               />
               <InputGroupAddon addonType="append">
@@ -627,7 +627,9 @@ export default class GroupContainer extends React.Component<
                 </Button>
               </InputGroupAddon>
             </InputGroup>
-            <FormText>slack 워크스페이스에서 사용자 id를 확인하세요.</FormText>
+            <FormText>
+              slack 워크스페이스에서 사용자 id나 email 주소를 확인하세요.
+            </FormText>
           </FormGroup>
         </ModalBody>
         <ModalFooter>
