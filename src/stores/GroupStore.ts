@@ -1,5 +1,7 @@
 import { action, observable, runInAction } from 'mobx';
 
+import { Group } from '../models/group/Group';
+import { GroupRequestBuilder } from '../models/group/GroupRequestBuilder';
 import { IHoliday } from '../models/time_record/interface/IHoliday';
 import {
   IFuseOverWork,
@@ -91,6 +93,13 @@ export default class GroupStore {
     week: string;
   }) {
     const overWorks = this.overWorks[user_id];
+    if (
+      overWorks === null ||
+      overWorks === undefined ||
+      Array.isArray(overWorks) === false
+    ) {
+      return null;
+    }
     const filterData = overWorks.filter(fv => fv.week === week);
     return filterData.length > 0 ? filterData[0] : null;
   }
@@ -248,6 +257,78 @@ export default class GroupStore {
       return runInAction(() => {
         this.isLoading = false;
         return this.records;
+      });
+    } catch (error) {
+      this.isLoading = false;
+      throw error;
+    }
+  }
+
+  @action
+  public async addMember({
+    group_id,
+    user_id,
+    manager_id
+  }: {
+    group_id: string;
+    user_id: string;
+    manager_id: string;
+  }): Promise<boolean> {
+    if (this.isLoading === true) {
+      return false;
+    }
+    try {
+      this.isLoading = true;
+
+      const rbParam: RequestBuilderParams = { isProxy: true };
+      const trRb = new GroupRequestBuilder(rbParam);
+      const trAction = new Group(trRb);
+
+      const result = await trAction.addMember({
+        user_id,
+        manager_id,
+        group_id
+      });
+
+      return runInAction(() => {
+        this.isLoading = false;
+        return result.type === EN_REQUEST_RESULT.ERROR ? false : result.data;
+      });
+    } catch (error) {
+      this.isLoading = false;
+      throw error;
+    }
+  }
+
+  @action
+  public async deleteMember({
+    group_id,
+    user_id,
+    manager_id
+  }: {
+    group_id: string;
+    user_id: string;
+    manager_id: string;
+  }): Promise<boolean> {
+    if (this.isLoading === true) {
+      return false;
+    }
+    try {
+      this.isLoading = true;
+
+      const rbParam: RequestBuilderParams = { isProxy: true };
+      const trRb = new GroupRequestBuilder(rbParam);
+      const trAction = new Group(trRb);
+
+      const result = await trAction.deleteMember({
+        user_id,
+        manager_id,
+        group_id
+      });
+
+      return runInAction(() => {
+        this.isLoading = false;
+        return result.type === EN_REQUEST_RESULT.ERROR ? false : result.data;
       });
     } catch (error) {
       this.isLoading = false;

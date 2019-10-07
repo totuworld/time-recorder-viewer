@@ -11,10 +11,9 @@ export class Group {
   constructor(private rb: GroupRequestBuilder) {}
 
   public async findAllGroupInfos() {
-
     const query = this.rb.createGetAllGroupInfosQuery({
       method: 'GET',
-      headers: {},
+      headers: {}
     });
     const requester = RequestService.create(query.url);
     const response = await requester.call<IGroupInfo[]>(query);
@@ -22,6 +21,60 @@ export class Group {
     const result = await response;
     if (result.statusCode === 204 || result.type === EN_REQUEST_RESULT.ERROR) {
       return { type: EN_REQUEST_RESULT.ERROR, data: [] };
+    }
+    log(result.payload);
+    return { type: EN_REQUEST_RESULT.SUCCESS, data: result.payload };
+  }
+
+  public async addMember(args: {
+    group_id: string;
+    user_id: string;
+    manager_id: string;
+  }) {
+    const query = this.rb.addMemberQuery({
+      method: 'POST',
+      resources: {
+        group_id: args.group_id,
+        user_id: args.user_id
+      },
+      body: {
+        manager_id: args.manager_id
+      },
+      headers: {}
+    });
+    const requester = RequestService.create(query.url);
+    const response = await requester.call<boolean>(query);
+
+    const result = await response;
+    if (result.statusCode === 204 || result.type === EN_REQUEST_RESULT.ERROR) {
+      return { type: EN_REQUEST_RESULT.ERROR, data: false };
+    }
+    log(result.payload);
+    return { type: EN_REQUEST_RESULT.SUCCESS, data: result.payload };
+  }
+
+  public async deleteMember(args: {
+    group_id: string;
+    user_id: string;
+    manager_id: string;
+  }) {
+    const query = this.rb.addMemberQuery({
+      method: 'DELETE',
+      resources: {
+        group_id: args.group_id,
+        user_id: args.user_id
+      },
+      body: {
+        manager_id: args.manager_id
+      },
+      headers: {}
+    });
+    const requester = RequestService.create(query.url);
+    const response = await requester.call<boolean>(query);
+
+    const result = await response;
+    if (result.statusCode === 204 || result.type === EN_REQUEST_RESULT.ERROR) {
+      return { type: EN_REQUEST_RESULT.ERROR, data: false };
     }
     log(result.payload);
     return { type: EN_REQUEST_RESULT.SUCCESS, data: result.payload };
