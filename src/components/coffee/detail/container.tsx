@@ -567,6 +567,32 @@ export default class CoffeeDetailContainer extends React.Component<
       : '';
     const searchedBeverages = this.matchBeverages();
     const addBeverageModalBody = this.addBeverageModal();
+    const myOrder = (() => {
+      if (
+        !!this.detailStore.Orders &&
+        this.isLogined() === true &&
+        !!this.loginUserStore.UserInfo
+      ) {
+        const myOwnOrder = this.detailStore.getMyOrder(
+          this.loginUserStore.UserInfo.id
+        );
+        if (myOwnOrder === null) {
+          return null;
+        }
+        return (
+          <Card>
+            <CardHeader>
+              <h4>🙋내 ☕️주문</h4>
+            </CardHeader>
+            <CardBody>
+              <p>{myOwnOrder.title}</p>
+              <p>옵션({myOwnOrder.option})</p>
+            </CardBody>
+          </Card>
+        );
+      }
+      return null;
+    })();
     const orders = this.orderItems();
     const ownerMenu = this.getOwnerMenu();
     const guestItems = this.getGuestsItem();
@@ -634,6 +660,7 @@ export default class CoffeeDetailContainer extends React.Component<
                 <ListGroup>{searchedBeverages}</ListGroup>
               </Search>
             </Card>
+            {myOrder}
             <Card>
               <CardHeader>
                 주문 목록 <Badge>합계 {totalOrderCount} 잔</Badge>
