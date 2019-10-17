@@ -33,6 +33,7 @@ export default class EventDetailStore {
   @observable private targetUsers: Map<string, IUserInfo> = new Map();
   @observable private beverages: Map<string, IBeverage> = new Map();
   @observable private orders: Map<string, TEventOrder[]> = new Map();
+  @observable private originalOrders: IEventOrder[] = [];
   @observable private totalUsers: Map<string, ISlackUserInfo> = new Map();
 
   constructor({
@@ -65,6 +66,7 @@ export default class EventDetailStore {
     }
     if (orders.length > 0 && beverages.length > 0) {
       const reduceOrders = this.reduceOrder(orders);
+      this.originalOrders = orders;
       this.orders = reduceOrders;
     }
     if (!!eventInfo) {
@@ -111,6 +113,23 @@ export default class EventDetailStore {
       count += v.length;
     });
     return count;
+  }
+
+  public getMyOrder(userId: string) {
+    if (this.originalOrders.length <= 0) {
+      return null;
+    }
+    const findSingleOrder = this.originalOrders.find(
+      fv => fv.guest_id === userId
+    );
+    if (findSingleOrder === undefined) {
+      return null;
+    }
+    const beverage = this.beverages.get(findSingleOrder.beverage_id);
+    return {
+      ...findSingleOrder,
+      title: beverage === undefined ? '' : beverage.title
+    };
   }
 
   private reduceOrder(orders: IEventOrder[]) {
@@ -175,7 +194,9 @@ export default class EventDetailStore {
       return runInAction(() => {
         if (orders.type === EN_REQUEST_RESULT.SUCCESS && !!orders.data) {
           const reduceOrders = this.reduceOrder(orders.data);
+          this.originalOrders = orders.data;
           this.orders = reduceOrders;
+          alert(`주문완료\n${beverage.title} (${option})`);
         }
         this.isLoading = false;
         return null;
@@ -214,6 +235,7 @@ export default class EventDetailStore {
       return runInAction(() => {
         if (orders.type === EN_REQUEST_RESULT.SUCCESS && !!orders.data) {
           const reduceOrders = this.reduceOrder(orders.data);
+          this.originalOrders = orders.data;
           this.orders = reduceOrders;
         }
         this.isLoading = false;
