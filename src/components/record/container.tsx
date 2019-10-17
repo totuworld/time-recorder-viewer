@@ -1244,10 +1244,14 @@ class RecordContainer extends React.Component<
     const modalBody = this.getModalBody();
     const fuseModalBody = this.getFuseModalBody();
     const fuseToVacationModalBody = this.getFuseToVacationModalBody();
+    const name =
+      this.props.userInfo === null
+        ? this.props.userId
+        : this.props.userInfo.real_name;
     return (
       <div className="app">
         <Helmet>
-          <title>User {this.props.userId} Work Log</title>
+          <title>{name} Work Log</title>
         </Helmet>
         <DefaultHeader
           isLogin={this.isLogined()}

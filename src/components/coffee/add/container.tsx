@@ -6,7 +6,14 @@ import { produce } from 'immer';
 import { observer } from 'mobx-react';
 import React from 'react';
 import { Helmet } from 'react-helmet';
-import { Button, Card, CardBody, CardHeader, Container } from 'reactstrap';
+import {
+  Badge,
+  Button,
+  Card,
+  CardBody,
+  CardHeader,
+  Container
+} from 'reactstrap';
 
 import { Group } from '../../../models/group/Group';
 import { GroupRequestBuilder } from '../../../models/group/GroupRequestBuilder';
@@ -266,7 +273,7 @@ export default class CoffeeAddContainer extends React.Component<IProp, IState> {
     return (
       <div className="app">
         <Helmet>
-          <title>test</title>
+          <title>☕️⏱</title>
         </Helmet>
         <DefaultHeader
           isLogin={this.isLogined()}
@@ -288,7 +295,9 @@ export default class CoffeeAddContainer extends React.Component<IProp, IState> {
             </Card>
             {this.state.step !== 2 ? null : (
               <Card>
-                <CardHeader>참가자 목록</CardHeader>
+                <CardHeader>
+                  참가자 목록 <Badge>총 {userList.length} 명</Badge>
+                </CardHeader>
                 <CardBody>{userList}</CardBody>
               </Card>
             )}
