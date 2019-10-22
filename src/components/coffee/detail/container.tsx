@@ -565,6 +565,7 @@ export default class CoffeeDetailContainer extends React.Component<
       : !!this.props.info
       ? this.props.info.desc
       : '';
+    const isPrivate = !!this.detailStore.Info.private;
     const searchedBeverages = this.matchBeverages();
     const addBeverageModalBody = this.addBeverageModal();
     const myOrder = (() => {
@@ -637,7 +638,12 @@ export default class CoffeeDetailContainer extends React.Component<
           <Container>
             <Card>
               <CardHeader>
-                <h3>{disTitle}</h3>
+                <h3>
+                  <Badge color={isPrivate ? 'warning' : 'primary'}>
+                    {isPrivate ? '비공개' : '공개'}
+                  </Badge>{' '}
+                  {disTitle}
+                </h3>
                 <p>{disDesc}</p>
                 {ownerMenu}
               </CardHeader>
