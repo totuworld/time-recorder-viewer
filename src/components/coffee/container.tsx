@@ -129,7 +129,7 @@ export default class CoffeeContainer extends React.Component<IProp, IState> {
     return (
       <div className="app">
         <Helmet>
-          <title>test</title>
+          <title>☕️⏱</title>
         </Helmet>
         <DefaultHeader
           isLogin={this.isLogined()}

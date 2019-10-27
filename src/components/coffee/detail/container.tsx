@@ -482,7 +482,7 @@ export default class CoffeeDetailContainer extends React.Component<
             await this.detailStore.sendMsgToGuests();
           }}
         >
-          참석자에게 주문 요청하기
+          참가자에게 주문 요청하기
         </Button>,
         <Button
           key="close_btn"
@@ -507,8 +507,7 @@ export default class CoffeeDetailContainer extends React.Component<
   private getGuestsItem() {
     if (
       Util.isNotEmpty(this.detailStore) &&
-      Util.isNotEmpty(this.detailStore.Users) &&
-      this.state.toggleUserList === true
+      Util.isNotEmpty(this.detailStore.Users)
     ) {
       const userResult = [...this.detailStore.Users.values()].map(mv => {
         return (
@@ -618,6 +617,9 @@ export default class CoffeeDetailContainer extends React.Component<
         로그인
       </Button>
     );
+    const guestCountBadge =
+      guestItems === null ? null : <Badge> 총 {guestItems.length} 명 </Badge>;
+
     return (
       <div className="app">
         <Helmet>
@@ -669,15 +671,20 @@ export default class CoffeeDetailContainer extends React.Component<
             </Card>
             <Card>
               <CardHeader>
+                참가자 목록 {guestCountBadge}{' '}
                 <Button
+                  outline={true}
+                  size="sm"
                   onClick={() => {
                     this.toggleGuestList();
                   }}
                 >
-                  참가자 목록 {this.state.toggleUserList ? '닫기' : '열기'}
+                  {this.state.toggleUserList ? '닫기' : '열기'}
                 </Button>
               </CardHeader>
-              <CardBody>{guestItems}</CardBody>
+              <CardBody>
+                {this.state.toggleUserList === true ? guestItems : null}
+              </CardBody>
             </Card>
           </Container>
           <Modal isOpen={this.state.isOpenAddBeverage}>
