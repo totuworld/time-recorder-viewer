@@ -493,7 +493,9 @@ export default class CoffeeDetailContainer extends React.Component<
           key="close_btn"
           color="danger"
           onClick={async () => {
-            await this.detailStore.closeEvent();
+            if (confirm('주문을 마감하시겠습니까?')) {
+              await this.detailStore.closeEvent();
+            }
           }}
         >
           주문 마감
