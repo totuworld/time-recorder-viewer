@@ -407,7 +407,7 @@ export default class CoffeeDetailContainer extends React.Component<
       this.detailStore.Orders.size > 0 &&
       this.props.users.length > 0
     ) {
-      const returnElements: Array<React.ReactElement<OrderItem>> = [];
+      const returnElements: Array<React.ReactElement<any>> = [];
       this.detailStore.Orders.forEach((orders, key) => {
         const userIds = orders.map(mv => mv.guest_id);
         const isMine =
@@ -474,7 +474,12 @@ export default class CoffeeDetailContainer extends React.Component<
       return null;
     }
     const isClosed = this.isClosed();
-    if (isClosed === false) {
+    if (
+      isClosed === false &&
+      Util.isNotEmpty(this.props.info) &&
+      Util.isNotEmpty(this.loginUserStore.UserInfo) &&
+      this.props.info.owner_id === this.loginUserStore.UserInfo.id
+    ) {
       return [
         <Button
           key="holo"
