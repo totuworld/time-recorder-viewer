@@ -759,7 +759,7 @@ export default class GroupContainer extends React.Component<
                 ) : null}
               </CardHeader>
               <CardBody>
-                <Table responsive={true} className="d-sm-table" hover={true}>
+                <Table responsive={true} className="d-sm-table" hover={false}>
                   <thead className="thead-light">
                     <tr>
                       <th className="text-center">
