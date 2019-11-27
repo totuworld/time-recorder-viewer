@@ -113,7 +113,7 @@ export default class CoffeeContainer extends React.Component<IProp, IState> {
         </ListGroupItem>
       );
     });
-    result.push(<Button>+ 리스트 더보기</Button>);
+    result.push(<Button key="last">+ 리스트 더보기</Button>);
     return result;
   }
 

@@ -4,32 +4,26 @@ import { action, observable, runInAction } from 'mobx';
 import { EN_WORK_TYPE } from '../models/time_record/interface/EN_WORK_TYPE';
 import { IHoliday } from '../models/time_record/interface/IHoliday';
 import { ITimeRecordLogData } from '../models/time_record/interface/ITimeRecordLogData';
-import {
-    DeleteTimeRecordJSONSchema
-} from '../models/time_record/JSONSchema/DeleteTimeRecordJSONSchema';
+import { DeleteTimeRecordJSONSchema } from '../models/time_record/JSONSchema/DeleteTimeRecordJSONSchema';
 import { GetHolidaysJSONSchema } from '../models/time_record/JSONSchema/GetHolidaysJSONSchema';
-import {
-    GetTimeRecordsJSONSchema
-} from '../models/time_record/JSONSchema/GetTimeRecordsJSONSchema';
-import {
-    PostTimeRecordJSONSchema
-} from '../models/time_record/JSONSchema/PostTimeRecordJSONSchema';
-import {
-    PostUpdateTimeRecordJSONSchema
-} from '../models/time_record/JSONSchema/PostUpdateTimeRecordJSONSchema';
+import { GetTimeRecordsJSONSchema } from '../models/time_record/JSONSchema/GetTimeRecordsJSONSchema';
+import { PostTimeRecordJSONSchema } from '../models/time_record/JSONSchema/PostTimeRecordJSONSchema';
+import { PostUpdateTimeRecordJSONSchema } from '../models/time_record/JSONSchema/PostUpdateTimeRecordJSONSchema';
 import { TimeRecord } from '../models/time_record/TimeRecord';
 import { TimeRecordRequestBuilder } from '../models/time_record/TimeRecordRequestBuilder';
 import { RequestBuilderParams } from '../services/requestService/RequestBuilder';
 import { EN_REQUEST_RESULT } from '../services/requestService/requesters/AxiosRequester';
 
 export default class TimeRecordStore {
-  @observable private records: Array<{ [key: string]: { [key: string]: ITimeRecordLogData } }> = [];
+  @observable private records: Array<{
+    [key: string]: { [key: string]: ITimeRecordLogData };
+  }> = [];
   @observable private holidays: IHoliday[];
   @observable private isLoading: boolean = false;
 
   constructor(
     records: Array<{ [key: string]: { [key: string]: ITimeRecordLogData } }>,
-    holidays: IHoliday[],
+    holidays: IHoliday[]
   ) {
     this.records = records;
     this.holidays = holidays;
@@ -38,7 +32,9 @@ export default class TimeRecordStore {
   get Records() {
     return this.records;
   }
-  set Records(value: Array<{ [key: string]: { [key: string]: ITimeRecordLogData } }>) {
+  set Records(
+    value: Array<{ [key: string]: { [key: string]: ITimeRecordLogData } }>
+  ) {
     this.records = value;
   }
 
@@ -46,7 +42,7 @@ export default class TimeRecordStore {
     return this.holidays;
   }
 
-  get isIdle(): boolean {
+  get IsIdle(): boolean {
     return this.isLoading === false;
   }
 
@@ -54,7 +50,7 @@ export default class TimeRecordStore {
   public async findTimeRecord(
     userId: string,
     startDate: string,
-    endDate: string,
+    endDate: string
   ): Promise<Array<{ [key: string]: { [key: string]: ITimeRecordLogData } }>> {
     if (this.isLoading === true) {
       return [];
@@ -68,7 +64,7 @@ export default class TimeRecordStore {
         query: {
           userId,
           startDate,
-          endDate,
+          endDate
         }
       };
 
@@ -76,10 +72,7 @@ export default class TimeRecordStore {
       const findAction = new TimeRecord(rb);
 
       const [actionResp, holidaysResp] = await Promise.all([
-        findAction.findAll(
-          checkParams,
-          GetTimeRecordsJSONSchema,
-        ),
+        findAction.findAll(checkParams, GetTimeRecordsJSONSchema),
         findAction.getHolidays(
           {
             query: {
@@ -112,7 +105,7 @@ export default class TimeRecordStore {
     authUserId: string,
     userId: string,
     type: EN_WORK_TYPE,
-    targetDate?: luxon.DateTime,
+    targetDate?: luxon.DateTime
   ): Promise<{ text: string | null }> {
     if (this.isLoading === true) {
       return { text: null };
@@ -129,24 +122,29 @@ export default class TimeRecordStore {
           type,
           auth_user_id: authUserId,
           user_id: userId,
-          target_date: !!targetDate ? targetDate.toFormat('yyyyLLdd') : today.toFormat('yyyyLLdd'),
-          time: today.toISO(),
+          target_date: !!targetDate
+            ? targetDate.toFormat('yyyyLLdd')
+            : today.toFormat('yyyyLLdd'),
+          time: today.toISO()
         }
       };
 
       // 등록할 날짜가 다른가?
-      if (!!targetDate &&
-        today.toFormat('yyyyLLdd') !== targetDate.toFormat('yyyyLLdd')) {
+      if (
+        !!targetDate &&
+        today.toFormat('yyyyLLdd') !== targetDate.toFormat('yyyyLLdd')
+      ) {
         checkParams.body.time = luxon.DateTime.fromFormat(
           `${targetDate.toFormat('yyyy-LL-dd')} ${today.toFormat('HH:mm')}`,
-          'yyyy-LL-dd HH:mm').toISO();
+          'yyyy-LL-dd HH:mm'
+        ).toISO();
       }
       const rb = new TimeRecordRequestBuilder(rbParam);
       const findAction = new TimeRecord(rb);
 
       const actionResp = await findAction.addWork(
         checkParams,
-        PostTimeRecordJSONSchema,
+        PostTimeRecordJSONSchema
       );
       return runInAction(() => {
         this.isLoading = false;
@@ -168,7 +166,7 @@ export default class TimeRecordStore {
     updateDate: string,
     recordKey: string,
     targetKey: keyof ITimeRecordLogData,
-    time: string,
+    time: string
   ): Promise<boolean> {
     if (this.isLoading === true) {
       return false;
@@ -185,7 +183,7 @@ export default class TimeRecordStore {
           update_date: updateDate,
           record_key: recordKey,
           target_key: targetKey,
-          time,
+          time
         }
       };
 
@@ -194,7 +192,7 @@ export default class TimeRecordStore {
 
       const actionResp = await findAction.updateWorkLog(
         checkParams,
-        PostUpdateTimeRecordJSONSchema,
+        PostUpdateTimeRecordJSONSchema
       );
       return runInAction(() => {
         this.isLoading = false;
@@ -214,7 +212,7 @@ export default class TimeRecordStore {
     authUserId: string,
     userId: string,
     targetDate: luxon.DateTime,
-    logId: string,
+    logId: string
   ): Promise<{ text: string | null }> {
     if (this.isLoading === true) {
       return { text: null };
@@ -231,7 +229,7 @@ export default class TimeRecordStore {
           auth_user_id: authUserId,
           user_id: userId,
           target_date: targetDate.toFormat('yyyyLLdd'),
-          log_id: logId,
+          log_id: logId
         }
       };
 
@@ -240,7 +238,7 @@ export default class TimeRecordStore {
 
       const actionResp = await findAction.deleteWorkLog(
         checkParams,
-        DeleteTimeRecordJSONSchema,
+        DeleteTimeRecordJSONSchema
       );
       return runInAction(() => {
         this.isLoading = false;

@@ -7,12 +7,10 @@ import {
   Card,
   CardBody,
   CardGroup,
-  CardHeader,
   Col,
   Container,
   Row
 } from 'reactstrap';
-
 import {
   appTokenKey,
   firebaseAuthKey,

@@ -9,7 +9,7 @@ export class ConfigType {
     const env = process.env.NODE_ENV
       ? process.env.NODE_ENV.toLowerCase()
       : 'local';
-    log(env);
+    log('env', env);
     if (env === 'local' || env === 'development') {
       const envpath = path.resolve(__dirname + '/.env.development.local');
       log(envpath);
@@ -18,7 +18,7 @@ export class ConfigType {
     if (env === 'production' && process.env.API_SERVER_HOST === undefined) {
       require('dotenv').config();
     }
-    log(process.env.API_SERVER_HOST);
+    log('host', process.env.API_SERVER_HOST);
   }
 
   public getApiURI(): uri.URI {

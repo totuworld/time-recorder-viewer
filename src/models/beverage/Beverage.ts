@@ -24,7 +24,7 @@ export class Beverage {
     );
     log('validParam: ', validParam.result);
     if (validParam.result === false) {
-      return { type: EN_REQUEST_RESULT.ERROR, data: null };
+      return { type: EN_REQUEST_RESULT.ERROR };
     }
 
     const query = this.rb.findAllBeveragesQuery({
@@ -33,11 +33,10 @@ export class Beverage {
       query: validParam.data.query
     });
     const requester = RequestService.create(query.url);
-    const response = await requester.call<IBeverage[]>(query);
+    const result = await requester.call<IBeverage[]>(query);
 
-    const result = await response;
     if (result.type === EN_REQUEST_RESULT.ERROR) {
-      return { type: EN_REQUEST_RESULT.ERROR, data: null };
+      return { type: EN_REQUEST_RESULT.ERROR };
     }
     log(result.payload);
     return { type: EN_REQUEST_RESULT.SUCCESS, data: result.payload };
@@ -50,7 +49,7 @@ export class Beverage {
     );
     log('validParam: ', validParam.result);
     if (validParam.result === false) {
-      return { type: EN_REQUEST_RESULT.ERROR, data: null };
+      return { type: EN_REQUEST_RESULT.ERROR };
     }
 
     const query = this.rb.addBeverageQuery({
@@ -59,11 +58,10 @@ export class Beverage {
       body: validParam.data.body
     });
     const requester = RequestService.create(query.url);
-    const response = await requester.call<IBeverage>(query);
+    const result = await requester.call<IBeverage>(query);
 
-    const result = await response;
     if (result.type === EN_REQUEST_RESULT.ERROR) {
-      return { type: EN_REQUEST_RESULT.ERROR, data: null };
+      return { type: EN_REQUEST_RESULT.ERROR };
     }
     log(result.payload);
     return { type: EN_REQUEST_RESULT.SUCCESS, data: result.payload };

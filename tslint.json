@@ -39,7 +39,6 @@
     "no-switch-case-fall-through": true,
     "no-trailing-whitespace": false,
     "no-unused-expression": true,
-    "no-use-before-declare": true,
     "object-literal-sort-keys": false,
     "interface-over-type-literal": false,
     "one-line": [
