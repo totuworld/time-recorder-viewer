@@ -31,3 +31,36 @@ export interface IFuseOverWorks {
   type: EN_REQUEST_RESULT;
   data: IFuseOverWork[];
 }
+
+/** OverTime을 휴가로 변경한 기록에 관한 인터페이스 */
+export interface IFuseToVacation {
+  /** 생성 날짜 luxon (yyyyLLdd) */
+  created: string;
+  /** 만료일자 (ISO 8601) */
+  expireDate: string;
+  /** 변경한 사유 */
+  note: string;
+  /** 사용 여부 */
+  used: boolean;
+  /** 사용한 시간 */
+  useTimeStamp?: string;
+  /** 해당 휴가를 추가한 날짜 */
+  addLogDate?: string;
+}
+
+export interface IFuseToVacationRead extends IFuseToVacation {
+  /** 고유키 */
+  key: string;
+}
+
+export interface IUseFuseToVacation {
+  type: EN_REQUEST_RESULT;
+  data?: {
+    result: boolean;
+  };
+}
+
+export interface IFindAllFuseToVacation {
+  type: EN_REQUEST_RESULT;
+  data?: IFuseToVacationRead[];
+}

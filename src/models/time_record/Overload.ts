@@ -5,12 +5,16 @@ import { Requester } from '../../services/requestService/Requester';
 import { EN_REQUEST_RESULT } from '../../services/requestService/requesters/AxiosRequester';
 import { IJSONSchemaType } from '../common/IJSONSchemaType';
 import { AddFuseOverloadRequestParam } from './interface/AddFuseOverloadRequestParam';
+import { FindAllFuseToVacationRequestParam } from './interface/FindAllFuseToVacationRequestParam';
 import {
+  IFindAllFuseToVacation,
   IFuseOverWork,
   IFuseOverWorks,
+  IFuseToVacationRead,
   IOverWork,
   IOverWorks,
-  IOverWorkWithType
+  IOverWorkWithType,
+  IUseFuseToVacation
 } from './interface/IOverWork';
 import { IAddTimeRecord } from './interface/ITimeRecords';
 import {
@@ -19,6 +23,7 @@ import {
   OverloadsByUserIDRequestParam,
   OverloadsRequestParam
 } from './interface/OverloadsRequestParam';
+import { UseFuseToVacationRequestParam } from './interface/UseFuseToVacationRequestParam';
 import { OverloadRequestBuilder } from './OverloadRequestBuilder';
 
 const log = debug('trv:Overload');
@@ -176,6 +181,7 @@ export class Overload {
     return { type: EN_REQUEST_RESULT.SUCCESS, data: result.payload };
   }
 
+  /** 차감 로그를 등록한다 */
   public async addFuseLog(
     params: AddFuseOverloadRequestParam,
     schema: IJSONSchemaType
@@ -202,6 +208,69 @@ export class Overload {
     log('addFuseLog result.statusCode: ', result.statusCode);
     if (result.type === EN_REQUEST_RESULT.ERROR) {
       return { type: EN_REQUEST_RESULT.ERROR, data: { text: null } };
+    }
+    log(result.payload);
+    return { type: EN_REQUEST_RESULT.SUCCESS, data: result.payload };
+  }
+
+  /** 차감가능한 시간을 휴가로 변경하여 기록한다 */
+  public async useFuseToVacation(
+    params: UseFuseToVacationRequestParam,
+    schema: IJSONSchemaType
+  ): Promise<IUseFuseToVacation> {
+    log(params);
+    const validParam = Requester.validateParamWithData(params, schema);
+    log('useFuseToVacation validParam: ', validParam);
+
+    if (validParam.result === false) {
+      return { type: EN_REQUEST_RESULT.ERROR, data: { result: false } };
+    }
+    const query = this.rb.useFuseToVacationQuery({
+      method: 'POST',
+      headers: {},
+      body: params.body
+    });
+
+    log(query);
+
+    const requester = RequestService.create(query.url);
+    const response = await requester.call<{ result: boolean }>(query);
+
+    const result = await response;
+    log('useFuseToVacation result.statusCode: ', result.statusCode);
+    if (result.type === EN_REQUEST_RESULT.ERROR) {
+      return { type: EN_REQUEST_RESULT.ERROR, data: { result: false } };
+    }
+    log(result.payload);
+    return { type: EN_REQUEST_RESULT.SUCCESS, data: result.payload };
+  }
+
+  public async findAllFuseToVacationByUserID(
+    params: FindAllFuseToVacationRequestParam,
+    schema: IJSONSchemaType
+  ): Promise<IFindAllFuseToVacation> {
+    log(params);
+    const validParam = Requester.validateParam(params, schema);
+    log('validParam: ', validParam);
+    if (validParam === false) {
+      return { type: EN_REQUEST_RESULT.ERROR, data: [] };
+    }
+    const query = this.rb.findAllFuseToVacationByUserIDQuery({
+      method: 'GET',
+      headers: {},
+      resources: {
+        user_id: params.params.user_id
+      }
+    });
+
+    log(query);
+
+    const requester = RequestService.create(query.url);
+    const response = await requester.call<IFuseToVacationRead[]>(query);
+
+    const result = await response;
+    if (result.type === EN_REQUEST_RESULT.ERROR) {
+      return { type: EN_REQUEST_RESULT.ERROR, data: [] };
     }
     log(result.payload);
     return { type: EN_REQUEST_RESULT.SUCCESS, data: result.payload };

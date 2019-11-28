@@ -7,6 +7,7 @@ import {
 } from '../models/time_record/interface/IOverWork';
 import { GetOverloadsByUserIDJSONSchema } from '../models/time_record/JSONSchema/GetOverloadsJSONSchema';
 import { PostAddFuseJSONSchema } from '../models/time_record/JSONSchema/PostAddFuseJSONSchema';
+import { UseFuseToVacationJSONSchema } from '../models/time_record/JSONSchema/UseFuseToVacationJSONSchema';
 import { Overload } from '../models/time_record/Overload';
 import { OverloadRequestBuilder } from '../models/time_record/OverloadRequestBuilder';
 import { RequestBuilderParams } from '../services/requestService/RequestBuilder';
@@ -172,6 +173,49 @@ export default class OverloadStore {
           return actionResp.data;
         }
         return { text: null };
+      });
+    } catch (error) {
+      this.isLoading = false;
+      throw error;
+    }
+  }
+
+  @action
+  public async useFuseToVacation(
+    authUserId: string,
+    userId: string,
+    targetDate: luxon.DateTime
+  ): Promise<{ result: boolean }> {
+    if (this.isLoading === true) {
+      return { result: false };
+    }
+    try {
+      this.isLoading = true;
+
+      const rbParam: RequestBuilderParams = { isProxy: true };
+
+      const checkParams = {
+        body: {
+          auth_user_id: authUserId,
+          user_id: userId,
+          target_date: targetDate.toFormat('yyyyLLdd')
+        }
+      };
+
+      const rb = new OverloadRequestBuilder(rbParam);
+      const findAction = new Overload(rb);
+      console.log('addFuseOverload action');
+      const actionResp = await findAction.useFuseToVacation(
+        checkParams,
+        UseFuseToVacationJSONSchema
+      );
+      console.log(actionResp);
+      return runInAction(() => {
+        this.isLoading = false;
+        if (actionResp.type === EN_REQUEST_RESULT.SUCCESS && actionResp.data) {
+          return actionResp.data;
+        }
+        return { result: false };
       });
     } catch (error) {
       this.isLoading = false;
