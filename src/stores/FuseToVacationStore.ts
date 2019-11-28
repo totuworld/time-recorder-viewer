@@ -1,7 +1,7 @@
 import { action, observable, runInAction } from 'mobx';
 
 import { IFuseToVacationRead } from '../models/time_record/interface/IOverWork';
-import { FindAllFuseToVacationJSONSchema } from '../models/time_record/JSONSchema/FindAllFuseToVacationJSONSchema';
+import { JSCFindAllFuseToVacation } from '../models/time_record/JSONSchema/JSCFindAllFuseToVacation';
 import { Overload } from '../models/time_record/Overload';
 import { OverloadRequestBuilder } from '../models/time_record/OverloadRequestBuilder';
 import { RequestBuilderParams } from '../services/requestService/RequestBuilder';
@@ -48,7 +48,7 @@ export default class FuseToVacationStore {
 
       const actionResp = await findAction.findAllFuseToVacationByUserID(
         checkParams,
-        FindAllFuseToVacationJSONSchema
+        JSCFindAllFuseToVacation
       );
       return runInAction(() => {
         this.isLoading = false;

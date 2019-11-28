@@ -16,7 +16,7 @@ import {
 } from 'reactstrap';
 
 import { IFuseToVacationRead } from '../../../models/time_record/interface/IOverWork';
-import { FindAllFuseToVacationJSONSchema } from '../../../models/time_record/JSONSchema/FindAllFuseToVacationJSONSchema';
+import { JSCFindAllFuseToVacation } from '../../../models/time_record/JSONSchema/JSCFindAllFuseToVacation';
 import { Overload } from '../../../models/time_record/Overload';
 import { OverloadRequestBuilder } from '../../../models/time_record/OverloadRequestBuilder';
 import { IUserInfo } from '../../../models/user/interface/IUserInfo';
@@ -90,7 +90,7 @@ class RecordFuseVacationContainer extends React.Component<
     const [recordsResp, userInfoResp] = await Promise.all([
       action.findAllFuseToVacationByUserID(
         checkParams,
-        FindAllFuseToVacationJSONSchema
+        JSCFindAllFuseToVacation
       ),
       userAction.find(
         { query: { userId: match.params.user_id } },

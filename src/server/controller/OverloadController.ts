@@ -11,12 +11,12 @@ import {
   IUseFuseToVacation
 } from '../../models/time_record/interface/IOverWork';
 import { IAddTimeRecord } from '../../models/time_record/interface/ITimeRecords';
-import { FindAllFuseToVacationJSONSchema } from '../../models/time_record/JSONSchema/FindAllFuseToVacationJSONSchema';
 import {
   GetOverloadByUserIDWithDateJSONSchema,
   GetOverloadsByUserIDJSONSchema,
   GetOverloadsJSONSchema
 } from '../../models/time_record/JSONSchema/GetOverloadsJSONSchema';
+import { JSCFindAllFuseToVacation } from '../../models/time_record/JSONSchema/JSCFindAllFuseToVacation';
 import { JSCPostAddOverWork } from '../../models/time_record/JSONSchema/JSCPostAddOverWork';
 import { JSCPostAddOverWorkByGroup } from '../../models/time_record/JSONSchema/JSCPostAddOverWorkByGroup';
 import { PostAddFuseJSONSchema } from '../../models/time_record/JSONSchema/PostAddFuseJSONSchema';
@@ -328,7 +328,7 @@ export class OverloadController {
           user_id
         }
       },
-      FindAllFuseToVacationJSONSchema
+      JSCFindAllFuseToVacation
     );
 
     return {
