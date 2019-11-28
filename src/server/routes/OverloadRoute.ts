@@ -42,6 +42,16 @@ export class OverloadRoute extends CommonRoute {
       oRoute.controller.addOverWorkByUser.bind(oRoute.controller)
     );
 
+    oRoute.route(EN_REQUEST_METHODS.POST)(
+      '/use_fuse_over_work_to_vacation',
+      oRoute.controller.useFuseToVacation.bind(oRoute.controller)
+    );
+
+    oRoute.route(EN_REQUEST_METHODS.GET)(
+      '/fuse_over_work_to_vacations/:user_id',
+      oRoute.controller.findAllFuseToVacation.bind(oRoute.controller)
+    );
+
     return oRoute;
   }
 

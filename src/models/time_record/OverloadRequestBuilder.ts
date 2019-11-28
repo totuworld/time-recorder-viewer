@@ -11,6 +11,7 @@ import {
   OverloadsByUserIDRequestParam,
   OverloadsRequestParam
 } from './interface/OverloadsRequestParam';
+import { UseFuseToVacationRequestParam } from './interface/UseFuseToVacationRequestParam';
 
 export class OverloadRequestBuilder extends RequestBuilder {
   constructor(queryParams?: RequestBuilderParams) {
@@ -33,14 +34,12 @@ export class OverloadRequestBuilder extends RequestBuilder {
     let endPoint = apiPath.href();
     if (!!query) {
       const reqQueryStr = Object.keys(query)
-        .reduce(
-          (acc: string[], cur) => {
-            if (!!query[cur]) {
-              acc.push(`${cur}=${query[cur]}`);
-            }
-            return acc;
-          },
-          [])
+        .reduce((acc: string[], cur) => {
+          if (!!query[cur]) {
+            acc.push(`${cur}=${query[cur]}`);
+          }
+          return acc;
+        }, [])
         .join('&');
       endPoint = `${endPoint}?${reqQueryStr}`;
     }
@@ -63,14 +62,12 @@ export class OverloadRequestBuilder extends RequestBuilder {
     let endPoint = apiPath.href();
     if (!!query) {
       const reqQueryStr = Object.keys(query)
-        .reduce(
-          (acc: string[], cur) => {
-            if (!!query[cur]) {
-              acc.push(`${cur}=${query[cur]}`);
-            }
-            return acc;
-          },
-          [])
+        .reduce((acc: string[], cur) => {
+          if (!!query[cur]) {
+            acc.push(`${cur}=${query[cur]}`);
+          }
+          return acc;
+        }, [])
         .join('&');
       endPoint = `${endPoint}?${reqQueryStr}`;
     }
@@ -99,14 +96,12 @@ export class OverloadRequestBuilder extends RequestBuilder {
     let endPoint = apiPath.href();
     if (!!query) {
       const reqQueryStr = Object.keys(query)
-        .reduce(
-            (acc: string[], cur) => {
-              if (!!query[cur]) {
-                acc.push(`${cur}=${query[cur]}`);
-              }
-              return acc;
-            },
-            [])
+        .reduce((acc: string[], cur) => {
+          if (!!query[cur]) {
+            acc.push(`${cur}=${query[cur]}`);
+          }
+          return acc;
+        }, [])
         .join('&');
       endPoint = `${endPoint}?${reqQueryStr}`;
     }
@@ -129,14 +124,12 @@ export class OverloadRequestBuilder extends RequestBuilder {
     let endPoint = apiPath.href();
     if (!!query) {
       const reqQueryStr = Object.keys(query)
-        .reduce(
-          (acc: string[], cur) => {
-            if (!!query[cur]) {
-              acc.push(`${cur}=${query[cur]}`);
-            }
-            return acc;
-          },
-          [])
+        .reduce((acc: string[], cur) => {
+          if (!!query[cur]) {
+            acc.push(`${cur}=${query[cur]}`);
+          }
+          return acc;
+        }, [])
         .join('&');
       endPoint = `${endPoint}?${reqQueryStr}`;
     }
@@ -159,14 +152,12 @@ export class OverloadRequestBuilder extends RequestBuilder {
     let endPoint = apiPath.href();
     if (!!query) {
       const reqQueryStr = Object.keys(query)
-        .reduce(
-          (acc: string[], cur) => {
-            if (!!query[cur]) {
-              acc.push(`${cur}=${query[cur]}`);
-            }
-            return acc;
-          },
-          [])
+        .reduce((acc: string[], cur) => {
+          if (!!query[cur]) {
+            acc.push(`${cur}=${query[cur]}`);
+          }
+          return acc;
+        }, [])
         .join('&');
       endPoint = `${endPoint}?${reqQueryStr}`;
     }
@@ -190,14 +181,12 @@ export class OverloadRequestBuilder extends RequestBuilder {
     let endPoint = apiPath.href();
     if (!!query) {
       const reqQueryStr = Object.keys(query)
-        .reduce(
-          (acc: string[], cur) => {
-            if (!!query[cur]) {
-              acc.push(`${cur}=${query[cur]}`);
-            }
-            return acc;
-          },
-          [])
+        .reduce((acc: string[], cur) => {
+          if (!!query[cur]) {
+            acc.push(`${cur}=${query[cur]}`);
+          }
+          return acc;
+        }, [])
         .join('&');
       endPoint = `${endPoint}?${reqQueryStr}`;
     }
@@ -209,6 +198,55 @@ export class OverloadRequestBuilder extends RequestBuilder {
         ...this.AccessTokenObject
       },
       timeout: 10000,
+      url: endPoint
+    };
+  }
+
+  public useFuseToVacationQuery({
+    method,
+    query,
+    body
+  }: RequestParams<{}, UseFuseToVacationRequestParam>): IAxiosRequesterConfig {
+    const apiPath = this.getAPIPath('/use_fuse_over_work_to_vacation');
+    let endPoint = apiPath.href();
+    if (!!query) {
+      const reqQueryStr = Object.keys(query)
+        .reduce((acc: string[], cur) => {
+          if (!!query[cur]) {
+            acc.push(`${cur}=${query[cur]}`);
+          }
+          return acc;
+        }, [])
+        .join('&');
+      endPoint = `${endPoint}?${reqQueryStr}`;
+    }
+
+    return {
+      method,
+      data: body,
+      headers: {
+        ...this.AccessTokenObject
+      },
+      timeout: 10000,
+      url: endPoint
+    };
+  }
+
+  public findAllFuseToVacationByUserIDQuery({
+    method,
+    resources
+  }: RequestParams<{ user_id: string }, {}>) {
+    const apiPath = this.getAPIPath(
+      `/fuse_over_work_to_vacations/${resources!.user_id}`
+    );
+    const endPoint = apiPath.href();
+
+    return {
+      method,
+      headers: {
+        ...this.AccessTokenObject
+      },
+      timeout: 20000,
       url: endPoint
     };
   }

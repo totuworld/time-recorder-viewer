@@ -222,6 +222,7 @@ class RecordContainer extends React.Component<
     this.deleteWorklog = this.deleteWorklog.bind(this);
     this.getModalBody = this.getModalBody.bind(this);
     this.addFuseLog = this.addFuseLog.bind(this);
+    this.useFuseToVacation = this.useFuseToVacation.bind(this);
     this.getFuseModalBody = this.getFuseModalBody.bind(this);
     this.getFuseToVacationModalBody = this.getFuseToVacationModalBody.bind(
       this
@@ -613,7 +614,8 @@ class RecordContainer extends React.Component<
         VACATION: true,
         HALFVACATION: true,
         FUSEOVERLOAD: true,
-        FUSEOVERLOAD_VACATION: true
+        FUSEOVERLOAD_VACATION: true,
+        USE_FUSE_VACATION: true
       };
       return (
         <RecordButtons
@@ -666,7 +668,8 @@ class RecordContainer extends React.Component<
       VACATION: true,
       HALFVACATION: true,
       FUSEOVERLOAD: true,
-      FUSEOVERLOAD_VACATION: true
+      FUSEOVERLOAD_VACATION: true,
+      USE_FUSE_VACATION: true
     };
     if (this.isOneDay === false) {
       return returnValue;
@@ -731,6 +734,31 @@ class RecordContainer extends React.Component<
           updateData: undefined,
           fuseHours: luxon.Duration.fromObject({ hours: 0 })
         });
+        return;
+      }
+      if (type === EN_WORK_TYPE.USE_FUSE_VACATION) {
+        // 차감시간으로 만들어둔 휴가를 사용한다.
+        if (
+          confirm(
+            `휴가금고는 초과근무시간을 10:1로 바꿔놓은 휴가를 사용하는 기능입니다. 사용 시 하루(1일 - 8H) 근무를 대체하는 휴가와 동등하게 계산됩니다.\n사용할까요?`
+          )
+        ) {
+          const resp = await this.overloadStore.useFuseToVacation(
+            Auth.loginUserTokenKey,
+            this.props.userId,
+            luxon.DateTime.fromJSDate(this.state.startDate)
+          );
+          if (resp.result === false) {
+            alert('휴가금고 사용에 실패했습니다.');
+          }
+          if (resp.result === true) {
+            await this.store.findTimeRecord(
+              this.props.userId,
+              moment(this.state.startDate).format('YYYY-MM-DD'),
+              moment(this.state.endDate).format('YYYY-MM-DD')
+            );
+          }
+        }
         return;
       }
       // 차감 메뉴 외에는 아래에서 처리한다.
@@ -1036,6 +1064,29 @@ class RecordContainer extends React.Component<
       isFuseToVacationModalOpen: false,
       fuseHours: luxon.Duration.fromObject({ hours: 0 })
     });
+    await this.store.findTimeRecord(
+      this.props.userId,
+      moment(this.state.startDate).format('YYYY-MM-DD'),
+      moment(this.state.endDate).format('YYYY-MM-DD')
+    );
+    await this.overloadStore.findAllFuseOverload(userId);
+  }
+
+  public async useFuseToVacation() {
+    if (this.state.isServer === true || Auth.loginUserTokenKey === null) {
+      return;
+    }
+
+    const targetDate = luxon.DateTime.fromJSDate(this.state.startDate);
+    const userId = this.props.userId;
+    // 사용 기록 추가
+    await this.overloadStore.useFuseToVacation(
+      Auth.loginUserTokenKey,
+      userId,
+      targetDate
+    );
+
+    // 데이터 갱신
     await this.store.findTimeRecord(
       this.props.userId,
       moment(this.state.startDate).format('YYYY-MM-DD'),

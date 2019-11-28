@@ -8,6 +8,7 @@ import Login from './components/login';
 import QueueAddContainer from './components/queue/addContainer';
 import QueueFindContainer from './components/queue/find/container';
 import RecordContainer from './components/record/container';
+import RecordFuseVacationContainer from './components/record/fuse_vacation/container';
 import RecordOverloadContainer from './components/record/overload/container';
 
 export default [
@@ -56,6 +57,12 @@ export default [
     exact: true,
     component: RecordOverloadContainer
   },
+  {
+    path: '/convert_vacation/:user_id', // 특정 개인의 휴가금고 확인
+    exact: true,
+    component: RecordFuseVacationContainer
+  },
+
   {
     path: '/coffeebreak',
     exact: true,

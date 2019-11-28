@@ -83,6 +83,13 @@ class DefaultHeader extends React.Component<
           </DropdownItem>
           <DropdownItem
             onClick={() => {
+              window.location.href = `/convert_vacation/${userInfo!.id}`;
+            }}
+          >
+            휴가금고 확인
+          </DropdownItem>
+          <DropdownItem
+            onClick={() => {
               window.location.href = `/queue/add/${userInfo!.id}`;
             }}
           >
