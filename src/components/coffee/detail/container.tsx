@@ -534,7 +534,7 @@ export default class CoffeeDetailContainer extends React.Component<
 
   private async addBeverage() {
     const result = await this.detailStore.addBeverage(this.state.searchText);
-    if (result !== null) {
+    if (result) {
       const updateState = { ...this.state };
       updateState.matchBeverages.push(result);
       this.setState(updateState);

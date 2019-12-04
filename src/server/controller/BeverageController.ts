@@ -25,8 +25,7 @@ export class BeverageController {
     );
     if (validateReq.result === false) {
       return {
-        status: 400,
-        payload: validateReq.errorMessage
+        status: 400
       };
     }
     const rbParam: RequestBuilderParams = { baseURI: Config.getApiURI() };
@@ -39,10 +38,14 @@ export class BeverageController {
       JSCFindAllBeverage
     );
 
-    return {
-      status: actionResp.type === EN_REQUEST_RESULT.ERROR ? 204 : 200,
-      payload: actionResp.data
-    };
+    return actionResp.type === EN_REQUEST_RESULT.ERROR
+      ? {
+          status: 400
+        }
+      : {
+          status: 200,
+          payload: actionResp.data
+        };
   }
 
   public async add(req: Request): Promise<TControllerResp<IBeverage>> {
@@ -54,8 +57,7 @@ export class BeverageController {
     );
     if (validateReq.result === false) {
       return {
-        status: 400,
-        payload: validateReq.errorMessage
+        status: 400
       };
     }
     const rbParam: RequestBuilderParams = { baseURI: Config.getApiURI() };
@@ -65,9 +67,13 @@ export class BeverageController {
 
     const actionResp = await findAction.add(validateReq.data, JSCAddBeverage);
 
-    return {
-      status: actionResp.type === EN_REQUEST_RESULT.ERROR ? 400 : 200,
-      payload: actionResp.data
-    };
+    return actionResp.type === EN_REQUEST_RESULT.ERROR
+      ? {
+          status: 400
+        }
+      : {
+          status: 200,
+          payload: actionResp.data
+        };
   }
 }

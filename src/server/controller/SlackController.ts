@@ -1,7 +1,6 @@
+import { WebClient } from '@slack/web-api';
 import debug from 'debug';
 import { Request } from 'express';
-
-import { WebClient } from '@slack/client';
 
 import { ISlackResponse } from '../../models/slack/interface/ISlackResponse';
 import { Util } from '../../services/util';

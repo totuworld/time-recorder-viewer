@@ -1,6 +1,5 @@
 import 'react-dates/initialize';
 import 'react-dates/lib/css/_datepicker.css';
-// import 'normalize.css/normalize.css';
 import '../../styles/style.css';
 
 import debug from 'debug';
@@ -107,7 +106,6 @@ class RecordContainer extends React.Component<
   private loginUserStore: LoginStore;
   private overloadStore: OverloadStore;
 
-  private modalStartDateRef = React.createRef<HTMLInputElement>();
   private modalStartTimeRef = React.createRef<HTMLInputElement>();
   private modalEndDateRef = React.createRef<HTMLInputElement>();
   private modalEndTimeRef = React.createRef<HTMLInputElement>();
@@ -115,7 +113,6 @@ class RecordContainer extends React.Component<
 
   public static async getInitialProps({
     req,
-    res,
     match
   }: IAfterRequestContext<{ user_id: string }>) {
     log(match.params.user_id);
@@ -242,12 +239,10 @@ class RecordContainer extends React.Component<
     startDate: moment.Moment | null;
     endDate: moment.Moment | null;
   }) {
-    const updateObj = {
-      ...this.state
-    };
+    const updateObj = {};
     if (!!startDate) {
       updateObj['startDate'] = startDate.toDate();
-      updateObj.focusedInput = 'endDate';
+      updateObj['focusedInput'] = 'endDate';
     }
     if (!!endDate) {
       updateObj['endDate'] = endDate.toDate();
@@ -255,13 +250,16 @@ class RecordContainer extends React.Component<
     this.setState(updateObj);
   }
 
-  public async handleClosePopover() {
-    if (this.store.isIdle === true) {
-      await this.store.findTimeRecord(
-        this.props.userId,
-        moment(this.state.startDate).format('YYYY-MM-DD'),
-        moment(this.state.endDate).format('YYYY-MM-DD')
-      );
+  public handleClosePopover() {
+    if (this.store.IsIdle === true) {
+      this.setState(state => {
+        this.store.findTimeRecord(
+          this.props.userId,
+          moment(state.startDate).format('YYYY-MM-DD'),
+          moment(state.endDate).format('YYYY-MM-DD')
+        );
+        return state;
+      });
     }
   }
 
@@ -1329,11 +1327,11 @@ class RecordContainer extends React.Component<
                   orientation="vertical"
                   focusedInput={this.state.focusedInput}
                   onDatesChange={this.onDatesChangeForDRP}
-                  onFocusChange={focusedInput =>
-                    this.setState({ ...this.state, focusedInput })
-                  }
+                  onFocusChange={focusedInput => {
+                    this.setState({ focusedInput });
+                  }}
                   minimumNights={0}
-                  isOutsideRange={day => false}
+                  isOutsideRange={() => false}
                   onClose={this.handleClosePopover}
                   noBorder={true}
                   block={true}

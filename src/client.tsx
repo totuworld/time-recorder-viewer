@@ -1,18 +1,15 @@
 import './client.css';
 
+import { After, ensureReady } from '@jaredpalmer/after';
 import React from 'react';
 import { hydrate } from 'react-dom';
 import { BrowserRouter } from 'react-router-dom';
-
-import { After, ensureReady } from '@jaredpalmer/after';
-
-import Document from './Document';
 import routes from './routes';
 
-ensureReady(routes).then((data) =>
+ensureReady(routes).then(data =>
   hydrate(
     <BrowserRouter>
-      <After data={data} routes={routes} document={Document} />
+      <After data={data} routes={routes} />
     </BrowserRouter>,
     document.getElementById('root')
   )
