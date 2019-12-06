@@ -6,10 +6,13 @@ import {
   IOverWork
 } from '../models/time_record/interface/IOverWork';
 import { GetOverloadsByUserIDJSONSchema } from '../models/time_record/JSONSchema/GetOverloadsJSONSchema';
+import { JSCPostAddOverWork } from '../models/time_record/JSONSchema/JSCPostAddOverWork';
 import { PostAddFuseJSONSchema } from '../models/time_record/JSONSchema/PostAddFuseJSONSchema';
 import { UseFuseToVacationJSONSchema } from '../models/time_record/JSONSchema/UseFuseToVacationJSONSchema';
 import { Overload } from '../models/time_record/Overload';
 import { OverloadRequestBuilder } from '../models/time_record/OverloadRequestBuilder';
+import { TimeRecord } from '../models/time_record/TimeRecord';
+import { TimeRecordRequestBuilder } from '../models/time_record/TimeRecordRequestBuilder';
 import { RequestBuilderParams } from '../services/requestService/RequestBuilder';
 import { EN_REQUEST_RESULT } from '../services/requestService/requesters/AxiosRequester';
 import { Util } from '../services/util';
@@ -216,6 +219,47 @@ export default class OverloadStore {
           return actionResp.data;
         }
         return { result: false };
+      });
+    } catch (error) {
+      this.isLoading = false;
+      throw error;
+    }
+  }
+
+  @action
+  public async addOverWork({
+    user_id,
+    week,
+    manager_id
+  }: {
+    user_id: string;
+    week: string;
+    manager_id: string;
+  }) {
+    if (this.isLoading === true) {
+      return {};
+    }
+    try {
+      this.isLoading = true;
+
+      const rbParam: RequestBuilderParams = { isProxy: true };
+      const trRb = new TimeRecordRequestBuilder(rbParam);
+      const trAction = new TimeRecord(trRb);
+
+      await trAction.addOverWorkByUser(
+        {
+          body: {
+            user_id,
+            week,
+            manager_id
+          }
+        },
+        JSCPostAddOverWork
+      );
+
+      return runInAction(() => {
+        this.isLoading = false;
+        return this.records;
       });
     } catch (error) {
       this.isLoading = false;
