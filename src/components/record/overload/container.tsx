@@ -1,16 +1,26 @@
 import '../../../styles/style.css';
 
 import debug from 'debug';
+import { Field, Form, Formik, FormikActions, FormikProps } from 'formik';
 import * as luxon from 'luxon';
 import { observer } from 'mobx-react';
 import React from 'react';
 import { Helmet } from 'react-helmet';
 import {
+  Button,
   Card,
   CardBody,
   CardHeader,
   Col,
   Container,
+  FormFeedback,
+  FormGroup,
+  Input,
+  Label,
+  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
   Row,
   Table
 } from 'reactstrap';
@@ -48,6 +58,11 @@ interface IRecordOverloadContainerProps {
 
 interface IRecordOverloadContainerStates {
   isServer: boolean;
+  modalIsOpen: boolean;
+}
+
+interface FormValues {
+  week: string;
 }
 
 @observer
@@ -122,7 +137,8 @@ class RecordOverloadContainer extends React.Component<
     super(props);
 
     this.state = {
-      isServer: true
+      isServer: true,
+      modalIsOpen: false
     };
 
     this.isLogined = this.isLogined.bind(this);
@@ -357,6 +373,25 @@ class RecordOverloadContainer extends React.Component<
     const avatar = this.getAvatar(totalRemainTime);
     const rows = this.getOverTimeRows();
     const fuseRows = this.getFuseOverTimeRows();
+
+    const calSpecificWeekBtn = (() => {
+      if (
+        this.props.isOtherUser === false &&
+        this.loginUserStore.UserInfo !== null
+      ) {
+        return (
+          <Button
+            onClick={() => {
+              this.setState({ ...this.state, modalIsOpen: true });
+            }}
+          >
+            특정 주간 정산하기
+          </Button>
+        );
+      }
+      return null;
+    })();
+
     return (
       <div className="app">
         <Helmet>
@@ -385,6 +420,7 @@ class RecordOverloadContainer extends React.Component<
                 <h2>누적된 초과 근무</h2>
               </CardHeader>
               <CardBody>
+                {calSpecificWeekBtn}
                 <Table responsive={true} className="d-sm-table" hover={true}>
                   <thead className="thead-light">
                     <tr>
@@ -416,6 +452,102 @@ class RecordOverloadContainer extends React.Component<
               </CardBody>
             </Card>
           </Container>
+          <Modal isOpen={this.state.modalIsOpen}>
+            <ModalHeader>특정 주간 정산하기</ModalHeader>
+            <ModalBody>
+              <Formik
+                initialValues={{
+                  week: ''
+                }}
+                validate={(currentValues: FormValues) => {
+                  let errors = {};
+                  if (
+                    /^([0-9]{4})-?W(5[0-3]|[1-4][0-9]|0[1-9])$/.test(
+                      currentValues.week
+                    ) === false
+                  ) {
+                    errors = {
+                      week: '2019-W01 형식으로 정산을 원하는 주를 입력해주세요.'
+                    };
+                  }
+                  return errors;
+                }}
+                onSubmit={async (currentValues: FormValues) => {
+                  if (this.loginUserStore.UserInfo !== null) {
+                    // 정산 요청
+                    await this.overloadStore.addOverWork({
+                      user_id: this.loginUserStore.UserInfo.id,
+                      week: currentValues.week,
+                      manager_id: this.loginUserStore.UserInfo.id
+                    });
+                    // 데이터 리로드
+                    if (
+                      this.props.isOtherUser === true &&
+                      this.props.userId !== null
+                    ) {
+                      await this.overloadStore.findAllOverload(
+                        this.props.userId
+                      );
+                      await this.overloadStore.findAllFuseOverload(
+                        this.props.userId
+                      );
+                    } else if (Auth.isLogined === true && !!Auth.loginUserKey) {
+                      await this.overloadStore.findAllOverload(
+                        Auth.loginUserKey
+                      );
+                      await this.overloadStore.findAllFuseOverload(
+                        Auth.loginUserKey
+                      );
+                    }
+                    alert('완료');
+                    this.setState({ ...this.state, modalIsOpen: false });
+                    return;
+                  }
+                  alert('처리할 수 없음');
+                }}
+                render={(formProps: FormikProps<FormValues>) => (
+                  <Form>
+                    <FormGroup>
+                      <Label htmlFor="breakTitle">정산하려는 주차</Label>
+                      <Input
+                        id="breakTitle"
+                        name="week"
+                        placeholder="2019-W01"
+                        type="text"
+                        tag={Field}
+                        invalid={!!formProps.errors.week}
+                      />
+                      {formProps.errors.week ? (
+                        <FormFeedback>{formProps.errors.week}</FormFeedback>
+                      ) : null}
+                    </FormGroup>
+                    <Button
+                      type="submit"
+                      color={formProps.isValid === false ? '' : 'primary'}
+                      disabled={
+                        formProps.isSubmitting || formProps.isValid === false
+                      }
+                    >
+                      요청
+                    </Button>
+                  </Form>
+                )}
+              />
+            </ModalBody>
+            <ModalFooter>
+              <Button
+                className="btn btn-primary"
+                onClick={() => {
+                  this.setState({
+                    ...this.state,
+                    modalIsOpen: false
+                  });
+                }}
+              >
+                닫기
+              </Button>
+            </ModalFooter>
+          </Modal>
         </div>
       </div>
     );
