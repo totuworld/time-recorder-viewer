@@ -158,7 +158,7 @@ class DefaultHeader extends React.Component<
                   </span>
                 )}
               </DropdownToggle>
-              <DropdownMenu right={true} style={{ right: 'auto' }}>
+              <DropdownMenu right={true}>
                 {todayMenu}
                 <DropdownItem onClick={this.onClickLogin}>
                   {this.props.isLogin === true ? ' Logout' : ' Login'}
