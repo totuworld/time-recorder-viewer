@@ -18,9 +18,12 @@ export const JSCPutDisableExpiredFuseToVacation: IJSONSchemaType = {
         },
         expireNote: {
           type: 'string'
+        },
+        auth_id: {
+          type: 'string'
         }
       },
-      required: ['expireDesc', 'expireNote']
+      required: ['expireDesc', 'expireNote', 'auth_id']
     }
   },
   required: ['params', 'body']

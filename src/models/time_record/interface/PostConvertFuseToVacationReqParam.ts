@@ -5,5 +5,6 @@ export interface PostConvertFuseToVacationReqParam {
   body: {
     expireDate: string;
     note: string;
+    auth_id: string;
   };
 }
