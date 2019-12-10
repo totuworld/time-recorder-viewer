@@ -184,6 +184,10 @@ class RecordFuseVacationContainer extends React.Component<
           </td>
           <td>{mv.note}</td>
           <td>{mv.used ? 'O' : 'X'}</td>
+          <td>{mv.expireNote ? mv.expireNote : '-'}</td>
+          <td className="d-none d-sm-table-cell">
+            {mv.expireByAdminTimeStamp ? mv.expireByAdminTimeStamp : '-'}
+          </td>
         </tr>
       );
     });
@@ -253,6 +257,8 @@ class RecordFuseVacationContainer extends React.Component<
                       <th className="d-none d-sm-table-cell">생성일자</th>
                       <th>생성사유</th>
                       <th>사용여부</th>
+                      <th>만료사유</th>
+                      <th className="d-none d-sm-table-cell">만료 실행일자</th>
                     </tr>
                   </thead>
                   <tbody>{rows}</tbody>

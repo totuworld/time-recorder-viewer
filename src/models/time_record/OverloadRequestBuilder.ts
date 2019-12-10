@@ -11,6 +11,7 @@ import {
   OverloadsByUserIDRequestParam,
   OverloadsRequestParam
 } from './interface/OverloadsRequestParam';
+import { PutDisableExpiredFuseToVacationReqParam } from './interface/PutDisableExpiredFuseToVacationReqParam';
 import { UseFuseToVacationRequestParam } from './interface/UseFuseToVacationRequestParam';
 
 export class OverloadRequestBuilder extends RequestBuilder {
@@ -248,6 +249,64 @@ export class OverloadRequestBuilder extends RequestBuilder {
       },
       timeout: 20000,
       url: endPoint
+    };
+  }
+
+  public convertVacationByGroupIDQuery({
+    method,
+    resources,
+    body
+  }: RequestParams<
+    { group_id: string },
+    {
+      body: {
+        expireDate: string;
+        note: string;
+      };
+    }
+  >) {
+    const apiPath = this.getAPIPath(
+      `/fuse_over_work_to_vacation/${resources!.group_id}`
+    );
+    const endPoint = apiPath.href();
+
+    return {
+      method,
+      headers: {
+        ...this.AccessTokenObject
+      },
+      timeout: 20000,
+      url: endPoint,
+      data: body
+    };
+  }
+
+  public disableExpiredFuseToVacationByGroupIDQuery({
+    method,
+    resources,
+    body
+  }: RequestParams<
+    { group_id: string },
+    {
+      body: {
+        expireDate: string;
+        expireNote: string;
+      };
+    }
+  >) {
+    const apiPath = this.getAPIPath(
+      `/disable_fuse_over_work_to_vacation/${resources!.group_id}`
+    );
+    const endPoint = apiPath.href();
+
+    return {
+      method,
+      headers: {
+        ...this.AccessTokenObject
+      },
+      timeout: 20000,
+      url: endPoint,
+      data: body
     };
   }
 }
