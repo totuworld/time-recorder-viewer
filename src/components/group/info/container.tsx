@@ -251,14 +251,14 @@ export default class GroupInfoContainer extends React.Component<
                 }
                 color="primary"
                 onClick={async () => {
-                  const auth_id = this.loginUserStore.LoginUserInfo
+                  const authID = this.loginUserStore.LoginUserInfo
                     ? this.loginUserStore.LoginUserInfo.id
                     : null;
-                  if (auth_id === null) {
+                  if (authID === null) {
                     return;
                   }
                   const req = {
-                    auth_id,
+                    auth_id: authID,
                     expireDesc: this.state.expireDesc,
                     expireDate: this.state.expireFromDate,
                     groupID: this.state.expireGroupId
@@ -337,14 +337,14 @@ export default class GroupInfoContainer extends React.Component<
                 }
                 color="primary"
                 onClick={async () => {
-                  const auth_id = this.loginUserStore.LoginUserInfo
+                  const authID = this.loginUserStore.LoginUserInfo
                     ? this.loginUserStore.LoginUserInfo.id
                     : null;
-                  if (auth_id === null) {
+                  if (authID === null) {
                     return;
                   }
                   const req = {
-                    auth_id,
+                    auth_id: authID,
                     note: this.state.expireDesc,
                     expireDate: this.state.expireFromDate,
                     groupID: this.state.expireGroupId

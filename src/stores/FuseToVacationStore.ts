@@ -3,7 +3,7 @@ import { action, observable, runInAction } from 'mobx';
 import { IFuseToVacationRead } from '../models/time_record/interface/IOverWork';
 import { JSCFindAllFuseToVacation } from '../models/time_record/JSONSchema/JSCFindAllFuseToVacation';
 import { JSCPostConvertFuseToVacation } from '../models/time_record/JSONSchema/JSCPostConvertFuseToVacation';
-import { JSCPutDisableExpiredFuseToVacation } from '../models/time_record/JSONSchema/JSCPutDisableExpiredFuseToVacation';
+import * as JSCFvc from '../models/time_record/JSONSchema/JSCPutDisableExpiredFuseToVacation';
 import { Overload } from '../models/time_record/Overload';
 import { OverloadRequestBuilder } from '../models/time_record/OverloadRequestBuilder';
 import { RequestBuilderParams } from '../services/requestService/RequestBuilder';
@@ -152,7 +152,7 @@ export default class FuseToVacationStore {
 
       const actionResp = await findAction.disableExpiredFuseToVacationByGroupID(
         checkParams,
-        JSCPutDisableExpiredFuseToVacation
+        JSCFvc.JSCPutDisableExpiredFuseToVacation
       );
       return runInAction(() => {
         this.isLoading = false;
