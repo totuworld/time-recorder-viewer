@@ -2,6 +2,8 @@ import { action, observable, runInAction } from 'mobx';
 
 import { IFuseToVacationRead } from '../models/time_record/interface/IOverWork';
 import { JSCFindAllFuseToVacation } from '../models/time_record/JSONSchema/JSCFindAllFuseToVacation';
+import { JSCPostConvertFuseToVacation } from '../models/time_record/JSONSchema/JSCPostConvertFuseToVacation';
+import { JSCPutDisableExpiredFuseToVacation } from '../models/time_record/JSONSchema/JSCPutDisableExpiredFuseToVacation';
 import { Overload } from '../models/time_record/Overload';
 import { OverloadRequestBuilder } from '../models/time_record/OverloadRequestBuilder';
 import { RequestBuilderParams } from '../services/requestService/RequestBuilder';
@@ -57,6 +59,98 @@ export default class FuseToVacationStore {
           return actionResp.data;
         }
         return [];
+      });
+    } catch (error) {
+      this.isLoading = false;
+      throw error;
+    }
+  }
+
+  @action
+  /** 특정 그룹의 초과근무 시간을 휴가금고에 넣는다. */
+  public async convertFuseToVacation({
+    expireDate,
+    note,
+    groupID
+  }: {
+    expireDate: string;
+    note: string;
+    groupID: string;
+  }) {
+    if (this.isLoading === true) {
+      return false;
+    }
+    try {
+      this.isLoading = true;
+
+      const rbParam: RequestBuilderParams = { isProxy: true };
+
+      const checkParams = {
+        params: {
+          group_id: groupID
+        },
+        body: {
+          expireDate,
+          note
+        }
+      };
+
+      const rb = new OverloadRequestBuilder(rbParam);
+      const findAction = new Overload(rb);
+
+      const actionResp = await findAction.convertFuseToVacationByGroupID(
+        checkParams,
+        JSCPostConvertFuseToVacation
+      );
+      return runInAction(() => {
+        this.isLoading = false;
+        return actionResp.type === EN_REQUEST_RESULT.SUCCESS;
+      });
+    } catch (error) {
+      this.isLoading = false;
+      throw error;
+    }
+  }
+
+  @action
+  /** 만료된 휴가금고를 사용할 수 없도록 처리한다 */
+  public async disableExpiredFuseToVacation({
+    expireDate,
+    expireDesc,
+    groupID
+  }: {
+    expireDate: string;
+    expireDesc: string;
+    groupID: string;
+  }) {
+    if (this.isLoading === true) {
+      return false;
+    }
+    try {
+      this.isLoading = true;
+
+      const rbParam: RequestBuilderParams = { isProxy: true };
+
+      const checkParams = {
+        params: {
+          group_id: groupID
+        },
+        body: {
+          expireDate,
+          expireNote: expireDesc
+        }
+      };
+
+      const rb = new OverloadRequestBuilder(rbParam);
+      const findAction = new Overload(rb);
+
+      const actionResp = await findAction.disableExpiredFuseToVacationByGroupID(
+        checkParams,
+        JSCPutDisableExpiredFuseToVacation
+      );
+      return runInAction(() => {
+        this.isLoading = false;
+        return actionResp.type === EN_REQUEST_RESULT.SUCCESS;
       });
     } catch (error) {
       this.isLoading = false;

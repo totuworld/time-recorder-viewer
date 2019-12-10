@@ -23,6 +23,8 @@ import {
   OverloadsByUserIDRequestParam,
   OverloadsRequestParam
 } from './interface/OverloadsRequestParam';
+import { PostConvertFuseToVacationReqParam } from './interface/PostConvertFuseToVacationReqParam';
+import { PutDisableExpiredFuseToVacationReqParam } from './interface/PutDisableExpiredFuseToVacationReqParam';
 import { UseFuseToVacationRequestParam } from './interface/UseFuseToVacationRequestParam';
 import { OverloadRequestBuilder } from './OverloadRequestBuilder';
 
@@ -274,5 +276,67 @@ export class Overload {
     }
     log(result.payload);
     return { type: EN_REQUEST_RESULT.SUCCESS, data: result.payload };
+  }
+
+  public async convertFuseToVacationByGroupID(
+    params: PostConvertFuseToVacationReqParam,
+    schema: IJSONSchemaType
+  ): Promise<{ type: EN_REQUEST_RESULT }> {
+    log(params);
+    const validParam = Requester.validateParamWithData(params, schema);
+    log('validParam: ', validParam.result);
+    if (validParam.result === false) {
+      return { type: EN_REQUEST_RESULT.ERROR };
+    }
+    const query = this.rb.convertVacationByGroupIDQuery({
+      method: 'POST',
+      headers: {},
+      resources: {
+        group_id: params.params.group_id
+      },
+      body: validParam.data.body
+    });
+
+    log(query);
+
+    const requester = RequestService.create(query.url);
+    const response = await requester.call(query);
+
+    const result = await response;
+    if (result.type === EN_REQUEST_RESULT.ERROR) {
+      return { type: EN_REQUEST_RESULT.ERROR };
+    }
+    return { type: EN_REQUEST_RESULT.SUCCESS };
+  }
+
+  public async disableExpiredFuseToVacationByGroupID(
+    params: PutDisableExpiredFuseToVacationReqParam,
+    schema: IJSONSchemaType
+  ): Promise<{ type: EN_REQUEST_RESULT }> {
+    log(params);
+    const validParam = Requester.validateParamWithData(params, schema);
+    log('validParam: ', validParam.result);
+    if (validParam.result === false) {
+      return { type: EN_REQUEST_RESULT.ERROR };
+    }
+    const query = this.rb.disableExpiredFuseToVacationByGroupIDQuery({
+      method: 'PUT',
+      headers: {},
+      resources: {
+        group_id: params.params.group_id
+      },
+      body: validParam.data.body
+    });
+
+    log(query);
+
+    const requester = RequestService.create(query.url);
+    const response = await requester.call(query);
+
+    const result = await response;
+    if (result.type === EN_REQUEST_RESULT.ERROR) {
+      return { type: EN_REQUEST_RESULT.ERROR };
+    }
+    return { type: EN_REQUEST_RESULT.SUCCESS };
   }
 }
