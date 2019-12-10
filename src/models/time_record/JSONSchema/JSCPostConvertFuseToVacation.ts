@@ -18,9 +18,12 @@ export const JSCPostConvertFuseToVacation: IJSONSchemaType = {
         },
         note: {
           type: 'string'
+        },
+        auth_id: {
+          type: 'string'
         }
       },
-      required: ['expireDesc', 'note']
+      required: ['expireDesc', 'note', 'auth_id']
     }
   },
   required: ['params', 'body']

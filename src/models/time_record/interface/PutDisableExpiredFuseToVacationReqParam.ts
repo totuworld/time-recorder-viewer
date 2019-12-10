@@ -5,5 +5,6 @@ export interface PutDisableExpiredFuseToVacationReqParam {
   body: {
     expireDate: string;
     expireNote: string;
+    auth_id: string;
   };
 }

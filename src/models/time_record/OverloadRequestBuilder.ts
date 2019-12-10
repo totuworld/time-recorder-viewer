@@ -262,6 +262,7 @@ export class OverloadRequestBuilder extends RequestBuilder {
       body: {
         expireDate: string;
         note: string;
+        auth_id: string;
       };
     }
   >) {
@@ -291,6 +292,7 @@ export class OverloadRequestBuilder extends RequestBuilder {
       body: {
         expireDate: string;
         expireNote: string;
+        auth_id: string;
       };
     }
   >) {

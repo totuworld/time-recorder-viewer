@@ -71,11 +71,13 @@ export default class FuseToVacationStore {
   public async convertFuseToVacation({
     expireDate,
     note,
-    groupID
+    groupID,
+    auth_id
   }: {
     expireDate: string;
     note: string;
     groupID: string;
+    auth_id: string;
   }) {
     if (this.isLoading === true) {
       return false;
@@ -91,7 +93,8 @@ export default class FuseToVacationStore {
         },
         body: {
           expireDate,
-          note
+          note,
+          auth_id
         }
       };
 
@@ -117,11 +120,13 @@ export default class FuseToVacationStore {
   public async disableExpiredFuseToVacation({
     expireDate,
     expireDesc,
-    groupID
+    groupID,
+    auth_id
   }: {
     expireDate: string;
     expireDesc: string;
     groupID: string;
+    auth_id: string;
   }) {
     if (this.isLoading === true) {
       return false;
@@ -137,6 +142,7 @@ export default class FuseToVacationStore {
         },
         body: {
           expireDate,
+          auth_id,
           expireNote: expireDesc
         }
       };
