@@ -14,9 +14,7 @@ export default class LoginStore {
   @observable private loginUserInfo: ILoginUserInfo | null;
   @observable private isLoading: boolean = false;
 
-  constructor(
-    userInfo: IUserInfo | null,
-  ) {
+  constructor(userInfo: IUserInfo | null) {
     this.userInfo = userInfo;
     this.loginUserInfo = null;
   }
@@ -40,9 +38,7 @@ export default class LoginStore {
   }
 
   @action
-  public async findUserInfo(
-    userId: string
-  ) {
+  public async findUserInfo(userId: string) {
     if (this.isLoading === true) {
       return null;
     }
@@ -54,8 +50,8 @@ export default class LoginStore {
       const rb = new UserRequestBuilder(rbParam);
       const userAction = new User(rb);
       const resp = await userAction.find(
-        {query: { userId }},
-        GetUserInfoJSONSchema,
+        { query: { userId } },
+        GetUserInfoJSONSchema
       );
       if (resp.type === EN_REQUEST_RESULT.ERROR) {
         return null;
@@ -71,9 +67,7 @@ export default class LoginStore {
     }
   }
   @action
-  public async findLoginUserInfo(
-    loginUserUid: string
-  ) {
+  public async findLoginUserInfo(loginUserUid: string) {
     if (this.isLoading === true) {
       return null;
     }
@@ -84,16 +78,14 @@ export default class LoginStore {
 
       const rb = new UserRequestBuilder(rbParam);
       const userAction = new User(rb);
-      const resp = await userAction.findLoginUser(
-        { user_uid: loginUserUid },
-      );
+      const resp = await userAction.findLoginUser({ user_uid: loginUserUid });
       if (resp.type === EN_REQUEST_RESULT.ERROR) {
         return null;
       }
       return runInAction(() => {
         this.isLoading = false;
         if (!!resp.data && !!resp.data.data) {
-          this.loginUserInfo = resp.data.data;
+          this.loginUserInfo = { ...resp.data.data, user_uid: loginUserUid };
         }
         return this.loginUserInfo;
       });

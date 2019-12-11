@@ -13,7 +13,7 @@ export const JSCPutDisableExpiredFuseToVacation: IJSONSchemaType = {
     },
     body: {
       properties: {
-        expireDesc: {
+        expireDate: {
           type: 'string'
         },
         expireNote: {
@@ -23,7 +23,7 @@ export const JSCPutDisableExpiredFuseToVacation: IJSONSchemaType = {
           type: 'string'
         }
       },
-      required: ['expireDesc', 'expireNote', 'auth_id']
+      required: ['expireDate', 'expireNote', 'auth_id']
     }
   },
   required: ['params', 'body']

@@ -13,7 +13,7 @@ export const JSCPostConvertFuseToVacation: IJSONSchemaType = {
     },
     body: {
       properties: {
-        expireDesc: {
+        expireDate: {
           type: 'string'
         },
         note: {
@@ -23,7 +23,7 @@ export const JSCPostConvertFuseToVacation: IJSONSchemaType = {
           type: 'string'
         }
       },
-      required: ['expireDesc', 'note', 'auth_id']
+      required: ['expireDate', 'note', 'auth_id']
     }
   },
   required: ['params', 'body']
