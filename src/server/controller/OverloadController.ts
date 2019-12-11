@@ -19,6 +19,8 @@ import {
 import { JSCFindAllFuseToVacation } from '../../models/time_record/JSONSchema/JSCFindAllFuseToVacation';
 import { JSCPostAddOverWork } from '../../models/time_record/JSONSchema/JSCPostAddOverWork';
 import { JSCPostAddOverWorkByGroup } from '../../models/time_record/JSONSchema/JSCPostAddOverWorkByGroup';
+import { JSCPostConvertFuseToVacation } from '../../models/time_record/JSONSchema/JSCPostConvertFuseToVacation';
+import { JSCPutDisableExpiredFuseToVacation } from '../../models/time_record/JSONSchema/JSCPutDisableExpiredFuseToVacation';
 import { PostAddFuseJSONSchema } from '../../models/time_record/JSONSchema/PostAddFuseJSONSchema';
 import { UseFuseToVacationJSONSchema } from '../../models/time_record/JSONSchema/UseFuseToVacationJSONSchema';
 import { Overload } from '../../models/time_record/Overload';
@@ -313,6 +315,37 @@ export class OverloadController {
     };
   }
 
+  /** 특정 그룹의 초과근무를 휴가금고에 넣는다. */
+  public async convertFuseToVacationByGroupID(req: Request) {
+    const rbParam: RequestBuilderParams = { baseURI: Config.getApiURI() };
+    const { group_id } = req.params;
+    const { note, auth_id, expireDate } = req.body;
+
+    const checkParams = {
+      params: {
+        group_id
+      },
+      body: {
+        auth_id,
+        note,
+        expireDate
+      }
+    };
+    log('convertFuseToVacationByGroupID body', checkParams, req.body);
+
+    const rb = new OverloadRequestBuilder(rbParam);
+    const findAction = new Overload(rb);
+
+    const actionResp = await findAction.convertFuseToVacationByGroupID(
+      checkParams,
+      JSCPostConvertFuseToVacation
+    );
+
+    return {
+      status: actionResp.type === EN_REQUEST_RESULT.ERROR ? 400 : 200
+    };
+  }
+
   public async findAllFuseToVacation(
     req: Request
   ): Promise<TControllerResp<IFindAllFuseToVacation['data']>> {
@@ -334,6 +367,37 @@ export class OverloadController {
     return {
       status: actionResp.type === EN_REQUEST_RESULT.ERROR ? 400 : 200,
       payload: actionResp.data
+    };
+  }
+
+  /** 특정 그룹의 휴가금고를 만료 시킨다 */
+  public async disableExpiredFuseToVacationByGroupID(req: Request) {
+    const rbParam: RequestBuilderParams = { baseURI: Config.getApiURI() };
+    const { group_id } = req.params;
+    const { expireNote, auth_id, expireDate } = req.body;
+
+    const checkParams = {
+      params: {
+        group_id
+      },
+      body: {
+        auth_id,
+        expireNote,
+        expireDate
+      }
+    };
+    log('disableExpiredFuseToVacationByGroupID body', checkParams, req.body);
+
+    const rb = new OverloadRequestBuilder(rbParam);
+    const findAction = new Overload(rb);
+
+    const actionResp = await findAction.disableExpiredFuseToVacationByGroupID(
+      checkParams,
+      JSCPutDisableExpiredFuseToVacation
+    );
+
+    return {
+      status: actionResp.type === EN_REQUEST_RESULT.ERROR ? 400 : 200
     };
   }
 }

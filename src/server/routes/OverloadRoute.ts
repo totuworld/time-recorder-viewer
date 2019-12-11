@@ -52,6 +52,18 @@ export class OverloadRoute extends CommonRoute {
       oRoute.controller.findAllFuseToVacation.bind(oRoute.controller)
     );
 
+    oRoute.route(EN_REQUEST_METHODS.POST)(
+      '/fuse_over_work_to_vacation/:group_id',
+      oRoute.controller.convertFuseToVacationByGroupID.bind(oRoute.controller)
+    );
+
+    oRoute.route(EN_REQUEST_METHODS.PUT)(
+      '/disable_fuse_over_work_to_vacation/:group_id',
+      oRoute.controller.disableExpiredFuseToVacationByGroupID.bind(
+        oRoute.controller
+      )
+    );
+
     return oRoute;
   }
 

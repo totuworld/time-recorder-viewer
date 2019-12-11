@@ -276,7 +276,7 @@ export class OverloadRequestBuilder extends RequestBuilder {
       headers: {
         ...this.AccessTokenObject
       },
-      timeout: 20000,
+      timeout: 60000,
       url: endPoint,
       data: body
     };

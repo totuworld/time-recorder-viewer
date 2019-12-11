@@ -251,9 +251,11 @@ export default class GroupInfoContainer extends React.Component<
                 }
                 color="primary"
                 onClick={async () => {
-                  const authID = this.loginUserStore.LoginUserInfo
-                    ? this.loginUserStore.LoginUserInfo.id
-                    : null;
+                  const authID =
+                    this.loginUserStore.LoginUserInfo &&
+                    this.loginUserStore.LoginUserInfo.user_uid
+                      ? this.loginUserStore.LoginUserInfo.user_uid
+                      : null;
                   if (authID === null) {
                     return;
                   }
@@ -337,9 +339,11 @@ export default class GroupInfoContainer extends React.Component<
                 }
                 color="primary"
                 onClick={async () => {
-                  const authID = this.loginUserStore.LoginUserInfo
-                    ? this.loginUserStore.LoginUserInfo.id
-                    : null;
+                  const authID =
+                    this.loginUserStore.LoginUserInfo &&
+                    this.loginUserStore.LoginUserInfo.user_uid
+                      ? this.loginUserStore.LoginUserInfo.user_uid
+                      : null;
                   if (authID === null) {
                     return;
                   }
