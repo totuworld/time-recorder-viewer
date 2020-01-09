@@ -1,6 +1,7 @@
 import '@coreui/icons/css/coreui-icons.min.css';
 import '../../styles/style.css';
 
+import { observer } from 'mobx-react';
 import React, { Component } from 'react';
 import { Helmet } from 'react-helmet';
 import {
@@ -17,9 +18,49 @@ import {
 } from 'reactstrap';
 
 import worklog from '../../assets/img/worklog.svg';
+import { Auth } from '../../services/auth';
+import LoginStore from '../../stores/LoginStore';
 import DefaultHeader from '../common/DefaultHeader';
 
-export default class HomeContainer extends Component {
+interface IState {
+  isServer: boolean;
+}
+
+@observer
+export default class HomeContainer extends Component<{}, IState> {
+  private loginUserStore: LoginStore;
+
+  constructor(props: {}) {
+    super(props);
+
+    this.state = {
+      isServer: true
+    };
+
+    this.isLogined = this.isLogined.bind(this);
+    this.loginUserStore = new LoginStore(null);
+  }
+
+  public isLogined() {
+    if (this.state.isServer === true) {
+      return false;
+    }
+    return this.loginUserStore.isLogin;
+  }
+
+  public async componentDidMount() {
+    this.setState({
+      ...this.state,
+      isServer: false
+    });
+    if (Auth.isLogined === true && !!Auth.loginUserKey) {
+      await this.loginUserStore.findUserInfo(Auth.loginUserKey);
+    }
+    if (!!Auth.loginUserTokenKey) {
+      await this.loginUserStore.findLoginUserInfo(Auth.loginUserTokenKey);
+    }
+  }
+
   public render() {
     return (
       <div className="app">
@@ -27,8 +68,8 @@ export default class HomeContainer extends Component {
           <title>Welcome to Work Log</title>
         </Helmet>
         <DefaultHeader
-          isLogin={false}
-          userInfo={null}
+          isLogin={this.isLogined()}
+          userInfo={this.loginUserStore.UserInfo}
           onClickLogin={() => {
             window.location.href = '/login';
           }}
