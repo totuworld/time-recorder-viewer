@@ -48,7 +48,6 @@ import { Util } from '../../services/util';
 import LoginStore from '../../stores/LoginStore';
 import OverloadStore from '../../stores/OverloadStore';
 import TimeRecordStore from '../../stores/TimeRecordStore';
-import ChartBarStacked from '../chart/bar/Stacked';
 import ChartBarStacked2, {
   IChartBarStacked2Props
 } from '../chart/bar/Stacked2';
@@ -57,7 +56,7 @@ import DefaultHeader from '../common/DefaultHeader';
 import GroupUserAvatar from '../group/user/avatar';
 import { IAfterRequestContext } from '../interface/IAfterRequestContext';
 import RecordButtons from './buttons';
-import { floatButton } from './containerStyle';
+import { floatButton, remoteInfo } from './containerStyle';
 
 const log = debug('trv:recordContainer');
 
@@ -351,10 +350,7 @@ class RecordContainer extends React.Component<
                 </div>
               </Col>
               <Col md={true} className="mb-sm-2 mb-0">
-                <div
-                  className="callout"
-                  style={{ 'border-left-color': '#36A2EB' }}
-                >
+                <div className={`callout ${remoteInfo}`}>
                   <div className="text-muted">{totalRemoteTimeStr}</div>
                   <div>재택근무시간</div>
                 </div>
