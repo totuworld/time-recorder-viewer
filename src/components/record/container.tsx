@@ -339,7 +339,7 @@ class RecordContainer extends React.Component<
                 </div>
               </Col>
               <Col md={true} className="mb-sm-2 mb-0">
-                <div className="callout callout-danger">
+                <div className="callout callout-info">
                   <div className="text-muted">{overTimeStr}</div>
                   <div>초과근무시간</div>
                 </div>
@@ -351,19 +351,22 @@ class RecordContainer extends React.Component<
                 </div>
               </Col>
               <Col md={true} className="mb-sm-2 mb-0">
-                <div className="callout callout-info">
+                <div
+                  className="callout"
+                  style={{ 'border-left-color': '#36A2EB' }}
+                >
                   <div className="text-muted">{totalRemoteTimeStr}</div>
                   <div>재택근무시간</div>
                 </div>
               </Col>
               <Col md={true} className="mb-sm-2 mb-0">
-                <div className="callout callout-warning">
+                <div className="callout callout-danger">
                   <div className="text-muted">{totalEmergencyTimeStr}</div>
                   <div>긴급대응시간</div>
                 </div>
               </Col>
               <Col md={true} className="mb-sm-2 mb-0">
-                <div className="callout callout-info">
+                <div className="callout callout-warning">
                   <div className="text-muted">{totalRestTimeStr}</div>
                   <div>휴식시간</div>
                 </div>

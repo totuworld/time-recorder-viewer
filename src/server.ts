@@ -1,7 +1,9 @@
-import { render } from '@jaredpalmer/after';
 import * as express from 'express';
 import * as isDocker from 'is-docker';
 import * as path from 'path';
+
+import { render } from '@jaredpalmer/after';
+
 import { Config } from './config/Config';
 import routes from './routes';
 import { BeverageRoute } from './server/routes/BeverageRoute';
