@@ -223,6 +223,38 @@ class RecordFuseVacationContainer extends React.Component<
   }
 
   public render() {
+    const totalRemain = (() => {
+      if (this.fuseToVacationStore === null) {
+        return 0;
+      }
+      return this.fuseToVacationStore.Records.reduce((acc, cur) => {
+        if (cur.used === false) {
+          return acc + 1;
+        }
+        return acc;
+      }, 0);
+    })();
+    const usedVacation = (() => {
+      if (this.fuseToVacationStore === null) {
+        return 0;
+      }
+      return this.fuseToVacationStore.Records.length - totalRemain;
+    })();
+    const expireNominateVacation = (() => {
+      if (this.fuseToVacationStore === null) {
+        return 0;
+      }
+      const nowFrom30days = luxon.DateTime.local().plus({ days: 30 });
+      return this.fuseToVacationStore.Records.filter(fv => {
+        const available = fv.used === false;
+        const expireDate = luxon.DateTime.fromFormat(
+          fv.expireDate,
+          'yyyy-LL-dd'
+        );
+        const expire = nowFrom30days > expireDate;
+        return available && expire;
+      }).length;
+    })();
     const avatar = this.getAvatar();
     const rows = this.getFuseToVacationRows();
     return (
@@ -244,6 +276,30 @@ class RecordFuseVacationContainer extends React.Component<
           <Container>
             <Card>
               <CardBody>{avatar}</CardBody>
+            </Card>
+            <Card>
+              <CardBody>
+                <Row>
+                  <Col md={true} className="mb-sm-2 mb-0">
+                    <div className="callout callout-primary">
+                      <div className="text-muted">{totalRemain}</div>
+                      <div>남은 휴가</div>
+                    </div>
+                  </Col>
+                  <Col md={true} className="mb-sm-2 mb-0">
+                    <div className="callout callout-warning">
+                      <div className="text-muted">{usedVacation}</div>
+                      <div>사용한/만료된 휴가</div>
+                    </div>
+                  </Col>
+                  <Col md={true} className="mb-sm-2 mb-0">
+                    <div className="callout callout-danger">
+                      <div className="text-muted">{expireNominateVacation}</div>
+                      <div>30일내 만료되는 휴가</div>
+                    </div>
+                  </Col>
+                </Row>
+              </CardBody>
             </Card>
             <Card>
               <CardHeader>
