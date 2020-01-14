@@ -456,6 +456,16 @@ export default class GroupContainer extends React.Component<
               </Button>
             </td>
           ) : null}
+          <td>
+            <Button
+              onClick={e => {
+                e.stopPropagation();
+                window.location.href = `/convert_vacation/${mv.id}`;
+              }}
+            >
+              휴가금고 조회
+            </Button>
+          </td>
         </tr>
       );
     });
@@ -773,6 +783,7 @@ export default class GroupContainer extends React.Component<
                       <th>누적 초과시간</th>
                       {isManager.result && isOneWeek ? <th>정산</th> : null}
                       {isManager.result ? <th>X</th> : null}
+                      <th>휴가금고</th>
                     </tr>
                   </thead>
                   <tbody>{rows}</tbody>
