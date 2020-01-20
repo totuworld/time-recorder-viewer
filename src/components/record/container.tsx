@@ -1108,6 +1108,20 @@ class RecordContainer extends React.Component<
             <li className="list-group-item">
               <Button
                 onClick={() => {
+                  this.addFuseTime(luxon.Duration.fromObject({ minutes: 1 }));
+                }}
+              >
+                +00:01 추가
+              </Button>
+              <Button
+                onClick={() => {
+                  this.addFuseTime(luxon.Duration.fromObject({ minutes: 10 }));
+                }}
+              >
+                +00:10 추가
+              </Button>
+              <Button
+                onClick={() => {
                   this.addFuseTime(luxon.Duration.fromObject({ minutes: 30 }));
                 }}
               >
