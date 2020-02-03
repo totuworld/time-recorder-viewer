@@ -6,6 +6,7 @@ import {
 import { IAxiosRequesterConfig } from '../../services/requestService/requesters/AxiosRequester';
 import { AddFuseOverloadRequestParam } from './interface/AddFuseOverloadRequestParam';
 import {
+  DeleteOverloadByUserIDRequestParam,
   OverLoadByUserIDWithDateQueryRequestParam,
   OverLoadByUserIDWithDateRequestParam,
   OverloadsByUserIDRequestParam,
@@ -309,6 +310,28 @@ export class OverloadRequestBuilder extends RequestBuilder {
       timeout: 20000,
       url: endPoint,
       data: body
+    };
+  }
+
+  /** 특정 사용자, 특정 주.. 추가근무 시간 정산 내역 삭제 */
+  public deleteOverloadByUserIDQuery({
+    method,
+    body
+  }: RequestParams<
+    {},
+    DeleteOverloadByUserIDRequestParam
+  >): IAxiosRequesterConfig {
+    const apiPath = this.getAPIPath('/over_work');
+    const endPoint = apiPath.href();
+
+    return {
+      method,
+      headers: {
+        ...this.AccessTokenObject
+      },
+      data: body,
+      timeout: 10000,
+      url: endPoint
     };
   }
 }

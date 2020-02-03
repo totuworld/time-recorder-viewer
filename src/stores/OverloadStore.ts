@@ -5,6 +5,7 @@ import {
   IFuseOverWork,
   IOverWork
 } from '../models/time_record/interface/IOverWork';
+import { DeleteOverLoadByUserIDScheme } from '../models/time_record/JSONSchema/DeleteOverLoadByUserIDScheme';
 import { GetOverloadsByUserIDJSONSchema } from '../models/time_record/JSONSchema/GetOverloadsJSONSchema';
 import { JSCPostAddOverWork } from '../models/time_record/JSONSchema/JSCPostAddOverWork';
 import { PostAddFuseJSONSchema } from '../models/time_record/JSONSchema/PostAddFuseJSONSchema';
@@ -260,6 +261,52 @@ export default class OverloadStore {
       return runInAction(() => {
         this.isLoading = false;
         return this.records;
+      });
+    } catch (error) {
+      this.isLoading = false;
+      throw error;
+    }
+  }
+
+  @action
+  public async deleteOverWork({
+    user_id,
+    week,
+    manager_id
+  }: {
+    user_id: string;
+    week: string;
+    manager_id: string;
+  }) {
+    if (this.isLoading === true) {
+      return false;
+    }
+    try {
+      this.isLoading = true;
+
+      const rbParam: RequestBuilderParams = { isProxy: true };
+
+      const checkParams = {
+        body: {
+          week,
+          user_id,
+          auth_user_id: manager_id
+        }
+      };
+
+      const rb = new OverloadRequestBuilder(rbParam);
+      const findAction = new Overload(rb);
+
+      const actionResp = await findAction.deleteOverLoad(
+        checkParams,
+        DeleteOverLoadByUserIDScheme
+      );
+      return runInAction(() => {
+        this.isLoading = false;
+        if (actionResp.type === EN_REQUEST_RESULT.SUCCESS) {
+          return actionResp.data !== undefined ? actionResp.data.result : false;
+        }
+        return false;
       });
     } catch (error) {
       this.isLoading = false;

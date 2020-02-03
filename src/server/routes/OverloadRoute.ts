@@ -7,6 +7,10 @@ export class OverloadRoute extends CommonRoute {
   public static bootstrap(): OverloadRoute {
     const oRoute = new OverloadRoute(new OverloadController(), '/api');
 
+    oRoute.route(EN_REQUEST_METHODS.DELETE)(
+      '/over_work',
+      oRoute.controller.deleteOverloadByUserID.bind(oRoute.controller)
+    );
     oRoute.route(EN_REQUEST_METHODS.GET)(
       '/over_works',
       oRoute.controller.findAll.bind(oRoute.controller)

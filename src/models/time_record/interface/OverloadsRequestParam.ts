@@ -19,3 +19,11 @@ export interface OverLoadByUserIDWithDateQueryRequestParam {
     user_id: string;
   };
 }
+
+export interface DeleteOverloadByUserIDRequestParam {
+  body: {
+    week: string;
+    auth_user_id: string;
+    user_id: string;
+  };
+}

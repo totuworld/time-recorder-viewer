@@ -148,6 +148,7 @@ class RecordOverloadContainer extends React.Component<
     this.getFuseOverTimeRows = this.getFuseOverTimeRows.bind(this);
     this.getRemainTimes = this.getRemainTimes.bind(this);
     this.handleClickRow = this.handleClickRow.bind(this);
+    this.isAdmin = this.isAdmin.bind(this);
 
     this.overloadStore = new OverloadStore(
       this.props.records.length > 0 ? this.props.records : [],
@@ -211,6 +212,8 @@ class RecordOverloadContainer extends React.Component<
     if (this.overloadStore === null) {
       return null;
     }
+
+    const isAdmin = this.isAdmin();
 
     let totalFuseOverTime = this.getTotalFuseOverTime();
     const zeroDuration = luxon.Duration.fromMillis(0);
@@ -280,6 +283,47 @@ class RecordOverloadContainer extends React.Component<
             <td>{`${haveOverTime && isMinus ? '-' : ''}${mv.remainTime.toFormat(
               'hh:mm:ss'
             )}`}</td>
+            {isAdmin.result ? (
+              <td>
+                <Button
+                  color="danger"
+                  onClick={async e => {
+                    e.stopPropagation();
+                    if (
+                      confirm(`${mv.week} 정산을 삭제할까요?`) &&
+                      this.props.userId &&
+                      this.loginUserStore.LoginUserInfo?.id
+                    ) {
+                      const resp = await this.overloadStore.deleteOverWork({
+                        user_id: this.props.userId,
+                        week: mv.week,
+                        manager_id: this.loginUserStore.LoginUserInfo?.id
+                      });
+                      if (resp === true) {
+                        // 정산 정보 재로딩
+                        if (
+                          this.props.isOtherUser === true &&
+                          this.props.userId !== null
+                        ) {
+                          await this.overloadStore.findAllOverload(
+                            this.props.userId
+                          );
+                        } else if (
+                          Auth.isLogined === true &&
+                          !!Auth.loginUserKey
+                        ) {
+                          await this.overloadStore.findAllOverload(
+                            Auth.loginUserKey
+                          );
+                        }
+                      }
+                    }
+                  }}
+                >
+                  X
+                </Button>
+              </td>
+            ) : null}
           </tr>
         );
       });
@@ -348,6 +392,22 @@ class RecordOverloadContainer extends React.Component<
     }
   }
 
+  public isAdmin(): { result: boolean; id?: string } {
+    // 그룹 내의 매니저 권한을 가지고 있는지 확인한다.
+    if (this.isLogined() === false) {
+      return { result: false };
+    }
+    const loginUserInfo = this.loginUserStore.LoginUserInfo;
+    if (loginUserInfo === null) {
+      return { result: false };
+    }
+    const { auth } = loginUserInfo;
+    if (auth && auth >= 10) {
+      return { result: true, id: loginUserInfo.id };
+    }
+    return { result: false };
+  }
+
   public async componentDidMount() {
     this.setState({
       ...this.state,
@@ -371,6 +431,7 @@ class RecordOverloadContainer extends React.Component<
   public render() {
     const totalRemainTime = this.getRemainTimes();
     const avatar = this.getAvatar(totalRemainTime);
+    const isAdmin = this.isAdmin();
     const rows = this.getOverTimeRows();
     const fuseRows = this.getFuseOverTimeRows();
 
@@ -428,6 +489,7 @@ class RecordOverloadContainer extends React.Component<
                       <th className="d-none d-sm-table-cell">기록기간</th>
                       <th>초과시간</th>
                       <th>남은시간</th>
+                      {isAdmin.result ? <th>삭제</th> : null}
                     </tr>
                   </thead>
                   <tbody>{rows}</tbody>

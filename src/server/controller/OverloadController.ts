@@ -11,6 +11,7 @@ import {
   IUseFuseToVacation
 } from '../../models/time_record/interface/IOverWork';
 import { IAddTimeRecord } from '../../models/time_record/interface/ITimeRecords';
+import { DeleteOverLoadByUserIDScheme } from '../../models/time_record/JSONSchema/DeleteOverLoadByUserIDScheme';
 import {
   GetOverloadByUserIDWithDateJSONSchema,
   GetOverloadsByUserIDJSONSchema,
@@ -54,6 +55,36 @@ export class OverloadController {
     const actionResp = await findAction.findAll(
       checkParams,
       GetOverloadsJSONSchema
+    );
+
+    return {
+      status: actionResp.type === EN_REQUEST_RESULT.ERROR ? 400 : 200,
+      payload: actionResp.data
+    };
+  }
+
+  public async deleteOverloadByUserID(
+    req: Request
+  ): Promise<TControllerResp<{ result: boolean }>> {
+    const rbParam: RequestBuilderParams = { baseURI: Config.getApiURI() };
+    const { auth_user_id, user_id, week } = req.body;
+
+    const checkParams = {
+      body: {
+        auth_user_id,
+        user_id,
+        week
+      }
+    };
+
+    log(checkParams);
+
+    const rb = new OverloadRequestBuilder(rbParam);
+    const findAction = new Overload(rb);
+
+    const actionResp = await findAction.deleteOverLoad(
+      checkParams,
+      DeleteOverLoadByUserIDScheme
     );
 
     return {

@@ -18,6 +18,7 @@ import {
 } from './interface/IOverWork';
 import { IAddTimeRecord } from './interface/ITimeRecords';
 import {
+  DeleteOverloadByUserIDRequestParam,
   OverLoadByUserIDWithDateQueryRequestParam,
   OverLoadByUserIDWithDateRequestParam,
   OverloadsByUserIDRequestParam,
@@ -60,6 +61,38 @@ export class Overload {
     }
     log(result.payload);
     return { type: EN_REQUEST_RESULT.SUCCESS, data: result.payload };
+  }
+
+  public async deleteOverLoad(
+    params: DeleteOverloadByUserIDRequestParam,
+    schema: IJSONSchemaType
+  ): Promise<{ type: EN_REQUEST_RESULT; data: { result: boolean } }> {
+    log(params);
+    const validParam = Requester.validateParam(params, schema);
+    log('validParam: ', validParam);
+    if (validParam === false) {
+      return { type: EN_REQUEST_RESULT.ERROR, data: { result: false } };
+    }
+    const query = this.rb.deleteOverloadByUserIDQuery({
+      method: 'DELETE',
+      headers: {},
+      body: params.body
+    });
+
+    log(query);
+
+    const requester = RequestService.create(query.url);
+    const response = await requester.call<{ result: boolean }>(query);
+
+    const result = await response;
+    if (result.type === EN_REQUEST_RESULT.ERROR) {
+      return { type: EN_REQUEST_RESULT.ERROR, data: { result: false } };
+    }
+    log(result.payload);
+    return {
+      type: EN_REQUEST_RESULT.SUCCESS,
+      data: result.payload
+    };
   }
 
   public async findAllFuse(
