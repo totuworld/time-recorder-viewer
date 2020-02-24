@@ -405,6 +405,15 @@ class RecordOverloadContainer extends React.Component<
     if (auth && auth >= 10) {
       return { result: true, id: loginUserInfo.id };
     }
+    // 자기 자신의 정보일 때 정산 삭제 버튼 활성화
+    if (
+      this.props.userId === null &&
+      this.loginUserStore.LoginUserInfo?.id &&
+      this.loginUserStore.UserInfo?.id &&
+      this.loginUserStore.LoginUserInfo?.id === this.loginUserStore.UserInfo?.id
+    ) {
+      return { result: true, id: this.loginUserStore.UserInfo?.id };
+    }
     return { result: false };
   }
 
