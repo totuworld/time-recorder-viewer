@@ -295,7 +295,12 @@ class RecordOverloadContainer extends React.Component<
                       this.loginUserStore.LoginUserInfo?.id
                     ) {
                       const resp = await this.overloadStore.deleteOverWork({
-                        user_id: this.props.userId,
+                        user_id:
+                          this.props.userId !== null
+                            ? this.props.userId
+                            : this.loginUserStore.UserInfo
+                            ? this.loginUserStore.UserInfo.id
+                            : 'none',
                         week: mv.week,
                         manager_id: this.loginUserStore.LoginUserInfo?.id
                       });
