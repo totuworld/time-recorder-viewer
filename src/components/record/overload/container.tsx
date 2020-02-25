@@ -299,6 +299,11 @@ class RecordOverloadContainer extends React.Component<
                         week: mv.week,
                         manager_id: this.loginUserStore.LoginUserInfo?.id
                       });
+                      alert(
+                        resp === true
+                          ? `${mv.week} 정산 삭제 완료`
+                          : `${mv.week} 정산 삭제 실패. 잠시후 다시 시도하세요.`
+                      );
                       if (resp === true) {
                         // 정산 정보 재로딩
                         if (
