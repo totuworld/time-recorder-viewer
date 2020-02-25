@@ -291,7 +291,6 @@ class RecordOverloadContainer extends React.Component<
                     e.stopPropagation();
                     if (
                       confirm(`${mv.week} 정산을 삭제할까요?`) &&
-                      this.props.userId &&
                       this.loginUserStore.LoginUserInfo?.id
                     ) {
                       const resp = await this.overloadStore.deleteOverWork({
