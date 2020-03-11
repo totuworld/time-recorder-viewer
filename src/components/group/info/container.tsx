@@ -116,6 +116,10 @@ export default class GroupInfoContainer extends React.Component<
   }
 
   public getRows() {
+    const isLoginUser =
+      this.state.isServer === false &&
+      !!Auth.loginUserTokenKey &&
+      !!this.loginUserStore.LoginUserInfo;
     const haveAuth =
       this.state.isServer === false &&
       !!Auth.loginUserTokenKey &&
@@ -127,7 +131,7 @@ export default class GroupInfoContainer extends React.Component<
         <ListGroupItem key={mv.group_id}>
           <span>{mv.desc}</span>
           <span className="list-group-buttons">
-            {haveAuth ? (
+            {isLoginUser ? (
               <span>
                 <Button
                   color="danger"
