@@ -126,7 +126,7 @@ export default class GroupInfoContainer extends React.Component<
       !!this.loginUserStore.LoginUserInfo &&
       !!this.loginUserStore.LoginUserInfo.auth &&
       this.loginUserStore.LoginUserInfo.auth === 10;
-    return this.props.groupInfos.map(mv => {
+    return this.gropInfostore.GroupInfos.map(mv => {
       return (
         <ListGroupItem key={mv.group_id}>
           <span>{mv.desc}</span>
@@ -141,8 +141,8 @@ export default class GroupInfoContainer extends React.Component<
                         group_id: mv.group_id
                       });
                       if (resp) {
-                        alert('그룹 삭제 완료. 페이지 리로드');
-                        window.location.href = '/groups';
+                        alert('그룹 삭제 완료.');
+                        await this.gropInfostore.findAllGroupInfos();
                         return;
                       }
                       alert('그룹 삭제 시 문제 발생. 잠시 후 재시도');
@@ -502,17 +502,15 @@ export default class GroupInfoContainer extends React.Component<
                     const resp = await this.gropInfostore.addGroup(req);
                     alert(
                       `신규 그룹 추가 처리 상태: ${
-                        resp
-                          ? '완료\n페이지 리로드'
-                          : '오류 발생\n잠시후 재시도 해보세요'
+                        resp ? '완료' : '오류 발생\n잠시후 재시도 해보세요'
                       }`
                     );
                     if (resp === true) {
+                      await this.gropInfostore.findAllGroupInfos();
                       this.setState({
                         ...this.state,
                         isAddGroupModalOpen: false
                       });
-                      window.location.href = '/groups';
                     }
                   }
                 }}

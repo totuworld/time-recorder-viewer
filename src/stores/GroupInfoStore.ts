@@ -23,6 +23,31 @@ export default class GroupInfoStore {
   }
 
   @action
+  public async findAllGroupInfos() {
+    if (this.isLoading === true) {
+      return false;
+    }
+    try {
+      this.isLoading = true;
+      const rbParam: RequestBuilderParams = { isProxy: true };
+      const rb = new GroupRequestBuilder(rbParam);
+      const trAction = new Group(rb);
+
+      const actionResp = await trAction.findAllGroupInfos();
+      return runInAction(() => {
+        this.isLoading = false;
+        if (actionResp.type === EN_REQUEST_RESULT.SUCCESS) {
+          this.groupInfos = actionResp.data;
+        }
+        return;
+      });
+    } catch (error) {
+      this.isLoading = false;
+      throw error;
+    }
+  }
+
+  @action
   public async deleteGroup({
     group_id
   }: {
