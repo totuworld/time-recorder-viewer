@@ -79,4 +79,42 @@ export class Group {
     log(result.payload);
     return { type: EN_REQUEST_RESULT.SUCCESS, data: result.payload };
   }
+
+  public async deleteGroup(args: { group_id: string }) {
+    const query = this.rb.deleteGroupQuery({
+      method: 'DELETE',
+      resources: {
+        group_id: args.group_id
+      },
+      headers: {}
+    });
+    const requester = RequestService.create(query.url);
+    const response = await requester.call<boolean>(query);
+
+    const result = await response;
+    if (result.statusCode !== 200) {
+      return { type: EN_REQUEST_RESULT.ERROR, data: false };
+    }
+    return { type: EN_REQUEST_RESULT.SUCCESS, data: true };
+  }
+
+  public async addGroup(args: {
+    group_id: string;
+    name: string;
+    desc: string;
+  }) {
+    const query = this.rb.addGroupQuery({
+      method: 'POST',
+      body: args,
+      headers: {}
+    });
+    const requester = RequestService.create(query.url);
+    const response = await requester.call<boolean>(query);
+
+    const result = await response;
+    if (result.statusCode !== 200) {
+      return { type: EN_REQUEST_RESULT.ERROR, data: false };
+    }
+    return { type: EN_REQUEST_RESULT.SUCCESS, data: true };
+  }
 }

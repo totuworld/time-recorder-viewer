@@ -71,4 +71,44 @@ export class GroupController {
       payload: actionResp.data
     };
   }
+
+  public async deleteGroup(req: Request): Promise<TControllerResp<boolean>> {
+    const rbParam: RequestBuilderParams = { baseURI: Config.getApiURI() };
+    const { group_id } = req.params;
+
+    log(group_id);
+
+    const rb = new GroupRequestBuilder(rbParam);
+    const findAction = new Group(rb);
+
+    const actionResp = await findAction.deleteGroup({
+      group_id
+    });
+
+    return {
+      status: actionResp.type === EN_REQUEST_RESULT.ERROR ? 400 : 200,
+      payload: actionResp.data
+    };
+  }
+
+  public async addGroup(req: Request): Promise<TControllerResp<boolean>> {
+    const rbParam: RequestBuilderParams = { baseURI: Config.getApiURI() };
+    const { group_id, desc, name } = req.body;
+
+    log(group_id);
+
+    const rb = new GroupRequestBuilder(rbParam);
+    const findAction = new Group(rb);
+
+    const actionResp = await findAction.addGroup({
+      group_id,
+      desc,
+      name
+    });
+
+    return {
+      status: actionResp.type === EN_REQUEST_RESULT.ERROR ? 400 : 200,
+      payload: actionResp.data
+    };
+  }
 }

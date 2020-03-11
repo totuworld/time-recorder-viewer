@@ -69,4 +69,42 @@ export class GroupRequestBuilder extends RequestBuilder {
       url: endPoint
     };
   }
+
+  public deleteGroupQuery({
+    method,
+    resources
+  }: RequestParams<{ group_id: string }>): IAxiosRequesterConfig {
+    const apiPath = this.getAPIPath(`/delete_group/${resources!.group_id}`);
+    const endPoint = apiPath.href();
+
+    return {
+      method,
+      headers: {
+        ...this.AccessTokenObject
+      },
+      timeout: 20000,
+      url: endPoint
+    };
+  }
+
+  public addGroupQuery({
+    method,
+    body
+  }: RequestParams<
+    {},
+    { body: { group_id: string; desc: string; name: string } }
+  >): IAxiosRequesterConfig {
+    const apiPath = this.getAPIPath('/add_group');
+    const endPoint = apiPath.href();
+
+    return {
+      method,
+      data: body,
+      headers: {
+        ...this.AccessTokenObject
+      },
+      timeout: 20000,
+      url: endPoint
+    };
+  }
 }

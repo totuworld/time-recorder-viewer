@@ -39,12 +39,17 @@ interface IState {
   isServer: boolean;
   isModalOpen: boolean;
   isConvertModalOpen: boolean;
+  isAddGroupModalOpen: boolean;
   /** 만료 시킬 팀 */
   expireGroupId: string;
   /** 만료 사유 */
   expireDesc: string;
   /** 만료 기준 일짜(ex: 2020-03-31 을 입력하면 그 날짜 이하로 사용하지 않은 휴가 금고가 모두 만료됨) */
   expireFromDate: string;
+  /** 추가할 그룹 id */
+  addGroupId: string;
+  /** 추가할 그룹 설명 */
+  addGroupDesc: string;
 }
 
 const log = debug('trv:GroupInfoContainer');
@@ -90,9 +95,12 @@ export default class GroupInfoContainer extends React.Component<
       isServer: true,
       isModalOpen: false,
       isConvertModalOpen: false,
+      isAddGroupModalOpen: false,
       expireGroupId: '',
       expireDesc: '',
-      expireFromDate: ''
+      expireFromDate: '',
+      addGroupId: '',
+      addGroupDesc: ''
     };
 
     this.handleClickGotoGroup = this.handleClickGotoGroup.bind(this);
@@ -119,6 +127,28 @@ export default class GroupInfoContainer extends React.Component<
         <ListGroupItem key={mv.group_id}>
           <span>{mv.desc}</span>
           <span className="list-group-buttons">
+            {haveAuth ? (
+              <span>
+                <Button
+                  color="danger"
+                  onClick={async () => {
+                    if (confirm(`${mv.desc} 그룹을 삭제하시겠습니까?`)) {
+                      const resp = await this.gropInfostore.deleteGroup({
+                        group_id: mv.group_id
+                      });
+                      if (resp) {
+                        alert('그룹 삭제 완료. 페이지 리로드');
+                        window.location.href = '/groups';
+                        return;
+                      }
+                      alert('그룹 삭제 시 문제 발생. 잠시 후 재시도');
+                    }
+                  }}
+                >
+                  X
+                </Button>
+              </span>
+            ) : null}
             <span>
               <Button
                 onClick={() => {
@@ -189,6 +219,14 @@ export default class GroupInfoContainer extends React.Component<
     const expireFromDateCheckInvalid =
       /^\d{4}-\d{2}-\d{2}$/.test(this.state.expireFromDate) === false;
     const expireDescCheckInvalid = this.state.expireDesc.length <= 1;
+    const addGroupIdInvalid =
+      this.gropInfostore.GroupInfos.findIndex(
+        fv => fv.group_id === this.state.addGroupId
+      ) >= 0;
+    const isLoginUser =
+      this.state.isServer === false &&
+      !!Auth.loginUserTokenKey &&
+      !!this.loginUserStore.LoginUserInfo;
     return (
       <div className="app">
         <Helmet>
@@ -209,6 +247,19 @@ export default class GroupInfoContainer extends React.Component<
             <Card>
               <CardHeader>
                 <h2>그룹 목록</h2>
+                {isLoginUser ? (
+                  <Button
+                    onClick={async e => {
+                      e.stopPropagation();
+                      this.setState({
+                        ...this.setState,
+                        isAddGroupModalOpen: true
+                      });
+                    }}
+                  >
+                    신규 그룹 추가
+                  </Button>
+                ) : null}
               </CardHeader>
               <CardBody>
                 <ListGroup>{rows}</ListGroup>
@@ -384,6 +435,91 @@ export default class GroupInfoContainer extends React.Component<
                   this.setState({
                     ...this.state,
                     isConvertModalOpen: false
+                  });
+                }}
+              >
+                닫기
+              </Button>
+            </ModalFooter>
+          </Modal>
+          <Modal isOpen={this.state.isAddGroupModalOpen}>
+            <ModalHeader>신규 그룹 추가</ModalHeader>
+            <ModalBody>
+              <Input
+                placeholder="그룹 숏컷(id로 사용)"
+                value={this.state.addGroupId}
+                invalid={addGroupIdInvalid}
+                onChange={e => {
+                  const currentValue = e.currentTarget.value;
+                  this.setState({
+                    ...this.state,
+                    addGroupId: currentValue
+                  });
+                }}
+              />
+              <Input
+                placeholder="이름"
+                value={this.state.addGroupDesc}
+                onChange={e => {
+                  const currentValue = e.currentTarget.value;
+                  this.setState({
+                    ...this.state,
+                    addGroupDesc: currentValue
+                  });
+                }}
+              />
+            </ModalBody>
+            <ModalFooter>
+              <Button
+                disabled={addGroupIdInvalid === true}
+                color="primary"
+                onClick={async () => {
+                  const authID =
+                    this.loginUserStore.LoginUserInfo &&
+                    this.loginUserStore.LoginUserInfo.user_uid
+                      ? this.loginUserStore.LoginUserInfo.user_uid
+                      : null;
+                  if (authID === null) {
+                    return;
+                  }
+                  const req = {
+                    auth_id: authID,
+                    group_id: this.state.addGroupId,
+                    desc: this.state.addGroupDesc,
+                    name: this.state.addGroupDesc
+                  };
+                  if (
+                    confirm(
+                      `신규 그룹 정보를 확인해주세요\n${JSON.stringify({
+                        req
+                      })}`
+                    )
+                  ) {
+                    const resp = await this.gropInfostore.addGroup(req);
+                    alert(
+                      `신규 그룹 추가 처리 상태: ${
+                        resp
+                          ? '완료\n페이지 리로드'
+                          : '오류 발생\n잠시후 재시도 해보세요'
+                      }`
+                    );
+                    if (resp === true) {
+                      this.setState({
+                        ...this.state,
+                        isAddGroupModalOpen: false
+                      });
+                      window.location.href = '/groups';
+                    }
+                  }
+                }}
+              >
+                추가
+              </Button>
+              <Button
+                onClick={() => {
+                  this.setState({
+                    ...this.state,
+                    isAddGroupModalOpen: false
                   });
                 }}
               >
