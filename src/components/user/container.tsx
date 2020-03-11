@@ -76,15 +76,16 @@ class UserContainer extends React.Component<IRecordContainerProps, IStates> {
       const loginUserInfoResp = await userAction.findLoginUser({
         user_uid: userInfo.userUid
       });
-      const loginUserInfoData = loginUserInfoResp.data?.data;
       if (
         loginUserInfoResp.type === EN_REQUEST_RESULT.SUCCESS &&
-        Util.isNotEmpty(loginUserInfoData)
+        Util.isNotEmpty(loginUserInfoResp.data) &&
+        Util.isNotEmpty(loginUserInfoResp.data.data)
       ) {
-        loginUserInfo = {
-          ...loginUserInfoData,
+        const updateLoginInfo: ILoginUserInfo = {
+          ...loginUserInfoResp.data.data,
           user_uid: userInfo.userUid
         };
+        loginUserInfo = updateLoginInfo;
       }
     }
 
