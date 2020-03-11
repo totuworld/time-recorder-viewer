@@ -97,10 +97,10 @@ class DefaultHeader extends React.Component<
           </DropdownItem>
           <DropdownItem
             onClick={() => {
-              window.location.href = '/queue';
+              window.location.href = `/user/${userInfo!.id}`;
             }}
           >
-            🛎저기요
+            🤔 내정보 확인
           </DropdownItem>
         </>
       );

@@ -201,4 +201,48 @@ export class UserController {
 
     return returnData;
   }
+
+  public async activeAdminRole(
+    req: Request
+  ): Promise<TControllerResp<IUserInfo>> {
+    const rbParam: RequestBuilderParams = { baseURI: Config.getApiURI() };
+
+    const { userId } = req.params;
+
+    const rb = new UserRequestBuilder(rbParam);
+    const findAction = new User(rb);
+
+    const actionResp = await findAction.activeAdminRole({
+      userId
+    });
+
+    const returnData = {
+      status: actionResp.type === EN_REQUEST_RESULT.ERROR ? 400 : 200,
+      payload: actionResp.data
+    };
+
+    return returnData;
+  }
+
+  public async deactiveAdminRole(
+    req: Request
+  ): Promise<TControllerResp<IUserInfo>> {
+    const rbParam: RequestBuilderParams = { baseURI: Config.getApiURI() };
+
+    const { userId } = req.params;
+
+    const rb = new UserRequestBuilder(rbParam);
+    const findAction = new User(rb);
+
+    const actionResp = await findAction.deactiveAdminRole({
+      userId
+    });
+
+    const returnData = {
+      status: actionResp.type === EN_REQUEST_RESULT.ERROR ? 400 : 200,
+      payload: actionResp.data
+    };
+
+    return returnData;
+  }
 }

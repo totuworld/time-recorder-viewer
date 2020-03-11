@@ -225,4 +225,42 @@ export class User {
     log(result.payload);
     return this.sortReturnValue(result);
   }
+
+  public async activeAdminRole(params: { userId: string }) {
+    const query = this.rb.activeAdminRoleQuery({
+      method: 'PUT',
+      headers: {},
+      resources: {
+        user_id: params.userId
+      }
+    });
+    const requester = RequestService.create(query.url);
+    const response = await requester.call<IUserInfo & { auth?: number }>(query);
+
+    const result = await response;
+    if (result.type === EN_REQUEST_RESULT.ERROR) {
+      return { type: EN_REQUEST_RESULT.ERROR, data: null };
+    }
+    log(result.payload);
+    return { type: EN_REQUEST_RESULT.SUCCESS, data: result.payload };
+  }
+
+  public async deactiveAdminRole(params: { userId: string }) {
+    const query = this.rb.deactiveAdminRoleQuery({
+      method: 'PUT',
+      headers: {},
+      resources: {
+        user_id: params.userId
+      }
+    });
+    const requester = RequestService.create(query.url);
+    const response = await requester.call<IUserInfo>(query);
+
+    const result = await response;
+    if (result.type === EN_REQUEST_RESULT.ERROR) {
+      return { type: EN_REQUEST_RESULT.ERROR, data: null };
+    }
+    log(result.payload);
+    return { type: EN_REQUEST_RESULT.SUCCESS, data: result.payload };
+  }
 }

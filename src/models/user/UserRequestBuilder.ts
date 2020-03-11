@@ -1,10 +1,16 @@
 import * as URI from 'urijs';
 
 import { RequestParams } from '../../services/requestService/interface/IRequestParams';
-import { RequestBuilder, RequestBuilderParams } from '../../services/requestService/RequestBuilder';
+import {
+  RequestBuilder,
+  RequestBuilderParams
+} from '../../services/requestService/RequestBuilder';
 import { IAxiosRequesterConfig } from '../../services/requestService/requesters/AxiosRequester';
 import { AddLoginUserRequestParam } from './interface/AddLoginUserRequestParam';
-import { AddQueueRequestBodyParam, AddQueueRequestParam } from './interface/AddQueueRequestParam';
+import {
+  AddQueueRequestBodyParam,
+  AddQueueRequestParam
+} from './interface/AddQueueRequestParam';
 import { DeleteQueueRequestParam } from './interface/DeleteQueueRequestParam';
 import { FindQueueRequestParam } from './interface/FindQueueRequestParam';
 import { GroupsFindRequestParam } from './interface/GroupsFindRequestParam';
@@ -31,14 +37,14 @@ export class UserRequestBuilder extends RequestBuilder {
     const apiPath = this.getAPIPath('/get_user');
     let endPoint = apiPath.href();
     if (!!query) {
-      const reqQueryStr = Object.keys(query).reduce(
-        (acc: string[], cur) => {
+      const reqQueryStr = Object.keys(query)
+        .reduce((acc: string[], cur) => {
           if (!!query[cur]) {
             acc.push(`${cur}=${query[cur]}`);
           }
           return acc;
-        },
-        []).join('&');
+        }, [])
+        .join('&');
       endPoint = `${endPoint}?${reqQueryStr}`;
     }
 
@@ -48,7 +54,7 @@ export class UserRequestBuilder extends RequestBuilder {
         ...this.AccessTokenObject
       },
       timeout: 20000,
-      url: endPoint,
+      url: endPoint
     };
   }
 
@@ -59,14 +65,14 @@ export class UserRequestBuilder extends RequestBuilder {
     const apiPath = this.getAPIPath('/get_groups');
     let endPoint = apiPath.href();
     if (!!query) {
-      const reqQueryStr = Object.keys(query).reduce(
-        (acc: string[], cur) => {
+      const reqQueryStr = Object.keys(query)
+        .reduce((acc: string[], cur) => {
           if (!!query[cur]) {
             acc.push(`${cur}=${query[cur]}`);
           }
           return acc;
-        },
-        []).join('&');
+        }, [])
+        .join('&');
       endPoint = `${endPoint}?${reqQueryStr}`;
     }
 
@@ -76,7 +82,7 @@ export class UserRequestBuilder extends RequestBuilder {
         ...this.AccessTokenObject
       },
       timeout: 20000,
-      url: endPoint,
+      url: endPoint
     };
   }
 
@@ -99,13 +105,13 @@ export class UserRequestBuilder extends RequestBuilder {
       },
       data,
       timeout: 20000,
-      url: endPoint,
+      url: endPoint
     };
   }
 
   public createGetLoginUserInfoQuery({
     method,
-    resources,
+    resources
   }: RequestParams<LoginUserRequestParam, {}>): IAxiosRequesterConfig {
     const { user_uid } = resources!;
     const apiPath = this.getAPIPath(`/login_user/${user_uid}`);
@@ -116,12 +122,12 @@ export class UserRequestBuilder extends RequestBuilder {
         ...this.AccessTokenObject
       },
       timeout: 5000,
-      url: apiPath.href(),
+      url: apiPath.href()
     };
   }
 
   public getAllSlackUserInfosQuery({
-    method,
+    method
   }: RequestParams<{}, {}>): IAxiosRequesterConfig {
     const apiPath = this.getAPIPath('/slack_users');
     return {
@@ -130,7 +136,7 @@ export class UserRequestBuilder extends RequestBuilder {
         ...this.AccessTokenObject
       },
       timeout: 10000,
-      url: apiPath.href(),
+      url: apiPath.href()
     };
   }
 
@@ -148,7 +154,7 @@ export class UserRequestBuilder extends RequestBuilder {
         ...this.AccessTokenObject
       },
       timeout: 10000,
-      url: apiPath.href(),
+      url: apiPath.href()
     };
   }
 
@@ -156,7 +162,10 @@ export class UserRequestBuilder extends RequestBuilder {
     method,
     resources,
     body
-  }: RequestParams<AddQueueRequestParam, AddQueueRequestBodyParam>): IAxiosRequesterConfig {
+  }: RequestParams<
+    AddQueueRequestParam,
+    AddQueueRequestBodyParam
+  >): IAxiosRequesterConfig {
     const { userId } = resources!;
     const apiPath = this.getAPIPath(`/get_user/${userId}/queue`);
 
@@ -167,7 +176,7 @@ export class UserRequestBuilder extends RequestBuilder {
       },
       data: body,
       timeout: 10000,
-      url: apiPath.href(),
+      url: apiPath.href()
     };
   }
 
@@ -184,7 +193,43 @@ export class UserRequestBuilder extends RequestBuilder {
         ...this.AccessTokenObject
       },
       timeout: 10000,
-      url: apiPath.href(),
+      url: apiPath.href()
+    };
+  }
+
+  public activeAdminRoleQuery({
+    method,
+    resources
+  }: RequestParams<{ user_id: string }, {}>): IAxiosRequesterConfig {
+    const apiPath = this.getAPIPath(`/active_admin_role/${resources?.user_id}`);
+    const endPoint = apiPath.href();
+
+    return {
+      method,
+      headers: {
+        ...this.AccessTokenObject
+      },
+      timeout: 20000,
+      url: endPoint
+    };
+  }
+
+  public deactiveAdminRoleQuery({
+    method,
+    resources
+  }: RequestParams<{ user_id: string }, {}>): IAxiosRequesterConfig {
+    const apiPath = this.getAPIPath(
+      `/deactive_admin_role/${resources?.user_id}`
+    );
+    const endPoint = apiPath.href();
+
+    return {
+      method,
+      headers: {
+        ...this.AccessTokenObject
+      },
+      timeout: 20000,
+      url: endPoint
     };
   }
 }

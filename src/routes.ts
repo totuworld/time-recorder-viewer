@@ -10,12 +10,18 @@ import QueueFindContainer from './components/queue/find/container';
 import RecordContainer from './components/record/container';
 import RecordFuseVacationContainer from './components/record/fuse_vacation/container';
 import RecordOverloadContainer from './components/record/overload/container';
+import UserContainer from './components/user/container';
 
 export default [
   {
     path: '/',
     exact: true,
     component: HomeContainer
+  },
+  {
+    path: '/user/:user_id',
+    exact: true,
+    component: UserContainer
   },
   {
     path: '/records/:user_id', // 개인 로그 등록 및 살펴보기

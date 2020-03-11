@@ -8,6 +8,7 @@ export interface IUserItem {
 
 export interface IUserInfo extends IUserItem {
   profile_url: string;
+  userUid?: string;
 }
 
 export interface ISlackUserInfo extends IUserInfo {

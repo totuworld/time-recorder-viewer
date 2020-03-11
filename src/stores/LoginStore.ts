@@ -105,4 +105,56 @@ export default class LoginStore {
       this.userInfo = null;
     });
   }
+
+  @action
+  public async activeAdminRole({ userId }: { userId: string }) {
+    if (this.isLoading === true) {
+      return false;
+    }
+    try {
+      this.isLoading = true;
+
+      const rbParam: RequestBuilderParams = { isProxy: true };
+
+      const rb = new UserRequestBuilder(rbParam);
+      const userAction = new User(rb);
+      const resp = await userAction.activeAdminRole({ userId });
+      if (resp.type === EN_REQUEST_RESULT.ERROR) {
+        return false;
+      }
+      return runInAction(() => {
+        this.isLoading = false;
+        return true;
+      });
+    } catch (error) {
+      this.isLoading = false;
+      throw error;
+    }
+  }
+
+  @action
+  public async deactiveAdminRole({ userId }: { userId: string }) {
+    if (this.isLoading === true) {
+      return false;
+    }
+    try {
+      this.isLoading = true;
+
+      const rbParam: RequestBuilderParams = { isProxy: true };
+
+      const rb = new UserRequestBuilder(rbParam);
+      const userAction = new User(rb);
+      const resp = await userAction.deactiveAdminRole({ userId });
+      if (resp.type === EN_REQUEST_RESULT.ERROR) {
+        return false;
+      }
+      return runInAction(() => {
+        this.isLoading = false;
+        return true;
+      });
+    } catch (error) {
+      this.isLoading = false;
+      throw error;
+    }
+  }
 }
