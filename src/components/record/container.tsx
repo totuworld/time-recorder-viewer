@@ -475,32 +475,31 @@ class RecordContainer extends React.Component<
     const userInfo = this.loginUserStore.UserInfo;
     const loginUserInfo = this.loginUserStore.LoginUserInfo;
     // 자신의 데이터 이거나 관리자 일때만 modal open한다.
-    if (!!userInfo && !!loginUserInfo) {
-      if (!!loginUserInfo.auth && data.type !== EN_WORK_TYPE.FUSEOVERLOAD) {
-        // 관리자는 하고 싶은거 다해~ 대신 차감만 못건드려. 이건 민감하거든 :)
-        this.setState({
-          ...this.state,
-          isModalOpen: true,
-          isFuseModalOpen: false,
-          isFuseToVacationModalOpen: false,
-          fuseHours: luxon.Duration.fromObject({ hours: 0 }),
-          updateData: { key, data }
-        });
-      } else if (
-        this.props.userId === userInfo.id &&
-        data.type !== EN_WORK_TYPE.FUSEOVERLOAD
-      ) {
-        // 자신의 데이터는 금주의 데이터 && 자신의 데이터 && 차감이 아닐 때
-        this.setState({
-          ...this.state,
-          isModalOpen: true,
-          isFuseModalOpen: false,
-          isFuseToVacationModalOpen: false,
-          fuseHours: luxon.Duration.fromObject({ hours: 0 }),
-          updateData: { key, data }
-        });
+    if (
+      !!userInfo && // 사용자 정보 확인
+      !!loginUserInfo && // 로그인 사용자 정보 확인
+      (!!loginUserInfo.auth || this.props.userId === userInfo.id) // 관리자 혹은 자신의 데이터인지 확인
+    ) {
+      if (data.type !== EN_WORK_TYPE.FUSEOVERLOAD) {
+        // FUSEOVERLOAD가 아니면 실행
+        this.openDeleteWorklogModal(key, data);
+      }
+      // FUSEOVERLOAD 라도 fuseKey가 있으면 실행
+      if (data.type === EN_WORK_TYPE.FUSEOVERLOAD && !!data.fuseKey) {
+        this.openDeleteWorklogModal(key, data);
       }
     }
+  }
+
+  private openDeleteWorklogModal(key: string, data: ITimeRecordLogData) {
+    this.setState({
+      ...this.state,
+      isModalOpen: true,
+      isFuseModalOpen: false,
+      isFuseToVacationModalOpen: false,
+      fuseHours: luxon.Duration.fromObject({ hours: 0 }),
+      updateData: { key, data }
+    });
   }
 
   public getSingleDayElement() {
@@ -883,12 +882,16 @@ class RecordContainer extends React.Component<
     // 삭제 진행!
     const data = deleteData.data;
     // done 업데이트 여부 결정
-    if (data.type !== EN_WORK_TYPE.FUSEOVERLOAD) {
+    if (
+      data.type !== EN_WORK_TYPE.FUSEOVERLOAD ||
+      (data.type === EN_WORK_TYPE.FUSEOVERLOAD && !!data.fuseKey)
+    ) {
       await this.store.deleteTimeRecord(
         Auth.loginUserTokenKey!,
         this.loginUserStore.UserInfo!.id,
         luxon.DateTime.fromJSDate(this.state.startDate),
-        deleteData.key
+        deleteData.key,
+        data.fuseKey
       );
     }
     this.setState({ ...this.state, isModalOpen: false, updateData: undefined });
@@ -989,6 +992,7 @@ class RecordContainer extends React.Component<
               placeholder="time"
               defaultValue={startTime}
               innerRef={this.modalStartTimeRef}
+              disabled={data.type === EN_WORK_TYPE.FUSEOVERLOAD}
             />
           </FormGroup>
           {doneElement}
@@ -997,7 +1001,11 @@ class RecordContainer extends React.Component<
           <Button color="danger" onClick={this.deleteWorklog}>
             삭제
           </Button>
-          <Button color="success" onClick={this.saveWorklog}>
+          <Button
+            color="success"
+            disabled={data.type === EN_WORK_TYPE.FUSEOVERLOAD}
+            onClick={this.saveWorklog}
+          >
             저장
           </Button>
           <Button

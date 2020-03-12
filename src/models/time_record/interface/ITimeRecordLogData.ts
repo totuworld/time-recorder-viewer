@@ -5,4 +5,5 @@ export interface ITimeRecordLogData {
   time: string;
   type: EN_WORK_TYPE;
   done?: string;
+  fuseKey?: string;
 }

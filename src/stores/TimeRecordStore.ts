@@ -212,7 +212,8 @@ export default class TimeRecordStore {
     authUserId: string,
     userId: string,
     targetDate: luxon.DateTime,
-    logId: string
+    logId: string,
+    fuseKey?: string
   ): Promise<{ text: string | null }> {
     if (this.isLoading === true) {
       return { text: null };
@@ -222,10 +223,9 @@ export default class TimeRecordStore {
 
       const rbParam: RequestBuilderParams = { isProxy: true };
 
-      const today = luxon.DateTime.local();
-
       const checkParams = {
         body: {
+          fuseKey,
           auth_user_id: authUserId,
           user_id: userId,
           target_date: targetDate.toFormat('yyyyLLdd'),
@@ -242,6 +242,7 @@ export default class TimeRecordStore {
       );
       return runInAction(() => {
         this.isLoading = false;
+        console.log(actionResp.type);
         if (actionResp.type === EN_REQUEST_RESULT.SUCCESS) {
           return actionResp.data;
         }

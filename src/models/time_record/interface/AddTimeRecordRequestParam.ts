@@ -18,5 +18,6 @@ export interface RemoveTimeRecordRequestParam {
     target_date: string;
     /** 삭제 대상 워크로그 id */
     log_id: string;
+    fuseKey?: string;
   };
 }

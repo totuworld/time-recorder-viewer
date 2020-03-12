@@ -123,14 +123,15 @@ export class TimeRecordController {
 
   public async deleteTimeRecord(req: Request): Promise<TControllerResp<null>> {
     const rbParam: RequestBuilderParams = { baseURI: Config.getApiURI() };
-    const { user_id, auth_user_id, target_date, log_id } = req.body;
+    const { user_id, auth_user_id, target_date, log_id, fuseKey } = req.body;
 
     const checkParams = {
       body: {
         auth_user_id,
         user_id,
         target_date,
-        log_id
+        log_id,
+        fuseKey
       }
     };
 
